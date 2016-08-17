@@ -1,0 +1,39 @@
+#!/bin/sh
+# Busybox udhcpc dispatcher script. Copyright (C) 2009 by Axel Beckert.
+#
+# Based on the busybox example scripts and the old udhcp source
+# package default.* scripts.
+
+RESOLV_CONF="/etc/resolv.conf"
+
+case $1 in
+    bound|renew)
+	echo "IP=${ip}"
+	echo "SubnetMask=${subnet}"
+	echo "Gateway=${router}"
+	echo "DNS=${dns}"
+
+	[ -n "${broadcast}" ] && BROADCAST="broadcast ${broadcast}"
+	[ -n "${subnet}" ] && NETMASK="/${subnet}"
+
+	/sbin/ip addr flush label ${interface}
+	/sbin/ip addr add ${ip}${NETMASK} ${BROADCAST} dev ${interface}
+	;;
+
+    deconfig)
+	/sbin/ip addr flush label ${interface}
+	;;
+
+    leasefail)
+	echo "$0: Lease failed: ${message}"
+	;;
+
+    nak)
+	echo "$0: Received a NAK: ${message}"
+	;;
+
+    *)
+	echo "$0: Unknown udhcpc command: $1";
+	exit 1;
+	;;
+esac

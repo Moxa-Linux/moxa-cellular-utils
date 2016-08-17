@@ -1,0 +1,1739 @@
+#!/bin/bash
+#
+#       Copyright (C) MOXA Inc. All rights reserved.
+#       Copyright (C) 2014-2015  Lock Lin <Lock.Lin@moxa.com>
+#       Copyright (C) 2015       Harry YJ Jhou <HarryYJ.Jhou@moxa.com>
+#
+#       This software is distributed under the terms of the
+#       MOXA License.  See the file COPYING-MOXA for details.
+#
+#       cell_mgmt
+#               cellular management. It supports sierra MC9090 MC7304 MC7354.
+#
+ 
+
+#--------- Initialize Global variables ---------
+VERSION="1.9.3"
+BUILD_DATE="16081515"
+SCRIPTNAME=$(basename $0)
+LOCK_DIR="/var/lock/${SCRIPTNAME}"
+CELL_MGMT_PID=$$
+
+
+_exit() {
+	flock -u 9 2>/dev/null
+	exit $1
+}
+
+# check lock file and creat lock file
+check_lockfile(){
+for pid in $(pidof -x cell_mgmt); do
+	if [ $pid != $$ ]; then
+		echo "cell_mgmt is busy, please wait a moment and try again"
+		_exit 60
+	fi
+done
+}
+#check_lockfile
+
+#QMI
+#new libqmi includes a tool called "qmi-proxy"
+#use qmicli -p means interaction with the QMI interface of modem by "qmi-proxy"
+QMICLI="/usr/bin/qmicli"
+QMICLI_END="-p"
+if [ -e /usr/local/libexec/qmi-proxy ]; then
+	QMI_PROXY="/usr/local/libexec/qmi-proxy"
+else
+	QMI_PROXY="/usr/lib/libqmi/qmi-proxy"
+fi
+
+# profile
+PROFILE_FILE=/etc/qmi-network.conf
+KVERSION="$(kversion | awk '{print $1}')"
+
+load_profile ()
+{
+	. $PROFILE_FILE
+	#KVERSION=UC-8162-LX
+	eval "${KVERSION}_profile" 2>/dev/null
+	if [ x"$?" != x"0" ]; then
+		echo "Error: kversion or profile not found."
+		_exit 9
+	fi
+}
+
+_sierra_wireless ()
+{
+	local module_path=${1}
+	local slot_id=${2}
+	local vendor_id=${3}
+	local product_id=${4}
+	local module_name="${5}"
+	local dev_id=${module_path//\/*\//}
+
+	case "${product_id}" in
+		"68c0")
+			ALL_QMI_PROTOCOL[${#ALL_QMI_PROTOCOL[@]}]="802-3"
+			ALL_INTERFACE[${#ALL_INTERFACE[@]}]=$(ls $module_path/$dev_id:*.8/$SYS_NET/ 2>/dev/null)
+			ALL_QMI_PORT[${#ALL_QMI_PORT[@]}]=$(ls $module_path/$dev_id:*.8/$SYS_USB/ 2>/dev/null)
+			ALL_GPS_PORT[${#ALL_GPS_PORT[@]}]=$(ls $module_path/$dev_id:*.2/ 2>/dev/null | grep tty)
+			ALL_AT_PORT[${#ALL_AT_PORT[@]}]=$(ls $module_path/$dev_id:*.3/ 2>/dev/null | grep tty)
+			;;
+		"9071")
+			ALL_MODULE_NAME[${slot_id}]=$(echo "${module_name}" | grep -o 'MC[^ ]*')
+			ALL_QMI_PROTOCOL[${#ALL_QMI_PROTOCOL[@]}]="raw-ip"
+			ALL_INTERFACE[${#ALL_INTERFACE[@]}]=$(ls $module_path/$dev_id:*.10/$SYS_NET/ 2>/dev/null)
+			ALL_QMI_PORT[${#ALL_QMI_PORT[@]}]=$(ls $module_path/$dev_id:*.10/$SYS_USB/ 2>/dev/null)
+			ALL_GPS_PORT[${#ALL_GPS_PORT[@]}]=$(ls $module_path/$dev_id:*.2/ 2>/dev/null | grep tty)
+			ALL_AT_PORT[${#ALL_AT_PORT[@]}]=$(ls $module_path/$dev_id:*.3/ 2>/dev/null | grep tty)
+			;;
+		*)
+			#echo "Unknown Module : $module_name"
+			return 1
+			;;
+	esac
+}
+
+_module_info ()
+{
+	local module_path=${1}
+	local slot_id=${2}
+	local vendor_id=${3}
+	local product_id=${4}
+	local module_name="${5}"
+	case "${vendor_id}" in
+		"1199")
+			_sierra_wireless ${module_path} ${slot_id} ${vendor_id} ${product_id} "${module_name}"
+			;;
+		*)
+			#echo "Unknown Module : $module_name"
+			return 1
+			;;
+	esac
+
+}
+
+search_wwan_node ()
+{
+	
+	local module_name
+	local vendor_id
+	local product_id
+	local temp_path1
+	local temp_path2
+	local slot_num="0"
+	for i in ${MODULE_PATH[@]}
+	do
+		let slot_num++
+		if [ -e $i ]; then
+			vendor_id=$(cat $i/idVendor 2> /dev/null)
+			product_id=$(cat $i/idProduct 2> /dev/null)
+			module_name=$(cat $i/product 2> /dev/null)
+			ALL_MODULE_NAME[${#ALL_MODULE_NAME[@]}]=${module_name}
+			ALL_SLOT_NUM[${#ALL_SLOT_NUM[@]}]=$slot_num
+		else
+			continue
+		fi
+
+		_module_info $i $((${slot_num}-1)) ${vendor_id} ${product_id} "${module_name}"
+		if [ $? -eq 0 ]; then
+			return 0
+		fi
+
+		# temp_path1=/sys/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/1-1.3.1
+		# temp_path2=1-1.3.1
+		# temp_path3=1-1.3.1:?.?
+		temp_path1=${i//\/product/} && temp_path2=${temp_path1//\/*\//}
+
+		for temp_path3 in $(ls $temp_path1 2>/dev/null | grep $temp_path2)
+		do
+			if [ x"$(ls $temp_path1/$temp_path3 2>/dev/null | grep $SYS_NET)" != x"" ]; then
+				SYS_NET_0=$temp_path3
+			fi
+			if [ x"$(ls $temp_path1/$temp_path3 2>/dev/null | grep $SYS_USB)" != x"" ]; then
+				SYS_USB_0=$temp_path3
+			fi
+		done
+
+		case "${module_name}" in
+			"MC7354"|"MC7304")
+				ALL_INTERFACE[${#ALL_INTERFACE[@]}]=$(ls $temp_path1/$SYS_NET_0/$SYS_NET/ 2>/dev/null)
+				ALL_QMI_PORT[${#ALL_QMI_PORT[@]}]=$(ls $temp_path1/$SYS_USB_0/$SYS_USB/ 2>/dev/null)
+				ALL_GPS_PORT[${#ALL_GPS_PORT[@]}]=$(ls $temp_path1/$temp_path2:1.2/ 2>/dev/null | grep tty)
+				ALL_AT_PORT[${#ALL_AT_PORT[@]}]=$(ls $temp_path1/$temp_path2:1.3/ 2>/dev/null | grep tty)
+				;;
+			"MC9090")
+				ALL_INTERFACE[${#ALL_INTERFACE[@]}]=$(ls $temp_path1/$SYS_NET_0/$SYS_NET/ 2>/dev/null)
+				ALL_QMI_PORT[${#ALL_QMI_PORT[@]}]=$(ls $temp_path1/$SYS_USB_0/$SYS_USB/ 2>/dev/null)
+				ALL_GPS_PORT[${#ALL_GPS_PORT[@]}]=$(ls $temp_path1/$temp_path2:1.3/ 2>/dev/null | grep tty)
+				ALL_AT_PORT[${#ALL_AT_PORT[@]}]=$(ls $temp_path1/$temp_path2:1.2/ 2>/dev/null | grep tty)
+				;;
+			"PH8"|"LTE Modem")
+				ALL_INTERFACE[${#ALL_INTERFACE[@]}]=$(ls $temp_path1/$temp_path2:1.4/$SYS_NET/ 2>/dev/null)
+				ALL_QMI_PORT[${#ALL_QMI_PORT[@]}]=$(ls $temp_path1/$temp_path2:1.4/$SYS_USB/ 2>/dev/null)
+				ALL_GPS_PORT[${#ALL_GPS_PORT[@]}]=$(ls $temp_path1/$temp_path2:1.1/ 2>/dev/null | grep tty)
+				ALL_AT_PORT[${#ALL_AT_PORT[@]}]=$(ls $temp_path1/$temp_path2:1.2/ 2>/dev/null | grep tty)
+				;;
+			#for U-Blox L280
+			"MODEM-LTE")
+				ALL_INTERFACE[${#ALL_INTERFACE[@]}]=$(ls $temp_path1/$temp_path2:1.0/$SYS_NET/ 2>/dev/null)
+				ALL_QMI_PORT[${#ALL_QMI_PORT[@]}]="NotSupport"
+				ALL_GPS_PORT[${#ALL_GPS_PORT[@]}]="NotSupport"
+				ALL_AT_PORT[${#ALL_AT_PORT[@]}]=$(ls $temp_path1/$temp_path2:1.2/tty 2>/dev/null | grep tty)
+				;;
+			"YUGA Incorporated")
+				ALL_INTERFACE[${#ALL_INTERFACE[@]}]=$(ls $temp_path1/$SYS_NET_0/$SYS_NET/ 2>/dev/null)
+				ALL_QMI_PORT[${#ALL_QMI_PORT[@]}]=$(ls $temp_path1/$SYS_USB_0/$SYS_USB/ 2>/dev/null)
+				ALL_GPS_PORT[${#ALL_GPS_PORT[@]}]=""
+				ALL_AT_PORT[${#ALL_AT_PORT[@]}]=$(ls $temp_path1/$temp_path2:1.2/ 2>/dev/null | grep tty)
+				;;
+			#FIX Telit LE910
+			"Android")
+				ALL_INTERFACE[${#ALL_INTERFACE[@]}]=$(ls $temp_path1/$temp_path2:1.2/$SYS_NET/ 2>/dev/null)
+				ALL_QMI_PORT[${#ALL_QMI_PORT[@]}]=$(ls $temp_path1/$temp_path2:1.2/$SYS_USB/ 2>/dev/null)
+				ALL_GPS_PORT[${#ALL_GPS_PORT[@]}]=$(ls $temp_path1/$temp_path2:1.3/ 2>/dev/null | grep tty)
+				ALL_AT_PORT[${#ALL_AT_PORT[@]}]=$(ls $temp_path1/$temp_path2:1.4/ 2>/dev/null | grep tty)
+				;;
+			*)
+				echo "Unknown Module : $module_name"
+				;;
+		esac
+
+	done
+}
+
+# search GPS_PORT AT_PORT QMI_PORT QMI_NODE
+set_port ()
+{
+	MODULE_NAME="${ALL_MODULE_NAME[$INTERFACE]}"	
+	SLOT="${ALL_SLOT_NUM[$INTERFACE]}"
+	QMI_PROTOCOL=${ALL_QMI_PROTOCOL[${INTERFACE}]}
+
+	QMI_NODE="${ALL_INTERFACE[$INTERFACE]}"
+	if [ x"${ALL_QMI_PORT[$INTERFACE]}" == x"NotSupport" ]; then
+		QMI_PORT="${ALL_QMI_PORT[$INTERFACE]}"
+	else
+		QMI_PORT="/dev/${ALL_QMI_PORT[$INTERFACE]}"
+	fi
+	AT_PORT="/dev/${ALL_AT_PORT[$INTERFACE]}"
+	if [ x"${ALL_GPS_PORT[$INTERFACE]}" == x"NotSupport" ]; then
+		GPS_PORT="NotSupport"
+	else
+		GPS_PORT="/dev/${ALL_GPS_PORT[$INTERFACE]}"
+	fi
+	##for ublox L2xx
+	#[ x"MODEM-LTE" == x"$MODULE_NAME" ] && AT_PORT="/dev/ttyACM0"
+}
+
+init ()
+{
+	unset ALL_MODULE_NAME
+	unset ALL_SLOT_NUM
+	unset ALL_INTERFACE
+	unset ALL_QMI_PORT
+	unset ALL_AT_PORT
+	unset ALL_GPS_PORT
+
+	if [ -f $PROFILE_FILE ]; then
+		load_profile
+		search_wwan_node
+		set_port
+	else
+		echo "Error: $PROFILE_FILE does not exist." && _exit
+	fi
+}
+
+init
+#__debug__
+# state file for different interface
+if [ x"$INTERFACE" == x"" -o x"$INTERFACE" == x"0" ]; then
+	STATE_FILE=/tmp/qmi-network-state
+else
+	STATE_FILE=/tmp/qmi-network-state$INTERFACE
+fi
+
+
+#--------- Initialize Global variables ---------
+
+#--------- qmi-network functions -----------
+_qmicli()
+{
+	local i
+	local qmi_cmd=""
+	local qmi_std=""
+	local qmi_err=""
+	local qmi_ret=0
+	local cmd=""
+
+	qmi_cmd="$QMICLI -d $QMI_PORT $@ $QMICLI_END"
+	#echo ${qmi_cmd}
+
+	for i in {1..5}; do
+		eval "$( (${qmi_cmd}) 2> \
+			>(qmi_err=$(cat); typeset -p qmi_err) > \
+			>(qmi_std=$(cat); typeset -p qmi_std); \
+			qmi_ret=$?; typeset -p qmi_ret )"
+		# error 3 (internal) and 31 (invalid service type)
+		if ! (echo ${qmi_err} | grep "QMI protocol error (3)") && 
+			! (echo ${qmi_err} | grep "QMI protocol error (31)"); then
+			echo "${qmi_std}"
+			return 0
+		fi
+	done
+
+	# reset qmi service
+	>&2 echo "Internal error, reset module"
+	cell_power_cycle
+	echo "Module reset, please try again"
+	_exit 1
+}
+
+_qmicli_value()
+{
+	local output="$1"
+	local key="$2"
+	local num="$3"
+	local num_opt=""
+	local cmd=""
+
+	if [ -z "${3}" ]; then
+		num=1
+	fi
+	num_opt="| sed -n ${num}p"
+
+	cmd="echo \"${output}\" | awk '/${key}:/{ print}' ${num_opt} | \
+		sed \"s/^[^:]*: [']*//;s/[' \t]*$//\""
+	#echo "${output}" | grep "${key}:" | cut -d':' -f 2 | \
+	#        sed "s/^[ \t']*//;s/[' \t]*$//"
+	#echo "${output}" | awk '/^[\t ]*'"${key}"':/{ print}' | cut -d':' -f 2 | \
+	#	sed "s/^[ \t']*//;s/[' \t]*$//"
+	#	sed "s/^[ \t']*[a-zA-Z -]*: [']*//;s/[' \t]*$//"
+	#echo "${output}" | awk '/'"${key}"':/{ print}' | \
+	#	sed "s/^[^:]*: [']*//;s/[' \t]*$//"
+	eval "${cmd}"
+}
+
+save_state ()
+{
+	local KEY=$1
+	local VAL=$2
+
+	echo "Saving state... ($KEY: $VAL)"
+
+	if [ -f $STATE_FILE ]; then
+		PREVIOUS=`cat $STATE_FILE 2>/dev/null`
+		PREVIOUS=`echo "$PREVIOUS" | grep -v $KEY`
+		if [ "x$PREVIOUS" != "x" ]; then
+			echo $PREVIOUS > $STATE_FILE
+		else
+			rm $STATE_FILE
+		fi
+	fi
+
+	if [ "x$VAL" != "x" ]; then
+		echo "$KEY=\"$VAL\"" >> $STATE_FILE
+	fi
+}
+
+load_state ()
+{
+	if [ -f $STATE_FILE ]; then
+		# Loading previous state
+		. $STATE_FILE
+	fi
+}
+
+clear_state ()
+{
+	echo "Clearing state..."
+	rm -f $STATE_FILE
+}
+
+start_network ()
+{
+	local is_raw_ip="N"
+	local raw_ip_file="/sys/class/net/${QMI_NODE}/qmi/raw_ip"
+
+	if [ "x$CID" != "x" ]; then
+		USE_PREVIOUS_CID="--client-cid=$CID"
+	fi
+
+	if [ "x$PDH" != "x" ]; then
+		echo "error: cannot re-start network, PDH already exists" 1>&2
+		_exit 3
+	fi
+
+	# initialize the interface with protocol
+	if [ x"${QMI_PROTOCOL}" == x"802-3" ]; then
+		is_raw_ip=N
+	elif [ x"${QMI_PROTOCOL}" == x"raw-ip" ]; then
+		is_raw_ip=Y
+	else
+		QMI_PROTOCOL="802-3"
+		is_raw_ip=N
+	fi
+
+	if [ -f "${raw_ip_file}" ]; then
+		echo ${is_raw_ip} > ${raw_ip_file} 2> /dev/null
+	elif [ x"${QMI_PROTOCOL}" == x"raw-ip" ]; then
+		echo "error: raw-ip not supported" 1>&2
+		_exit 1
+	fi
+	_qmicli --set-expected-data-format=${QMI_PROTOCOL}
+
+	#START_NETWORK_CMD="$QMICLI -d $QMI_PORT --wds-start-network=$APN --client-no-release-cid --device-open-net=net-802-3|net-no-qos-header $QMICLI_END"
+	START_NETWORK_CMD="_qmicli --wds-start-network=$APN --client-no-release-cid --device-open-net=net-${QMI_PROTOCOL}|net-no-qos-header"
+	echo "Starting network with '$START_NETWORK_CMD'..."
+
+	if [ "x$QMIDEBUG" != "x" ]; then
+		if [ x"$INTERFACE" == x"" -o x"$INTERFACE" == x"1" ]; then
+			START_NETWORK_OUT="\
+[/dev/cdc-wdm0] Network started
+        Packet data handle: '3634026241'
+[/dev/cdc-wdm0] Client ID not released:
+        Service: 'wds'
+        CID: '80'"
+		else
+			START_NETWORK_OUT="\
+[/dev/cdc-wdm1] Network started
+        Packet data handle: '363402624$3'
+[/dev/cdc-wdm1] Client ID not released:
+        Service: 'wds'
+        CID: '80'"
+		fi
+	else
+		START_NETWORK_OUT=`$START_NETWORK_CMD`
+	fi
+
+	# Save the new CID if we didn't use any before
+	if [ "x$CID" = "x" ]; then
+		CID=`echo "$START_NETWORK_OUT" | sed -n "s/.*CID.*'\(.*\)'.*/\1/p"`
+		if [ "x$CID" = "x" ]; then
+			echo "error: network start failed, client not allocated" 1>&2
+			_exit 1
+		else
+			save_state "CID" $CID
+		fi
+	fi
+
+	PDH=`echo "$START_NETWORK_OUT" | sed -n "s/.*handle.*'\(.*\)'.*/\1/p"`
+	if [ "x$PDH" = "x" ]; then
+		echo "error: network start failed, no packet data handle" 1>&2
+		# Cleanup the client
+		#$QMICLI -d "$QMI_PORT" --wds-noop --client-cid="$CID" $QMICLI_END
+		_qmicli --wds-noop --client-cid="$CID"
+		clear_state
+		_exit 2
+	else
+		save_state "PDH" $PDH
+	fi
+
+	echo "Network started successfully"
+}
+
+stop_network ()
+{
+	if [ "x$CID" = "x" ]; then
+		echo "Network already stopped"
+	elif [ "x$PDH" = "x" ]; then
+		echo "Network already stopped; need to cleanup CID $CID"
+		# Cleanup the client
+		#$QMICLI -d "$QMI_PORT" --wds-noop --client-cid="$CID" $QMICLI_END
+		_qmicli --wds-noop --client-cid="$CID"
+	else
+		#STOP_NETWORK_CMD="$QMICLI -d $QMI_PORT --wds-stop-network=$PDH --client-cid=$CID $QMICLI_END"
+		STOP_NETWORK_CMD="_qmicli --wds-stop-network=$PDH --client-cid=$CID"
+		echo "Stopping network with '$STOP_NETWORK_CMD'..."
+
+		if [ "x$QMIDEBUG" != "x" ]; then
+			STOP_NETWORK_OUT="\
+[/dev/cdc-wdm$INTERFACE] Network stopped
+"
+		else
+			STOP_NETWORK_OUT=`$STOP_NETWORK_CMD`
+		fi
+
+		echo "Network stopped successfully"
+	fi
+
+	clear_state
+}
+
+_packet_service_status ()
+{
+	if [ "x$CID" != "x" ]; then
+		USE_PREVIOUS_CID="--client-cid=$CID --client-no-release-cid"
+	fi
+
+	#STATUS_CMD="$QMICLI -d $QMI_PORT --wds-get-packet-service-status $USE_PREVIOUS_CID $QMICLI_END"
+	STATUS_CMD="_qmicli --wds-get-packet-service-status $USE_PREVIOUS_CID"
+	echo "Getting status with '$STATUS_CMD'..."
+
+	if [ "x$QMIDEBUG" != "x" ]; then
+		CONN="disconnected"
+	else
+		CONN="$(_qmicli_value "$(${STATUS_CMD})" "Connection status")"
+	fi
+
+	if [ "x$CONN" = "x" ]; then
+		echo "error: couldn't get packet service status" 1>&2
+		_exit 2
+	else
+		echo "Status: $CONN"
+		if [ "x$CONN" != "xconnected" ]; then
+			_exit 64
+		fi
+	fi
+}
+
+# Load previous state, if any
+load_state
+
+#--------- qmi-network functions -----------
+
+
+#check proxy status
+chk_proxy_status () {
+	local proxy_status=`ps ax | grep -v "grep" | grep "qmi-proxy"`	
+
+	#if [ ! -e ${QMI_PORT} ]; then
+	#	_exit 
+	#fi
+
+	if [ -z "$proxy_status" ]; then
+		#running in the background
+		start-stop-daemon --start --oknodo --quiet --background \
+			--exec ${QMI_PROXY}
+	fi
+}
+
+kill_proxy() {
+	local proxy_pid=`ps wwax | grep -v "grep" | grep "qmi-proxy" | awk '{print $1}'`
+	if [ ! -z "${proxy_pid}" ]; then
+		kill ${proxy_pid}
+	fi
+}
+
+#check cellular status
+cell_status () {
+
+	# check Ublox L2xx module
+	if [ x"MODEM-LTE" == x"$MODULE_NAME" ]; then
+		Ublox_L2xx_cell_status
+		_exit 0
+	fi
+	
+	flock -u 9 2>/dev/null
+
+	local con_status=$(_packet_service_status | grep "Status")
+	echo ${con_status}
+	if [ x"$(echo ${con_status}| awk '{print $2}')" == x"connected" ]; then
+		_exit 0
+	else
+		_exit 1
+	fi
+}
+
+cell_signal_csq () {
+	local signal
+
+	signal=$(cell_at_cmd 'AT+CSQ\r\n')
+	if $(echo "${signal}" | grep -q "ERROR"); then
+		echo "-1"
+		_exit 1
+	fi
+	signal=$(echo "${signal}" | grep "+CSQ" | awk '{print $2}' | cut -d',' -f1)
+	echo ${signal}
+}
+
+#cellular signal strength in dbm
+cell_signal () {
+	
+	# check Ublox L2xx module
+	if [ x"MODEM-LTE" == x"$MODULE_NAME" ]; then
+		Ublox_L2xx_cell_signal
+		_exit 0
+	fi
+
+	flock -u 9 2>/dev/null
+
+	local signal 
+	#signal=`$QMICLI -d ${QMI_PORT} --nas-get-signal-strength $QMICLI_END | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
+	signal=`_qmicli --nas-get-signal-strength | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
+	signal_dbm="$(echo $signal | awk '{print $2}')"
+	if [ "$signal_dbm" -le "-1" 2>/dev/null ] && [ "$signal_dbm" -ge "-110" 2>/dev/null ] ; then
+		echo "${signal} dbm"
+		return 0
+	else
+		echo "signal out of range"
+		return 1
+	fi
+}
+
+#cellular signal strength in dbm
+cell_signal_adv () {
+	
+	# check Ublox L2xx module
+	if [ x"MODEM-LTE" == x"$MODULE_NAME" ]; then
+		Ublox_L2xx_cell_signal
+		_exit 0
+	fi
+
+	flock -u 9 2>/dev/null
+
+	local csq
+	local rssi
+	local ecio
+	local signal 
+	csq=$(cell_signal_csq)
+
+	signal=$(_qmicli --nas-get-signal-strength | \
+		 sed "s/'\|'://g;s/^[ \t]*Network //g")
+	rssi=$(echo "${signal}" | awk '/Current:/{getline; print}')
+	ecio=$(echo "${signal}" | awk '/ECIO:/{getline; print}')
+
+	echo "CSQ: ${csq}"
+	echo "RSSI: ${rssi}"
+	echo "EcIo: ${ecio}"
+	return 0
+}
+
+#cellular power on by GPIO
+cell_power_on () {
+	local m_info=""
+	local module=""
+	local at_port=""
+
+	IFS=$'\n'
+	for i in $POWER_ON_FUN ;
+	do
+		eval "$i"
+	done
+
+	while ((1))
+	do
+		# reset port
+		init > /dev/null 2>&1
+
+		m_info=$(cell_m_info)
+		module=$(echo "${m_info}" | grep Module)
+		at_port=$(echo "${m_info}" | grep AT_port)
+		[ x"$module" != x"Module=" ] && [ x"$at_port" != x"AT_port=/dev/" ] && break
+		sleep 1
+	done
+
+}
+
+#cellular power off by GPIO
+cell_power_off () {
+	local m_info=""
+	local module=""
+	local at_port=""
+
+	cell_stop;
+	kill_proxy
+	
+	IFS=$'\n'
+	for i in $POWER_OFF_FUN ;
+	do
+		eval "$i"
+	done
+
+	while ((1))
+	do
+		# reset port
+		init > /dev/null 2>&1
+
+		m_info=$(cell_m_info)
+		module=$(echo "${m_info}" | grep Module)
+		at_port=$(echo "${m_info}" | grep AT_port)
+		[ x"$module" == x"Module=" ] && [ x"$at_port" == x"AT_port=/dev/" ] && break
+		sleep 1
+	done
+}
+
+#cellular power off and on by GPIO
+cell_power_cycle () {
+	cell_power_off
+	sleep 1
+	cell_power_on
+}
+
+#dhclient
+cell_dhclient () {
+	local node="$1"
+	local ignore_dns_gw="$2"
+	local info_ip_mask=""
+	local info_ip=""
+	local info_mask=""
+	local info_gw=""
+	local info_dns=""
+	local ret=""
+
+	if [ x"$ignore_dns_gw" == x"1" ];   then
+		# check Ublox L2xx module
+		if [ x"MODEM-LTE" == x"$MODULE_NAME" ]; then
+cat << EOF > /etc/dhcp/dhclient-enter-hooks.d/no-default-route
+case \$reason in
+    BOUND|RENEW|REBIND|REBOOT)
+        unset new_domain_name_servers
+        unset new_routers
+      ;;
+esac
+EOF
+		else
+cat << EOF > /etc/dhcp/dhclient-enter-hooks.d/no-default-route
+case \$reason in
+    BOUND|RENEW|REBIND|REBOOT)
+        echo "IP=\$new_ip_address"
+        echo "SubnetMask=\$new_subnet_mask"
+        echo "Gateway=\$new_routers"
+        echo "DNS=\$new_domain_name_servers"
+        unset new_domain_name_servers
+        unset new_routers
+      ;;
+esac
+EOF
+		fi
+
+	fi
+	
+	# check Ublox L2xx module
+	if [ x"MODEM-LTE" == x"$MODULE_NAME" ]; then
+		ret="$(cell_at_cmd 'AT+CGCONTRDP' 1)"
+		# e.g. +CGCONTRDP: 1,0,"internet","10.38.142.94.255.255.255.255","10.38.142.94","168.95.1.1","168.95.192.1","0.0.0.0","0.0.0.0",0 OK
+		ret=${ret#*\",\"}
+		info_ip_mask=${ret%%\",\"*}
+		info_ip=$(echo $info_ip_mask | awk -F "." '{print $1"."$2"."$3"."$4}')
+		info_mask=$(echo $info_ip_mask | awk -F "." '{print $5"."$6"."$7"."$8}')
+		
+		ret=${ret#*\",\"}
+		info_gw=${ret%%\",\"*}
+	
+		ret=${ret#*\",\"}
+		dns1=${ret%%\",\"*}
+
+		ret=${ret#*\",\"}
+		dns2=${ret%%\",\"*}
+		
+		if [ x"$ignore_dns_gw" == x"1" ]; then
+			echo "IP=$info_ip"
+			echo "SubnetMask=$info_mask"
+			echo "Gateway=$info_gw"
+			echo "DNS=$dns1 $dns2"
+		else
+			echo "nameserver $dns1" > /etc/resolv.conf
+			echo "nameserver $dns2" >> /etc/resolv.conf
+		fi
+		ifconfig $node $info_ip
+		return
+	fi
+
+	dhclient $node
+	rm /etc/dhcp/dhclient-enter-hooks.d/no-default-route 2>/dev/null
+	
+}
+
+# udhcpc
+cell_udhcpc () {
+	local node="$1"
+	local ignore_dns_gw="$2"
+	local udhcpc_opt=""
+
+	if [ x"$ignore_dns_gw" == x"1" ];   then
+		udhcpc_opt="-s /etc/udhcpc/ignore-gw-dns.script"
+	fi
+	#udhcpc -q -f ${udhcpc_opt} -i $node
+	udhcpc -b -R ${udhcpc_opt} -i $node -p /var/run/udhcpc-${node}.pid
+}
+
+#	---------------for Ublox L2xx---------------
+Ublox_L2xx_cell_start () {
+	local ignore_dns_gw=$1
+	local retry=0
+	local ret
+	stty -F ${AT_PORT} -echo -onlcr -icrnl
+
+	# check USB interface (RNDIS)
+	ret=$(cell_at_cmd 'AT+UUSBCONF?' | grep "RNDIS" )
+	if [ x"$ret" == x"" ]; then
+		echo "Switch USB interface to RNDIS"
+		cell_at_cmd 'AT+UUSBCONF=3'
+		echo "Please try again"
+		_exit 5
+	fi
+
+	# check networking mode (bridge mode)
+	ret=$(cell_at_cmd 'AT+UBMCONF?' | grep "+UBMCONF:" )
+	if [ x"$ret" != x"+UBMCONF: 2" ]; then
+		echo "Switch networking mode to bridge mode"
+		cell_at_cmd 'AT+UBMCONF=2'
+		echo "Please try again"
+		_exit 6
+	fi
+
+	# APN
+	cell_at_cmd "AT+CGDCONT=1,\"IP\",\"$APN\"" > /dev/null
+	cell_at_cmd "AT+UCGDFLT=1,\"IP\",\"$APN\"" > /dev/null
+
+	# connect
+	if [ x"$(cell_at_cmd 'AT+CFUN?'| grep '+CFUN: 1' )" == x"" ]; then
+		cell_at_cmd 'AT+CFUN=1' > /dev/null
+		sleep 8
+	fi
+
+	# check 3G/4G
+	ret=$(cell_at_cmd 'AT+COPS?' | grep "+COPS:" )
+	cell_at_cmd 'AT+CGACT=1,1' 2 > /dev/null
+	
+	#echo $ret
+	#if [ x"$ret" == x"+COPS: 0" ]; then
+	#	cell_at_cmd 'AT+CGACT=1,1' > /dev/null
+	#fi
+	#sleep 3
+	ret=""
+	ret=$(cell_at_cmd 'AT+COPS?' | grep "+COPS:" )
+	if [ x"$ret" == x"" -o x"$ret" == x"+COPS: 0" ]; then
+		echo "Error: Can't connect to ISP"
+		_exit 7
+	#else
+	#	if [ x"$(echo $ret| grep '",7')" != x"" ]; then
+	#		#echo "4G"
+	#	elif [ x"$(echo $ret| grep '",2')" != x"" ]; then
+	#		echo "3G"
+	#	else
+	#		echo "Error: Can't identify 3G/4G signal"
+	#		_exit 8
+	#	fi
+	fi
+
+	cell_dhclient usb0 $ignore_dns_gw
+
+}
+
+Ublox_L2xx_cell_stop () {
+	#echo -n -e '+++\r\n' > ${AT_PORT}
+	#echo -n -e 'AT+CGACT=0,1\r\n' > ${AT_PORT}
+	dhclient -r $QMI_NODE
+	cell_at_cmd 'AT+CFUN=4' > /dev/null
+}
+
+Ublox_L2xx_cell_restart () {
+
+	Ublox_L2xx_cell_stop
+	sleep 5
+	Ublox_L2xx_cell_start
+
+}
+
+Ublox_L2xx_cell_status () {
+
+	local status_cops
+	local status_3g
+	local status_4g
+
+	status_cops="$(cell_at_cmd 'AT+COPS?\r\n' | grep '+COPS: 0')"
+	status_3g=$(cell_at_cmd 'AT+CGACT?\r\n' | grep '+CGACT: 1,1')
+	status_4g=$(cell_at_cmd 'AT+CGACT?\r\n' | grep '+CGACT: 4,1')
+
+	if [ x"$status_3g" != x"" -o x"$status_4g" != x"" ]; then
+		if [ x"$status_cops" == x"+COPS: 0" ]; then
+			echo "Status: disconnected"
+		else
+			echo "Status: connected"
+		fi
+	else
+		echo "Status: disconnected"
+	fi
+
+}
+
+Ublox_L2xx_cell_sim_status () {
+
+	local ret
+	ret=$(cell_at_cmd 'AT+CPIN?' | grep '+CPIN:')
+
+	if [ x"$ret" != x"" ]; then
+		echo "$ret"
+	else
+		echo "Please insert the cellular module and reboot."
+	fi
+
+}
+
+Ublox_L2xx_cell_signal () {
+	local signal
+
+	signal=$(cell_at_cmd 'AT+CSQ\r\n' | awk '{print $2}')
+	signal=${signal##*AT}
+	signal=${signal%%,*}
+	
+	if [ x"$signal" != x"" ]; then
+		if [ "$signal" -le "30" 2>/dev/null ] && [ "$signal" -ge "2" 2>/dev/null ] ; then
+			let signal=signal-2
+			let signal=signal*2-109
+			echo "umts $signal dbm"	
+		else
+			echo "signal out of range"
+		fi
+	else
+		echo "signal out of range"
+	fi
+}
+
+Ublox_L2xx_cell_pin_protection () {
+	local pin_num="$1"
+	local pin_enable="$2"
+	local pin_current="$3"
+	local ret
+
+	if [ x"$pin_num" != x"PIN" ]; then
+		echo "For this module, pin_protection support PIN(1) only."
+		_exit 99
+	fi
+
+	ret="$(cell_sim_status | grep 'READY')"
+	if [ x"$ret" == x"" ]; then
+		#unlock sim card
+		ret="$(cell_at_cmd "AT+CPIN=\"$pin_current\"" | grep 'ERROR')"
+		if [ x"$ret" != x"" ]; then
+			echo "PIN code error"
+			_exit 99
+		fi
+	fi
+
+	if [ x"$pin_enable" == x"enable" ]; then
+		pin_enable=1
+	elif [ x"$pin_enable" == x"disable" ]; then
+		pin_enable=0
+	else
+		echo "Usage:"	
+		echo -e "cell_mgmt pin_protection [PIN|PIN2] [enable|disable] [current_PIN]"
+		_exit 99
+	fi
+
+	if [ x"" == x"" ]; then
+		ret="$(cell_at_cmd \"AT+CLCK="SC",$pin_enable,\"$pin_current\"\" | grep 'ERROR')"
+		if [ x"$ret" != x"" ]; then
+			echo "Set PIN protection error."
+			_exit 99
+		fi
+	fi
+
+}
+
+#	--------------------------------------------
+
+# AT command 
+cell_at_cmd () {
+
+	local cmd="$1"
+	local time_out="$2"
+
+	if [ x"$cmd" == x"" ]; then
+		echo "command is null."
+		return
+	fi
+	
+	if [ x"${AT_PORT}" == x"/dev/" ]; then
+		echo "modem port not found."
+		return
+	fi
+	
+	if [ x"$time_out" == x"" ]; then
+		time_out=0.3
+	fi
+	
+	echo -n -e "ATE0\r\n" > ${AT_PORT}
+	timeout 0.3 cat ${AT_PORT} >/dev/null
+	echo -n -e "$cmd\r\n" > ${AT_PORT}
+	timeout $time_out cat ${AT_PORT} | tr -d '\r'
+
+}
+
+# module info
+cell_m_info () {
+
+	local lac=""
+	local cellid=""
+	local info_apn=""
+	local ret=""
+	local iccid=""
+	local imei=""
+
+
+	# different module's ICCID may have different command
+	# for ublox L2xx
+	if [ x"MODEM-LTE" == x"$MODULE_NAME" ]; then
+		iccid=$(cell_at_cmd 'AT+CCID' | grep '+CCID:' | awk '{print $2}' )
+	fi
+
+	if [ x"${QMI_PORT}" != x"NotSupport" ]; then
+		iccid=$(_qmicli_value "$(_qmicli --dms-uim-get-iccid)" "ICCID")
+		imei=$(_qmicli_value "$(_qmicli --dms-get-ids)" "IMEI")
+		cellid=$(_qmicli_value "$(_qmicli --nas-get-system-info)" "Cell ID")
+		lac=$(_qmicli_value "$(_qmicli --nas-get-cell-location-info)" "Location Area Code")
+	else
+		imei=$(cell_at_cmd 'at+cgsn' | grep -v "OK" | grep -v '^[[:space:]]*$')
+		cell_at_cmd 'AT+CREG=2' > /dev/null
+		ret=$(cell_at_cmd 'AT+CREG?' | grep '+CREG:' )
+		[ "${#ret}" -lt "11" ] && ret=""
+		if [ x"$ret" == x"" ]; then
+			lac="Unknown"
+			cellid="Unknown"
+		else
+			lac=${ret#*\"}
+			lac=${lac%%\"*}
+			cellid=${ret%\"*}
+			cellid=${cellid##*\"}
+		fi
+	fi
+
+	echo Module=$MODULE_NAME
+	echo WWAN_node=$QMI_NODE
+	echo AT_port=$AT_PORT
+	echo GPS_port=$GPS_PORT	
+	echo LAC=$lac
+	echo CellID=$cellid
+	echo ICC-ID=$iccid
+	echo IMEI=$imei
+	echo QMI_port=$QMI_PORT
+	#echo slot=$SLOT
+	#echo SYS_USB=$SYS_USB	
+
+}
+
+#cellular start
+cell_start () {
+	local card_status=""
+	local ignore_dns_gw=0
+	local interface_num="$INTERFACE"
+	[ x"$interface_num" == x"0" ] && interface_num=""
+	
+	local pin_status
+	APN="$(eval echo \$APN$interface_num)"
+	Username="$(eval echo \$Username$interface_num)"
+	Password="$(eval echo \$Password$interface_num)"
+	PIN="$(eval echo \$PIN$interface_num)" 
+
+	# modify APN Username Password PIN
+	for args in $@
+	do
+		for par in "APN" "Username" "Password" "PIN"
+		do
+			if [ $(echo $args | grep "$par=") ]; then
+				eval "$par=${args##*$par=}"
+				eval "sed -i s/$par$interface_num=.*/$par$interface_num=\$$par/ $PROFILE_FILE"
+			fi
+		done
+		[ x"$args" == x"ignore-dns-gw" ] && ignore_dns_gw=1
+	done
+	
+	# check APN
+	if [ x"$(eval echo \$APN$interface_num)" == x"" ]; then
+		echo "warning : APN is NULL."
+		echo "Usage:"
+		echo "	cell_mgmt \"start\"[APN=[APN], Username=[username], Password=[password], PIN=[pin_code]]"
+		echo "example:"
+		echo "          cell_mgmt start APN=internet Username=user Password=pass PIN=0000"
+		_exit 1
+	fi
+
+	# check Ublox L2xx module
+	if [ x"MODEM-LTE" == x"$MODULE_NAME" ]; then
+		Ublox_L2xx_cell_start $ignore_dns_gw
+		_exit 0
+	fi
+
+	# Check PIN status
+	# if PIN status are not verified
+	# use the PIN code user input to verify automatically.
+	card_status="$(_qmi_card_status | grep "+CPIN")"
+	if [ "$(echo "${card_status}" | grep "READY")" ]; then
+		echo "PIN code: Disabled or verified"
+	elif [ "$(echo "${card_status}" | grep "PIN")" ]; then
+		echo "PIN code: Not Verified"
+		_qmicli --uim-verify-pin=PIN1,$PIN
+		echo "Please wait ..."
+		sleep 10
+	elif [ "$(echo "${card_status}" | grep "PUK")" ]; then
+		#--uim-unblock-pin=[(PIN1|PIN2|UPIN),(PUK),(new PIN)]
+		echo "PIN code: Blocked"
+		echo "Please unblock PIN first."
+		_exit 1
+	else
+		echo "SIM card not available, please check."
+		_exit 1
+	fi
+
+	start_network
+	# query IP from DHCP Server 
+	ip link set ${QMI_NODE} up
+	if [ x"${QMI_PROTOCOL}" == x"raw-ip" ]; then
+		cell_udhcpc ${QMI_NODE} $ignore_dns_gw
+	else
+		cell_dhclient ${QMI_NODE} $ignore_dns_gw
+	fi
+
+	_exit 0
+}
+
+# verizon auto dialup
+cell_vzwauto () {
+	result=$(cell_at_cmd 'AT+CGDCONT?'|grep '+CGDCONT: 3')
+	APN=`echo $result|cut -d ',' -f 3|tr -d '"'`
+	export APN=${APN}
+	cell_start
+	echo -e "\n\n APN=${APN} is in used\n\n"
+}
+
+cell_pin_code_status () {
+
+	local card_status="$(_qmi_card_status | grep "+CPIN")"
+	if [ "$(echo "${card_status}" | grep "READY")" ]; then
+		echo "PIN code: Disabled or verified"
+	elif [ "$(echo "${card_status}" | grep "PIN")" ]; then
+		echo "PIN code: Not Verified"
+	elif [ "$(echo "${card_status}" | grep "PUK")" ]; then
+		echo "PIN code: Blocked"
+		_exit 1
+	else
+		echo "SIM card not available, please check."
+		_exit 1
+	fi
+}
+
+# cellular stop
+cell_stop () {
+	# check Ublox L2xx module
+	if [ x"MODEM-LTE" == x"$MODULE_NAME" ]; then
+		Ublox_L2xx_cell_stop
+		return 0
+	fi
+
+	# release IP by dhclient -r
+	if [ x"${QMI_NODE}" != x"" ]; then
+		if [ x"${QMI_PROTOCOL}" == x"raw-ip" ]; then
+			cat /var/run/udhcpc-${QMI_NODE}.pid 2> /dev/null| \
+				xargs --no-run-if-empty kill
+		else
+			dhclient -r ${QMI_NODE}
+		fi
+	fi
+	# cellular stop by qmi-network
+	stop_network
+}
+
+# cellular restart
+cell_restart () {
+	# check Ublox L2xx module
+	if [ x"MODEM-LTE" == x"$MODULE_NAME" ]; then
+		Ublox_L2xx_cell_restart
+		return 0
+	fi
+	# restart cellular (reconnect)
+	cell_stop
+	sleep 5
+	cell_start
+}
+
+# cellular reset
+cell_reset () {
+	# reset cellular (module)
+	echo -e -n "AT!RESET\r\n" > ${AT_PORT}
+	echo "Done!"
+}
+
+# cellular set to default
+cell_set_to_default () {
+	
+	local choise
+	
+	echo "WARNING:It will RESET module to factory default"	
+	read -p "Do you want to continune?(y/n):" choice
+
+	
+	# check module status 
+	cell_check_module 2>/dev/null
+	[ x"$?" != x"0" ] && _exit
+	
+	if [ $choice = "y" ]; then
+		# entercnd : Enable access to password-protected commands
+		echo -e -n "AT!NVBACKUP=0" > ${AT_PORT} &> /dev/null
+		# set to default
+		echo -e -n "AT!NVBACKUP=0" > ${AT_PORT} &> /dev/null
+		echo -e -n "AT!NVDEF" > ${AT_PORT} &> /dev/null
+		echo -e -n "AT!NVRESTORE=0" > ${AT_PORT} &> /dev/null
+		echo -e -n "AT!NVRESTORE=1" > ${AT_PORT} &> /dev/null
+		echo -e -n "AT!NVRESTORE=2" > ${AT_PORT} &> /dev/null
+
+		if [ -e "$PROFILE_FILE" ]; then
+			cell_restart	
+		else
+			echo "warning : file $PROFILE_FILE does not exist."
+			cell_stop
+			sleep 5
+			echo "you neet to set the config file by 'cell_mgmt start'."
+		fi
+	fi
+}
+
+_qmi_card_app_state() {
+	local app_state="$(_qmicli_value "${1}" "Application state")"
+
+	case "${app_state}" in
+		"pin1-or-upin-pin-required")
+			echo "+CPIN: SIM PIN"
+			;;
+		"puk1-or-upin-puk-required")
+			echo "+CPIN: SIM PUK"
+			;;
+		"ready")
+			echo "+CPIN: READY"
+			;;
+		*)
+			echo "+CME ERROR: SIM ${app_state}"
+			return 1
+			;;
+	esac
+}
+
+_qmi_card_status() {
+	local card_info="$(_qmicli --uim-get-card-status)"
+	local card_state="$(_qmicli_value "${card_info}" "Card state")"
+
+	case "${card_state}" in
+		"absent")
+			echo "+CME ERROR: SIM not inserted"
+			;;
+		"present")
+			_qmi_card_app_state "${card_info}"
+			;;
+		*)
+			echo "+CME ERROR: SIM ${card_state}"
+			return 1
+			;;
+	esac
+}
+
+# cellular sim status
+cell_sim_status () {
+	local ret
+
+	if [ x"${QMI_PORT}" != x"NotSupport" ]; then
+		ret=$(_qmi_card_status)
+	else
+		ret=$(cell_at_cmd 'AT+CPIN?' | grep '+CPIN:')
+	fi
+
+	if [ x"$ret" != x"" ]; then
+		echo "$ret"
+	else
+		echo "Please insert the sim card and reboot."
+		_exit 1
+	fi
+
+	_exit 0
+}
+
+
+# set pin code
+cell_set_pin () {
+
+	local ret
+	local pin_code="$1"
+	[ -z $pin_code ] && echo "Usage: cell_mgmt set_pin [pin_code]" && _exit 1
+	if [ -e $PROFILE_FILE ]; then
+		echo "old PIN=$PIN, new PIN=$pin_code"
+		sed -i "s/PIN=.*/PIN=$pin_code/" $PROFILE_FILE
+		if [ x"$(cell_sim_status |grep READY)" == x"" ]; then
+			ret=$(cell_at_cmd "AT+CPIN=$pin_code" | grep 'ERROR')
+			if [ x"$ret" != x"" ]; then
+				echo $ret
+				_exit 8
+			fi
+		fi
+		#verify pin code
+		#$QMICLI -d $QMI_PORT --uim-verify-pin=PIN1,$pin_code $QMICLI_END
+	else
+		echo -e "APN=\nusername=\npassword=\nPIN=$pin_code"
+	fi
+	_exit 0
+}
+
+# sim card pin code protection
+cell_pin_protection (){
+
+	# check Ublox L2xx module
+	if [ x"MODEM-LTE" == x"$MODULE_NAME" ]; then
+		Ublox_L2xx_cell_pin_protection $1 $2 $3
+		_exit 0
+	fi
+
+	local pin_num="$1"
+	local pin_enable="$2"
+	local pin_current="$3"
+	local par_fail="0"		
+	# user does not give current pin
+	[ $# -ne 3 ] && par_fail="1"
+	[ x"$pin_num" != x"PIN1" ] && [ x$pin_num != x"PIN2" ] && par_fail="1"
+	[ x"$pin_enable" != x"enable" ] && [ x$pin_enable != x"disable" ] && par_fail="1"
+
+	if [ $par_fail = "1" ]; then
+		echo "Usage: cell_mgmt pin_protection [PIN1|PIN2] [enable|disable] [current_PIN]"
+		_exit 1
+	else
+		#$QMICLI -d $QMI_PORT --uim-set-pin-protection=$pin_num,$pin_enable,$pin_current $QMICLI_END
+		_qmicli --uim-set-pin-protection=$pin_num,$pin_enable,$pin_current
+		_exit 0
+	fi
+
+}
+
+# set apn into PDP context id 1
+cell_set_apn () {
+
+	local ret
+	local apn="$1"
+	[ -z $apn ] && echo "Usage: cell_mgmt set_apn [apn]" && _exit 1
+	if [ -e $PROFILE_FILE ]; then
+		echo "old APN=$APN, new APN=$apn"
+		sed -i "s/APN=.*/APN=$apn/" $PROFILE_FILE
+	else
+		echo -e "APN=$apn\nusername=\npassword=\nPIN="
+	fi
+	APN=${apn}
+	cell_at_cmd 'AT+CFUN=4' > /dev/null
+	cell_at_cmd "AT+CGDCONT=1,\"IPV4V6\",\"$APN\"" > /dev/null
+	cell_at_cmd 'AT+CFUN=1' > /dev/null
+	_exit 0
+}
+
+# cellular gps on
+cell_gps_on () {
+	case "$MODULE_NAME" in
+		"MC7354"|"MC7304"|"MC9090"|"MC7455")
+			echo -n "\$GPS_START" > ${GPS_PORT}
+			;;
+		"PH8")
+			echo -n -e 'AT^SGPSC="Engine","1"\r\n' > ${AT_PORT}
+			;;
+		"Android")
+			echo -n -e 'AT$GPSNMUN=1,1,0,0,0,0,0\r\n' > ${AT_PORT}
+			sleep 1
+			echo -n -e 'AT$GPSP=1\r\n' > ${AT_PORT}
+			;;
+		*)
+			echo "errro module name: $MODULE_NAME" && _exit 1
+			;;
+	esac
+	echo "GPS function is *ENABLE*"
+}
+
+# cellular gps off
+cell_gps_off () {
+	case "$MODULE_NAME" in
+		"MC7354"|"MC7304"|"MC9090"|"MC7455")
+			echo -n "\$GPS_STOP" > ${GPS_PORT}
+			;;
+		"PH8")
+			echo -n -e 'AT^SGPSC="Engine","0"\r\n' > ${AT_PORT}
+			;;
+		"Android")
+			echo -n -e 'AT$GPSNMUN=0,1,0,0,0,0,0\r\n' > ${AT_PORT}
+			;;
+		*)
+			echo "errro module name: $MODULE_NAME" && _exit 1
+			;;
+	esac
+	echo "GPS function is *DISABLE*"
+}
+
+
+# check module
+cell_check_module () {
+
+	if [ x"${AT_PORT}" == x"/dev/" ]; then
+		echo "Please insert the cellular module and reboot."
+		return "1"
+	else
+		return "0"
+	fi
+
+}
+
+# chekc current carrier
+cell_check_carrier () {
+
+	# chekc module status 
+	cell_check_module
+	[ x"$?" != x"0" ] && _exit
+
+	if [ x"$MODULE_NAME" == x"MC7354" ]; then
+
+		local module_info=""
+		local time="4"
+
+		cell_at_cmd 'ATE0' > /dev/null
+		cell_at_cmd 'AT!entercnd="A710"' > /dev/null
+		module_info=$(cell_at_cmd 'AT!GOBISETIMAGEPREF?')
+
+		#preffered
+		local pre_fw=$(echo "$module_info" |grep "pre" | grep "fw" | awk -F: '{print $2}') && pre_fw=${pre_fw// /}
+		local pre_carrier_name=$(echo "$module_info"|grep "pre" | grep "carrier" | awk -F: '{print $2}') && \
+			pre_carrier_name=${pre_carrier_name// /}	
+		local pre_config=$(echo "$module_info"|grep "pre" | grep "config" | awk -F: '{print $2}' ) && \
+			pre_config=${pre_config// /}
+		
+		#current
+		local fw=$(echo "$module_info" |grep "current" | grep "fw" | awk -F: '{print $2}') && fw=${fw// /}
+		local carrier_name=$(echo "$module_info"|grep "current" | grep "carrier" | awk -F: '{print $2}') && \
+			carrier_name=${carrier_name// /}	
+		local config=$(echo "$module_info"|grep "current" | grep "config" | awk -F: '{print $2}' ) && \
+			config=${config// /}
+		
+		echo "----------Carrier Info----------"
+		echo "preffered firmware=$pre_fw"
+		echo "preffered carrier name=$pre_carrier_name"
+		echo "preffered carrier config=$pre_config"
+		
+		echo "firmware=$fw"
+		echo "carrier name=$carrier_name"
+		echo "carrier config=$config"
+		echo -e "--------------------------------"
+		_exit 0
+	elif [ x"$MODULE_NAME" == x"MC9090" ]; then
+		#$QMICLI -d ${QMI_PORT} --dms-list-stored-images $QMICLI_END
+		_qmicli --dms-list-stored-images
+		_exit 0 
+	else
+		echo "Check Carrier Frequency Bands support for MC7354 MC9090"
+		_exit 1 
+	fi
+}
+
+# switching between US carrier frequency bands
+cell_switch_carrier () {
+	
+	# chekc module information
+	cell_check_module
+	[ x"$?" != x"0" ] && _exit
+	
+	if [ x"$MODULE_NAME" == x"MC7354" ]; then
+	
+		local ISP=$1	
+		local module_info=""
+		local choice="1"	
+		local cmd="AT!GOBISETIMAGEPREF="
+
+		cell_at_cmd 'ATE0' > /dev/null
+
+		# enable password protected command
+		cell_at_cmd 'AT!entercnd="A710"' > /dev/null
+		#wait
+
+		echo "----------switch_carrier------------"	
+
+		# use AT+CGMR to get firmware infomation
+		module_info=$(cell_at_cmd 'AT+CGMR' | grep "_" )
+		module_info=${module_info/*_/}
+		module_info=${module_info/ */}
+		fw="$module_info"
+
+		[ x"$1" = x"ATT" ] && carrier="ATT"
+		[ x"$1" = x"Verizon" ] && carrier="VZW"
+		[ x"$1" = x"Sprint" ] && carrier="SPRINT"
+		[ x"$1" = x"Generic" ] && carrier="GENNA-UMTS"
+
+		# use AT!priid? to get carrier information 
+		module_info=$(cell_at_cmd 'AT!priid?' 2 | grep "$carrier")
+		config=$(echo $module_info | awk 'BEGIN {FS="_"}; {print $7}' )
+		config=${config}_$(echo $module_info | awk 'BEGIN {FS="_"}; {print $8}' )
+
+		case "$1" in
+			Verizon)	
+				cmd="${cmd}\"${fw}\",\"VZW\",\"VZW_${config}\""
+				;;
+			ATT)
+				cmd="${cmd}\"${fw}\",\"ATT\",\"ATT_${config}\""
+				;;
+			Sprint)
+				cmd="${cmd}\"${fw}\",\"SPRINT\",\"SPRINT_${config}\""
+				;;
+			Generic)
+				cmd="${cmd}\"${fw}\",\"GENNA-UMTS\",\"GENNA-UMTS_${config}\""
+				;;
+			*)	
+				echo -e "Usage: "
+				echo -e "       switch_carrier [$CARRIER]"	
+				choice="0"
+				;;
+		esac
+		# switching function is MC7354 only
+		if [ "$choice" -eq "1" ]; then
+
+			echo "cmd=$cmd"
+			cell_at_cmd 'ATE0'
+			cell_at_cmd 'AT!entercnd="A710"'
+			cell_at_cmd "$cmd"
+			
+			echo "wait for power cycle..."
+			cell_power_cycle
+
+		fi
+	elif [ x"$MODULE_NAME" == x"MC9090" ]; then
+		carrier=""
+		[ x"$1" = x"ATT" ] && carrier="pri0"
+		[ x"$1" = x"Verizon" ] && carrier="pri2"
+		[ x"$1" = x"Sprint" ] && carrier="pri1"
+		[ x"$1" = x"Generic" ] && carrier="pri0"
+		if [ x"$carrier" == x"" ]; then
+			echo -e "Usage: "
+			echo -e "       switch_carrier [$CARRIER]"
+			_exit 1
+		fi
+		#$QMICLI -d ${QMI_PORT} --dms-select-stored-image=modem2,$carrier $QMICLI_END 
+		_qmicli --dms-select-stored-image=modem2,$carrier
+		sleep 1
+		#$QMICLI -d ${QMI_PORT} --dms-set-operating-mode=offline $QMICLI_END
+		_qmicli --dms-set-operating-mode=offline
+		sleep 1
+		#$QMICLI -d ${QMI_PORT} --dms-set-operating-mode=reset $QMICLI_END
+		_qmicli --dms-set-operating-mode=reset
+		sleep 1 
+		_exit 0
+	else
+		echo "Switching Carrier Frequency Bands support for MC7354 MC9090"
+		_exit 1
+	fi
+}
+
+
+# telecommunication operator
+cell_operator () {
+	local result
+	result=$(cell_at_cmd 'AT+COPS?' | grep COPS:)
+	result=${result#*,\"}
+	result=${result%%\",*}
+	if [ x"$(echo $result | grep COPS)" != x ]; then
+		echo "Unknown telecom operator"
+	else
+		echo $result
+	fi
+	
+}
+
+# cell_mgmt setinterface
+cell_interface () {
+
+	case $1 in
+		"0" | "1" | "2" | "3")
+			[ $1 -ge ${#ALL_INTERFACE[@]} ] && echo "Interface out of range." && _exit 1 
+			sed -i "s/INTERFACE=.*/INTERFACE=$1/" $PROFILE_FILE
+			echo "set interface=$1"
+			_exit 0
+			;;
+		"")
+			for (( i=0 ; i<${#ALL_INTERFACE[@]} ; i++ ))
+			do
+				echo "[$i] ${ALL_INTERFACE[$i]}$([ x$i == x$INTERFACE ] && echo '   <Current>')"
+			done
+			;;
+		*)
+			echo "Usage: cell_mgmt \"interface\" [0~3]"
+			echo "example:"
+			echo "          cell_mgmt interface 0"
+			_exit 1
+			;;
+	esac
+
+}
+
+# cell_mgmt version
+cell_version () {
+	echo "cell_mgmt"
+	echo "version:$VERSION"
+}
+
+# show cell_mgmt usage list
+cell_usage () {
+	echo -e "cell_mgmt support sierra MC9090 MC7304 MC7354"
+	echo -e "Usage: "
+	echo -e "      $0 [OPTIONS]\n"
+	echo -e "OPTIONS"
+	#start
+	echo -e "       start [APN=[APN],Username=[user],Password=[pass],PIN=[pin_code]]"
+	echo -e "		Start network."
+	echo -e ""
+ 	echo -e "               example:"
+	echo -e "                       cell_mgmt start"
+	echo -e "                       cell_mgmt start APN=internet"
+	echo -e "                       cell_mgmt start APN=internet PIN=0000"
+	echo -e "                       cell_mgmt start APN=internet Username=moxa Password=pass PIN=0000"
+	#stop
+	echo -e "       stop"	
+	echo -e "		Stop network."
+	#restart
+	echo -e "       restart"	
+	echo -e "		Restart network."
+	#reset
+	echo -e "       reset"	
+	echo -e "		Reset cellular."
+	#power on
+	echo -e "       power_on"	
+	echo -e "		Power ON."
+	#power off 
+	echo -e "       power_off"	
+	echo -e "		Power OFF."
+	#power cycle 
+	echo -e "       power_cycle"	
+	echo -e "		Power cycle"
+	#gps on
+	echo -e "       gps_on"	
+	echo -e "		GPS ON."
+	#gps off 
+	echo -e "       gps_off"	
+	echo -e "		GPS OFF."
+	#status 
+	echo -e "       status"	
+	echo -e "		Query network connection status."
+	#signal 
+	echo -e "       signal"	
+	echo -e "		Get signal strength."
+	#set_default 
+	echo -e "       set_default"	
+	echo -e "		RESET module to factory default."
+	#at 
+	echo -e "       at ['AT_COMMAND']"	
+	echo -e "		Input AT Command."
+	echo -e "		Must use SINGLE QUOTATION to enclose AT Command."
+	#sim_status
+	echo -e "       sim_status"	
+	echo -e "		Query sim card status."
+	#set_pin 
+	echo -e "       set_pin [PIN]"	
+	echo -e "		Set PIN code to configuration file."
+	#protection_pin 
+	echo -e "       pin_protection [PIN1|PIN2] [enable|disable] [current_PIN]"
+	echo -e "		Set PIN protection in the UIM."
+	#set_apn 
+	echo -e "       set_apn [APN]"	
+	echo -e "		Set APN to configuration file."
+	#check_carrier 
+	echo -e "       check_carrier"	
+	echo -e "		Check current carrier."
+	#switch_carrier 
+	echo -e "       switch_carrier [$CARRIER]"	
+	echo -e "		Switching between US carrier frequency bands."
+	#interface
+	echo -e "       interface [#slot]"	
+	echo -e "		Switching and checking module slot."
+	#m_info
+	echo -e "       m_info"	
+	echo -e "		Module information."
+	#operator
+	echo -e "       operator"	
+	echo -e "		Telecommunication operator."
+	#verizon auto dial up
+	echo -e "       vzwauto"	
+	echo -e "		Verizon Private Network auto dialup."
+	#version
+	echo -e "       version"	
+	echo -e "		Cellular management version."
+
+}
+
+#chk_proxy_status
+
+(
+	flock -w 60 9 || { echo "cell_mgmt is busy, please wait a moment and try again" ; _exit 1; }
+	case "$1" in
+		start)
+			cell_start $2 $3 $4 $5
+			;;
+		stop)
+			cell_stop
+			;;
+		reset)
+			cell_reset
+			;;
+		restart)
+			cell_restart
+			;;
+		gps_on)
+			cell_gps_on
+			;;
+		gps_off)
+			cell_gps_off
+			;;
+		power_on)
+			cell_power_on
+			;;
+		power_off)
+			cell_power_off
+			;;
+		power_cycle)
+			cell_power_cycle
+			;;
+		status)
+			cell_status
+			;;
+		signal)
+			cell_signal
+			;;
+		signal_adv)
+			cell_signal_adv
+			;;
+		set_default)
+			cell_set_to_default
+			;;
+		sim_status)
+			cell_sim_status
+			;;
+		pin_code_status)
+			cell_pin_code_status
+			;;
+		set_pin)
+			cell_set_pin $2
+			;;
+		pin_protection)
+			cell_pin_protection $2 $3 $4
+			;;
+		set_apn)
+			cell_set_apn $2
+			;;
+		check_carrier)
+			cell_check_carrier
+			;;
+		switch_carrier)
+			cell_switch_carrier $2
+			;;
+		at)
+			cell_at_cmd $2 $3
+			;;
+		version)
+			cell_version
+			;;
+		interface)
+			cell_interface $2
+			;;
+		m_info)
+			cell_m_info
+			;;
+		operator)
+			cell_operator
+			;;
+		vzwauto)
+			cell_vzwauto
+			;;
+		help)
+			cell_usage	
+			;;
+		*)
+			cell_usage
+			_exit 3
+			;;
+	esac
+
+	flock -u 9
+) 9> /tmp/cell_mgmt.lock

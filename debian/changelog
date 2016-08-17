@@ -1,0 +1,54 @@
+moxa-cellular-utils (1.9.3) unstable; urgency=low
+
+  * Fix: wrong profile location assigned.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Mon, 25 Jul 2016 18:24:00 +0800
+
+moxa-cellular-utils (1.9.2) unstable; urgency=low
+
+  * Fix: do not execute `qmi-proxy`, blocking issue may occurred.
+    `qmicli` will spawn it if necessary.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Fri, 22 Jul 2016 10:28:27 +0800
+
+moxa-cellular-utils (1.9.1) unstable; urgency=low
+
+  * Fix: interface should be `up` before calling `udhcpc`.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 21 Jul 2016 18:35:23 +0800
+
+moxa-cellular-utils (1.9.0-1) unstable; urgency=low
+
+  * Remove libqmi-1.12.6 binaries (dependency added).
+  * Add diversion for udhcpc default script.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Fri, 15 Jul 2016 09:29:06 +0800
+
+moxa-cellular-utils (1.9.0) unstable; urgency=low
+
+  * Support Sierra Wireless MC7455.
+  * Depends on `libqmi-1.14.2` and `udhcpc`.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 14 Jul 2016 18:10:54 +0800
+
+moxa-cellular-utils (1.8.0) unstable; urgency=low
+
+  * Match with real version.
+  * Power cycle module when qmi port seems crash.
+  * Remove help and warning color.
+  * Provide set_apn for updating APN.
+  * Support Verizon private network auto dialing (vzwauto).
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Mon, 20 Jun 2016 13:25:04 +0800
+
+moxa-cellular-utils (1.0.1) unstable; urgency=low
+
+  * Add "QMI_port" to "cell_mgmt m_info" output.
+
+ -- Harry Jhou <HarryYJ.Jhou@moxa.com>  Tue, 12 Jan 2016 09:03:05 +0800
+
+moxa-cellular-utils (1.0.0) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Wes Huang <Wes.Huang@moxa.com>  Thu, 10 Dec 2015 17:58:30 +0800

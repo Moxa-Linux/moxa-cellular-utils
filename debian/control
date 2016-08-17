@@ -1,0 +1,14 @@
+Source: moxa-cellular-utils
+Section: net
+Priority: optional
+Maintainer: Aeluin Chen <aeluin.chen@moxa.com>
+Build-Depends: debhelper (>= 9)
+Standards-Version: 3.9.5
+Homepage: http://www.moxa.com/
+#Vcs-Git: git://anonscm.debian.org/collab-maint/uc8100me-cellular-utils.git
+#Vcs-Browser: http://anonscm.debian.org/?p=collab-maint/uc8100me-cellular-utils.git;a=summary
+
+Package: moxa-cellular-utils
+Architecture: all
+Depends: ${misc:Depends}, udhcpc, libqmi-utils (>= 1.14.2)
+Description: Cellular modem utility on Moxa computer.
