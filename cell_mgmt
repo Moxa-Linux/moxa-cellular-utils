@@ -1644,9 +1644,18 @@ cell_usage () {
 }
 
 #chk_proxy_status
+force=0
+for var in "$@"; do
+	if [ "${var}" == "force" ]; then
+		force=1
+		break
+	fi
+done
 
 (
-	flock -w 60 9 || { echo "cell_mgmt is busy, please wait a moment and try again" ; _exit 1; }
+	if [ ${force} -eq 0 ]; then
+		flock -w 60 9 || { echo "cell_mgmt is busy, please wait a moment and try again" ; _exit 1; }
+	fi
 	case "$1" in
 		start)
 			cell_start $2 $3 $4 $5
@@ -1735,5 +1744,7 @@ cell_usage () {
 			;;
 	esac
 
-	flock -u 9
+	if [ ${force} -eq 0 ]; then
+		flock -u 9
+	fi
 ) 9> /tmp/cell_mgmt.lock
