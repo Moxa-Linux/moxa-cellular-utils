@@ -13,8 +13,8 @@
  
 
 #--------- Initialize Global variables ---------
-VERSION="1.9.3"
-BUILD_DATE="16081515"
+VERSION="1.9.4"
+BUILD_DATE="16090111"
 SCRIPTNAME=$(basename $0)
 LOCK_DIR="/var/lock/${SCRIPTNAME}"
 CELL_MGMT_PID=$$
