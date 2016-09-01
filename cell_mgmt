@@ -956,8 +956,10 @@ cell_at_cmd () {
 # module info
 cell_m_info () {
 
+	local info=""
 	local lac=""
 	local cellid=""
+	local lcid=""
 	local info_apn=""
 	local ret=""
 	local iccid=""
@@ -971,10 +973,19 @@ cell_m_info () {
 	fi
 
 	if [ x"${QMI_PORT}" != x"NotSupport" ]; then
+		info="$(_qmicli --nas-get-cell-location-info)"
+		local service="$(echo "${info}" | sed -n 2p | sed 's/[\t ]Info//g')"
+		if [[ ${service} == CDMA* ]]; then
+			cellid=$(_qmicli_value "${info}" "Base Station ID")
+			lac=$(_qmicli_value "${info}" "Network ID")
+		else
+			cellid=$(_qmicli_value "${info}" "Cell ID")
+			lac=$(_qmicli_value "${info}" "Location Area Code")
+			lcid=$(_qmicli_value "${info}" "${service} Cell ID")
+		fi
+
 		iccid=$(_qmicli_value "$(_qmicli --dms-uim-get-iccid)" "ICCID")
 		imei=$(_qmicli_value "$(_qmicli --dms-get-ids)" "IMEI")
-		cellid=$(_qmicli_value "$(_qmicli --nas-get-system-info)" "Cell ID")
-		lac=$(_qmicli_value "$(_qmicli --nas-get-cell-location-info)" "Location Area Code")
 	else
 		imei=$(cell_at_cmd 'at+cgsn' | grep -v "OK" | grep -v '^[[:space:]]*$')
 		cell_at_cmd 'AT+CREG=2' > /dev/null
@@ -1000,6 +1011,7 @@ cell_m_info () {
 	echo ICC-ID=$iccid
 	echo IMEI=$imei
 	echo QMI_port=$QMI_PORT
+	echo LCID=$lcid
 	#echo slot=$SLOT
 	#echo SYS_USB=$SYS_USB	
 
