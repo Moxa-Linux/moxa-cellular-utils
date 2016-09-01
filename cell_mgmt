@@ -21,7 +21,9 @@ CELL_MGMT_PID=$$
 
 
 _exit() {
-	flock -u 9 2>/dev/null
+	if [ ${force} -eq 0 ]; then
+		flock -u 9 2>/dev/null
+	fi
 	exit $1
 }
 
