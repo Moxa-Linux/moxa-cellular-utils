@@ -18,10 +18,11 @@ BUILD_DATE="16090111"
 SCRIPTNAME=$(basename $0)
 LOCK_DIR="/var/lock/${SCRIPTNAME}"
 CELL_MGMT_PID=$$
+FORCE=0
 
 
 _exit() {
-	if [ ${force} -eq 0 ]; then
+	if [ ${FORCE} -eq 0 ]; then
 		flock -u 9 2>/dev/null
 	fi
 	exit $1
@@ -1658,16 +1659,15 @@ cell_usage () {
 }
 
 #chk_proxy_status
-force=0
 for var in "$@"; do
 	if [ "${var}" == "force" ]; then
-		force=1
+		FORCE=1
 		break
 	fi
 done
 
 (
-	if [ ${force} -eq 0 ]; then
+	if [ ${FORCE} -eq 0 ]; then
 		flock -w 60 9 || { echo "cell_mgmt is busy, please wait a moment and try again" ; _exit 1; }
 	fi
 	case "$1" in
@@ -1758,7 +1758,7 @@ done
 			;;
 	esac
 
-	if [ ${force} -eq 0 ]; then
+	if [ ${FORCE} -eq 0 ]; then
 		flock -u 9
 	fi
 ) 9> /tmp/cell_mgmt.lock
