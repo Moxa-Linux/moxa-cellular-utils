@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.9.5) unstable; urgency=low
+
+  * Feature: Support Telit on MC-1100
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 22 Sep 2016 11:48:30 +0800
+
 moxa-cellular-utils (1.9.4) unstable; urgency=low
 
   * Feature: Add `force` arg for not using lock
