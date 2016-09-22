@@ -1292,7 +1292,7 @@ cell_sim_status () {
 
 
 # set pin code
-cell_set_pin () {
+cell_unlock_pin () {
 
 	local ret
 	local pin_code="$1"
@@ -1664,9 +1664,12 @@ cell_usage () {
 	#sim_status
 	echo -e "       sim_status"	
 	echo -e "		Query sim card status."
-	#set_pin 
+	#unlock_pin 
+	echo -e "       unlock_pin [PIN]"	
+	echo -e "		Unlock PIN code and save to configuration file."
+	#set_pin (deprecated, use unlock_pin instead)
 	echo -e "       set_pin [PIN]"	
-	echo -e "		Set PIN code to configuration file."
+	echo -e "		Unlock PIN code and save to configuration file."
 	#protection_pin 
 	echo -e "       pin_protection [PIN1|PIN2] [enable|disable] [current_PIN]"
 	echo -e "		Set PIN protection in the UIM."
@@ -1755,8 +1758,11 @@ done
 		pin_code_status)
 			cell_pin_code_status
 			;;
+		unlock_pin)
+			cell_unlock_pin $2
+			;;
 		set_pin)
-			cell_set_pin $2
+			cell_unlock_pin $2
 			;;
 		pin_protection)
 			cell_pin_protection $2 $3 $4
