@@ -1292,7 +1292,7 @@ cell_sim_status () {
 
 
 # set pin code
-cell_set_pin () {
+cell_unlock_pin () {
 
 	local ret
 	local pin_code="$1"
@@ -1361,6 +1361,17 @@ cell_set_apn () {
 	cell_at_cmd "AT+CGDCONT=1,\"IPV4V6\",\"$APN\"" > /dev/null
 	cell_at_cmd 'AT+CFUN=1' > /dev/null
 	_exit 0
+}
+
+# +CNUM: "ABC","12345678901",129
+# OK
+cell_number() {
+	number=$(cell_at_cmd 'AT+CNUM?' | grep "+CNUM" | head -1 | sed 's/"//g')
+	if [ ! -z "${number}" ]; then
+		echo $(echo "${number}" | cut -d ',' -f 2)
+	else
+		echo "No number."
+	fi
 }
 
 # cellular gps on
@@ -1664,15 +1675,21 @@ cell_usage () {
 	#sim_status
 	echo -e "       sim_status"	
 	echo -e "		Query sim card status."
-	#set_pin 
+	#unlock_pin 
+	echo -e "       unlock_pin [PIN]"	
+	echo -e "		Unlock PIN code and save to configuration file."
+	#set_pin (deprecated, use unlock_pin instead)
 	echo -e "       set_pin [PIN]"	
-	echo -e "		Set PIN code to configuration file."
+	echo -e "		Unlock PIN code and save to configuration file."
 	#protection_pin 
 	echo -e "       pin_protection [PIN1|PIN2] [enable|disable] [current_PIN]"
 	echo -e "		Set PIN protection in the UIM."
 	#set_apn 
 	echo -e "       set_apn [APN]"	
 	echo -e "		Set APN to configuration file."
+	#number 
+	echo -e "       number"	
+	echo -e "		Get SIM number."
 	#check_carrier 
 	echo -e "       check_carrier"	
 	echo -e "		Check current carrier."
@@ -1755,14 +1772,20 @@ done
 		pin_code_status)
 			cell_pin_code_status
 			;;
+		unlock_pin)
+			cell_unlock_pin $2
+			;;
 		set_pin)
-			cell_set_pin $2
+			cell_unlock_pin $2
 			;;
 		pin_protection)
 			cell_pin_protection $2 $3 $4
 			;;
 		set_apn)
 			cell_set_apn $2
+			;;
+		number)
+			cell_number
 			;;
 		check_carrier)
 			cell_check_carrier
