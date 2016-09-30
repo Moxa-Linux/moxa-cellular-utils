@@ -1363,6 +1363,17 @@ cell_set_apn () {
 	_exit 0
 }
 
+# +CNUM: "ABC","12345678901",129
+# OK
+cell_number() {
+	number=$(cell_at_cmd 'AT+CNUM?' | grep "+CNUM" | head -1 | sed 's/"//g')
+	if [ ! -z "${number}" ]; then
+		echo $(echo "${number}" | cut -d ',' -f 2)
+	else
+		echo "No number."
+	fi
+}
+
 # cellular gps on
 cell_gps_on () {
 	case "$MODULE_NAME" in
@@ -1676,6 +1687,9 @@ cell_usage () {
 	#set_apn 
 	echo -e "       set_apn [APN]"	
 	echo -e "		Set APN to configuration file."
+	#number 
+	echo -e "       number"	
+	echo -e "		Get SIM number."
 	#check_carrier 
 	echo -e "       check_carrier"	
 	echo -e "		Check current carrier."
@@ -1769,6 +1783,9 @@ done
 			;;
 		set_apn)
 			cell_set_apn $2
+			;;
+		number)
+			cell_number
 			;;
 		check_carrier)
 			cell_check_carrier
