@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.9.6) unstable; urgency=low
+
+  * Feature: Use `unlock_pin` instead of `set_pin`.
+  * Feature: Support SIM number.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 30 Sep 2016 18:09:18 +0800
+
 moxa-cellular-utils (1.9.5) unstable; urgency=low
 
   * Feature: Support Telit on MC-1100
