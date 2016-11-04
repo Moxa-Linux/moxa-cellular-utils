@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.9.7) unstable; urgency=medium
+
+  * Support MXcore01, VCG-1021-T, UC-8112-ME-T-LX C1D2 platforms. 
+
+ -- Wes Huang <wes.huang@moxa.com>  Fri, 04 Nov 2016 11:50:01 +0800
+
 moxa-cellular-utils (1.9.6) unstable; urgency=low
 
   * Feature: Use `unlock_pin` instead of `set_pin`.
