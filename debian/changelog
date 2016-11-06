@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.9.8) unstable; urgency=low
+
+  * Fix: Unexpected output of AT command.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Sun, 06 Nov 2016 11:30:05 +0800
+
 moxa-cellular-utils (1.9.7) unstable; urgency=medium
 
   * Support MXcore01, VCG-1021-T, UC-8112-ME-T-LX C1D2 platforms. 

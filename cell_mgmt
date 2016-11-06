@@ -13,8 +13,8 @@
  
 
 #--------- Initialize Global variables ---------
-VERSION="1.9.7"
-BUILD_DATE="16110416"
+VERSION="1.9.8"
+BUILD_DATE="16110611"
 SCRIPTNAME=$(basename $0)
 LOCK_DIR="/var/lock/${SCRIPTNAME}"
 CELL_MGMT_PID=$$
@@ -977,7 +977,8 @@ cell_at_cmd () {
 	if [ x"$time_out" == x"" ]; then
 		time_out=0.3
 	fi
-	
+
+	stty -F ${AT_PORT} -echo raw
 	echo -n -e "ATE0\r\n" > ${AT_PORT}
 	timeout 0.3 cat ${AT_PORT} >/dev/null
 	echo -n -e "$cmd\r\n" > ${AT_PORT}
