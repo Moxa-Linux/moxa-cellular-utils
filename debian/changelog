@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.9.10) unstable; urgency=low
+
+  * Fix: Version of libqmi should >= 1.16.2.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 01 Dec 2016 13:36:35 +0800
+
 moxa-cellular-utils (1.9.9) unstable; urgency=low
 
   * Fix: Work with libqmi-1.16.2.
