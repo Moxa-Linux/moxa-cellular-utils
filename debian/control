@@ -10,5 +10,5 @@ Homepage: http://www.moxa.com/
 
 Package: moxa-cellular-utils
 Architecture: all
-Depends: ${misc:Depends}, udhcpc, libqmi-utils (>= 1.14.2)
+Depends: ${misc:Depends}, udhcpc, libqmi-utils (>= 1.16.2)
 Description: Cellular modem utility on Moxa computer.
