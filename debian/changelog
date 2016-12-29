@@ -1,3 +1,11 @@
+moxa-cellular-utils (1.9.11) unstable; urgency=low
+
+  * Feat: Support UC-8580 with 1 module.
+  * Fix: `check_carrier` and `switch_carrier` used deprecated command,
+    and is not workable with latest MC7354 firmware.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 29 Dec 2016 19:46:13 +0800
+
 moxa-cellular-utils (1.9.10) unstable; urgency=low
 
   * Fix: Version of libqmi should >= 1.16.2.
