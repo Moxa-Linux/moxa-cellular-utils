@@ -13,8 +13,8 @@
  
 
 #--------- Initialize Global variables ---------
-VERSION="1.9.10"
-BUILD_DATE="16120113"
+VERSION="1.9.11"
+BUILD_DATE="16122919"
 SCRIPTNAME=$(basename $0)
 LOCK_DIR="/var/lock/${SCRIPTNAME}"
 CELL_MGMT_PID=$$
@@ -1442,7 +1442,7 @@ cell_check_carrier () {
 
 		cell_at_cmd 'ATE0' > /dev/null
 		cell_at_cmd 'AT!entercnd="A710"' > /dev/null
-		module_info=$(cell_at_cmd 'AT!GOBISETIMAGEPREF?')
+		module_info=$(cell_at_cmd 'AT!GOBIIMPREF?')
 
 		#preffered
 		local pre_fw=$(echo "$module_info" |grep "pre" | grep "fw" | awk -F: '{print $2}') && pre_fw=${pre_fw// /}
@@ -1490,7 +1490,7 @@ cell_switch_carrier () {
 		local ISP=$1	
 		local module_info=""
 		local choice="1"	
-		local cmd="AT!GOBISETIMAGEPREF="
+		local cmd="AT!GOBIIMPREF="
 
 		cell_at_cmd 'ATE0' > /dev/null
 
