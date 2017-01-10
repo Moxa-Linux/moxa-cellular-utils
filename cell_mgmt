@@ -1786,7 +1786,7 @@ done
 			cell_switch_carrier $2
 			;;
 		at)
-			cell_at_cmd $2 $3
+			cell_at_cmd "$2" $3
 			;;
 		version)
 			cell_version
