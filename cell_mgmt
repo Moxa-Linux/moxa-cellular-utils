@@ -634,10 +634,6 @@ cell_signal_adv () {
 
 #cellular power on by GPIO
 cell_power_on () {
-	local m_info=""
-	local module=""
-	local at_port=""
-
 	IFS=$'\n'
 	for i in $POWER_ON_FUN ;
 	do
@@ -649,21 +645,16 @@ cell_power_on () {
 		# reset port
 		init > /dev/null 2>&1
 
-		m_info=$(cell_m_info)
-		module=$(echo "${m_info}" | grep Module)
-		at_port=$(echo "${m_info}" | grep AT_port)
-		[ x"$module" != x"Module=" ] && [ x"$at_port" != x"AT_port=/dev/" ] && break
+		if [ x"${MODULE_NAME}" != x"" ]; then
+			break;
+		fi
+
 		sleep 1
 	done
-
 }
 
 #cellular power off by GPIO
 cell_power_off () {
-	local m_info=""
-	local module=""
-	local at_port=""
-
 	cell_stop;
 	kill_proxy
 	
@@ -678,10 +669,10 @@ cell_power_off () {
 		# reset port
 		init > /dev/null 2>&1
 
-		m_info=$(cell_m_info)
-		module=$(echo "${m_info}" | grep Module)
-		at_port=$(echo "${m_info}" | grep AT_port)
-		[ x"$module" == x"Module=" ] && [ x"$at_port" == x"AT_port=/dev/" ] && break
+		if [ x"${MODULE_NAME}" == x"" ]; then
+			break;
+		fi
+
 		sleep 1
 	done
 }
