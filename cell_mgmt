@@ -634,10 +634,6 @@ cell_signal_adv () {
 
 #cellular power on by GPIO
 cell_power_on () {
-	local m_info=""
-	local module=""
-	local at_port=""
-
 	IFS=$'\n'
 	for i in $POWER_ON_FUN ;
 	do
@@ -649,21 +645,16 @@ cell_power_on () {
 		# reset port
 		init > /dev/null 2>&1
 
-		m_info=$(cell_m_info)
-		module=$(echo "${m_info}" | grep Module)
-		at_port=$(echo "${m_info}" | grep AT_port)
-		[ x"$module" != x"Module=" ] && [ x"$at_port" != x"AT_port=/dev/" ] && break
+		if [ x"${MODULE_NAME}" != x"" ]; then
+			break;
+		fi
+
 		sleep 1
 	done
-
 }
 
 #cellular power off by GPIO
 cell_power_off () {
-	local m_info=""
-	local module=""
-	local at_port=""
-
 	cell_stop;
 	kill_proxy
 	
@@ -678,10 +669,10 @@ cell_power_off () {
 		# reset port
 		init > /dev/null 2>&1
 
-		m_info=$(cell_m_info)
-		module=$(echo "${m_info}" | grep Module)
-		at_port=$(echo "${m_info}" | grep AT_port)
-		[ x"$module" == x"Module=" ] && [ x"$at_port" == x"AT_port=/dev/" ] && break
+		if [ x"${MODULE_NAME}" == x"" ]; then
+			break;
+		fi
+
 		sleep 1
 	done
 }
@@ -1316,6 +1307,42 @@ cell_unlock_pin () {
 	_exit 0
 }
 
+_qmi_pin_retries() {
+	# [/dev/cdc-wdm0] PIN status retrieved successfully
+	# [/dev/cdc-wdm0] PIN1:
+	#	Status: enabled-verified
+	#	Verify: 3
+	#	Unblock: 10
+	# [/dev/cdc-wdm0] PIN2:
+	#	Status: blocked
+	#	Verify: 0
+	#	Unblock: 10
+
+	local pin_info="$(_qmicli --dms-uim-get-pin-status)"
+	local pin_status="$(_qmicli_value "${pin_info}" "Status" 1)"
+	local pin_retries="$(_qmicli_value "${pin_info}" "Verify" 1)"
+
+	case "${pin_status}" in
+		"enabled-verified"|"enabled-not-verified")
+			echo ${pin_retries}
+			;;
+		*)
+			echo 0
+			;;
+	esac
+}
+
+cell_pin_retries() {
+	local ret
+
+	if [ x"${QMI_PORT}" != x"NotSupport" ]; then
+		_qmi_pin_retries
+	else
+		cell_at_cmd 'AT+CPINR="SIM PIN"' | grep '+CPINR: SIM PIN' | \
+			cut -d ',' -f 2
+	fi
+}
+
 # sim card pin code protection
 cell_pin_protection (){
 
@@ -1682,6 +1709,10 @@ cell_usage () {
 	#set_pin (deprecated, use unlock_pin instead)
 	echo -e "       set_pin [PIN]"	
 	echo -e "		Unlock PIN code and save to configuration file."
+	echo -e "		Deprecated, use unlock_pin instead."
+	#pin_retries
+	echo -e "       pin_retries"
+	echo -e "		Get PIN code retry remain times."
 	#protection_pin 
 	echo -e "       pin_protection [PIN1|PIN2] [enable|disable] [current_PIN]"
 	echo -e "		Set PIN protection in the UIM."
@@ -1779,6 +1810,9 @@ done
 		set_pin)
 			cell_unlock_pin $2
 			;;
+		pin_retries)
+			cell_pin_retries
+			;;
 		pin_protection)
 			cell_pin_protection $2 $3 $4
 			;;
@@ -1795,7 +1829,7 @@ done
 			cell_switch_carrier $2
 			;;
 		at)
-			cell_at_cmd $2 $3
+			cell_at_cmd "$2" $3
 			;;
 		version)
 			cell_version
