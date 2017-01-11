@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.10.0) unstable; urgency=low
+
+  * Fix: Avoid AT command separated by space. 
+  * Feat: support PIN retries remains.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Wed, 11 Jan 2017 17:01:12 +0800
+
 moxa-cellular-utils (1.9.11) unstable; urgency=low
 
   * Feat: Support UC-8580 with 1 module.
