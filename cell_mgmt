@@ -1054,6 +1054,9 @@ cell_start () {
 	Password="$(eval echo \$Password$interface_num)"
 	PIN="$(eval echo \$PIN$interface_num)" 
 
+	echo "Note : Please remember to `set_apn` before start LTE connection,"
+	echo "       or the connection may fail."
+
 	# modify APN Username Password PIN
 	for args in $@
 	do
@@ -1386,7 +1389,11 @@ cell_set_apn () {
 	fi
 	APN=${apn}
 	cell_at_cmd 'AT+CFUN=4' > /dev/null
+	cell_at_cmd 'AT+CFUN=4' > /dev/null
+	cell_at_cmd 'AT+CFUN=4' > /dev/null
 	cell_at_cmd "AT+CGDCONT=1,\"IPV4V6\",\"$APN\"" > /dev/null
+	cell_at_cmd 'AT+CFUN=1' > /dev/null
+	cell_at_cmd 'AT+CFUN=1' > /dev/null
 	cell_at_cmd 'AT+CFUN=1' > /dev/null
 	_exit 0
 }
