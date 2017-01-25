@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.10.2) unstable; urgency=low
+
+  * Fix: Wrong package name caused remove package failed.
+  * Text: Add error notice after connection failed.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Wed, 25 Jan 2017 14:48:45 +0800
+
 moxa-cellular-utils (1.10.1) unstable; urgency=low
 
   * Text: Add notes before start connection.

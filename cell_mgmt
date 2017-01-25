@@ -13,7 +13,7 @@
  
 
 #--------- Initialize Global variables ---------
-VERSION="1.10.1"
+VERSION="1.10.2"
 BUILD_DATE="17011918"
 SCRIPTNAME=$(basename $0)
 LOCK_DIR="/var/lock/${SCRIPTNAME}"
