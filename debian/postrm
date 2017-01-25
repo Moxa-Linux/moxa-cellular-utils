@@ -18,7 +18,7 @@ set -e
 # for details, see http://www.debian.org/doc/debian-policy/ or
 # the debian-policy package
 
-PKG=moxa.cellular-utils
+PKG=moxa-cellular-utils
 
 rm_diversion() {
     dpkg-divert --package ${PKG} --rename --remove "$1"
