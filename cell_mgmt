@@ -13,8 +13,8 @@
  
 
 #--------- Initialize Global variables ---------
-VERSION="1.10.2"
-BUILD_DATE="17011918"
+VERSION="1.10.3"
+BUILD_DATE="17012516"
 SCRIPTNAME=$(basename $0)
 LOCK_DIR="/var/lock/${SCRIPTNAME}"
 CELL_MGMT_PID=$$
@@ -171,7 +171,7 @@ search_wwan_node ()
 
 		_module_info $i $((${slot_num}-1)) ${vendor_id} ${product_id} "${module_name}"
 		if [ $? -eq 0 ]; then
-			return 0
+			continue
 		fi
 
 		# temp_path1=/sys/devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.3/1-1.3.1
