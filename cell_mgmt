@@ -13,7 +13,7 @@
  
 
 #--------- Initialize Global variables ---------
-VERSION="1.10.1"
+VERSION="1.10.2"
 BUILD_DATE="17011918"
 SCRIPTNAME=$(basename $0)
 LOCK_DIR="/var/lock/${SCRIPTNAME}"
@@ -383,6 +383,15 @@ clear_state ()
 	rm -f $STATE_FILE
 }
 
+_connect_error_note()
+{
+	echo "Please check the following items before start LTE connection:"
+	echo "  1. Antenna setting"
+	echo "  2. SIM card inserted and PIN code unlocked, \`sim_status\`"
+	echo "  3. Signal strength \`signal\`"
+	echo "  4. Remember to set_apn before start LTE connection"
+}
+
 start_network ()
 {
 	local is_raw_ip="N"
@@ -444,6 +453,7 @@ start_network ()
 		CID=`echo "$START_NETWORK_OUT" | sed -n "s/.*CID.*'\(.*\)'.*/\1/p"`
 		if [ "x$CID" = "x" ]; then
 			echo "error: network start failed, client not allocated" 1>&2
+			_connect_error_note
 			_exit 1
 		else
 			save_state "CID" $CID
@@ -453,6 +463,7 @@ start_network ()
 	PDH=`echo "$START_NETWORK_OUT" | sed -n "s/.*handle.*'\(.*\)'.*/\1/p"`
 	if [ "x$PDH" = "x" ]; then
 		echo "error: network start failed, no packet data handle" 1>&2
+		_connect_error_note
 		# Cleanup the client
 		#$QMICLI -d "$QMI_PORT" --wds-noop --client-cid="$CID" $QMICLI_END
 		_qmicli --wds-noop --client-cid="$CID"
