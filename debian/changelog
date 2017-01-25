@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.10.1) unstable; urgency=low
+
+  * Text: Add notes before start connection.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 19 Jan 2017 18:01:19 +0800
+
 moxa-cellular-utils (1.10.0) unstable; urgency=low
 
   * Fix: Avoid AT command separated by space. 
