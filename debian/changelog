@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.10.3) unstable; urgency=low
+
+  * Fix: Support multiple modules.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Wed, 25 Jan 2017 16:50:39 +0800
+
 moxa-cellular-utils (1.10.2) unstable; urgency=low
 
   * Fix: Wrong package name caused remove package failed.
