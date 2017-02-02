@@ -277,18 +277,6 @@ init ()
 	fi
 }
 
-init
-#__debug__
-# state file for different interface
-if [ x"$INTERFACE" == x"" -o x"$INTERFACE" == x"0" ]; then
-	STATE_FILE=/tmp/qmi-network-state
-else
-	STATE_FILE=/tmp/qmi-network-state$INTERFACE
-fi
-
-
-#--------- Initialize Global variables ---------
-
 #--------- qmi-network functions -----------
 _qmicli()
 {
@@ -531,8 +519,6 @@ _packet_service_status ()
 	fi
 }
 
-# Load previous state, if any
-load_state
 
 #--------- qmi-network functions -----------
 
@@ -1745,6 +1731,24 @@ cell_usage () {
 	echo -e "		Cellular management version."
 
 }
+
+
+
+#--------- Initialize Global variables start ---------
+
+init
+#__debug__
+# state file for different interface
+if [ x"$INTERFACE" == x"" -o x"$INTERFACE" == x"0" ]; then
+	STATE_FILE=/tmp/qmi-network-state
+else
+	STATE_FILE=/tmp/qmi-network-state$INTERFACE
+fi
+
+# Load previous state, if any
+load_state
+
+#--------- Initialize Global variables end ---------
 
 for var in "$@"; do
 	if [ "${var}" == "force" ]; then
