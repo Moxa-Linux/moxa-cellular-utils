@@ -1641,8 +1641,14 @@ cell_version () {
 cell_usage () {
 	echo -e "cell_mgmt support sierra MC9090 MC7304 MC7354"
 	echo -e "Usage: "
-	echo -e "      $0 [OPTIONS]\n"
+	echo -e "      $0 [-i <module id>] [-s <slot id>] [OPTIONS]\n"
 	echo -e "OPTIONS"
+	echo -e "	-i <module id>"
+	echo -e "		Module identifier, start from 0 and default to 0."
+	echo -e "	-s <slot id>"
+	echo -e "		Slot identifier, start from 1 and default value depends "
+	echo -e "		on module interface."
+	echo -e "		example: module 0 may in slot 2"
 	#start
 	echo -e "       start [APN=[APN],Username=[user],Password=[pass],PIN=[pin_code]]"
 	echo -e "		Start network."
