@@ -537,21 +537,6 @@ load_state
 #--------- qmi-network functions -----------
 
 
-#check proxy status
-chk_proxy_status () {
-	local proxy_status=`ps ax | grep -v "grep" | grep "qmi-proxy"`	
-
-	#if [ ! -e ${QMI_PORT} ]; then
-	#	_exit 
-	#fi
-
-	if [ -z "$proxy_status" ]; then
-		#running in the background
-		start-stop-daemon --start --oknodo --quiet --background \
-			--exec ${QMI_PROXY}
-	fi
-}
-
 kill_proxy() {
 	local proxy_pid=`ps wwax | grep -v "grep" | grep "qmi-proxy" | awk '{print $1}'`
 	if [ ! -z "${proxy_pid}" ]; then
@@ -1764,7 +1749,6 @@ cell_usage () {
 
 }
 
-#chk_proxy_status
 for var in "$@"; do
 	if [ "${var}" == "force" ]; then
 		FORCE=1
