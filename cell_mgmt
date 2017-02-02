@@ -616,18 +616,19 @@ cell_signal_adv () {
 
 #cellular power on by GPIO
 cell_power_on () {
+	power_on_funcs="$(echo "$POWER_ON_FUN" | sed -e "s/\$SLOT/$SLOT/g")"
+
 	IFS=$'\n'
-	for i in $POWER_ON_FUN ;
+	for i in $power_on_funcs ;
 	do
 		eval "$i"
 	done
 
 	while ((1))
 	do
-		# reset port
-		init > /dev/null 2>&1
-
-		if [ x"${MODULE_NAME}" != x"" ]; then
+		product_id=$(cat ${MODULE_PATH[$((SLOT-1))]}/idProduct \
+			 2> /dev/null)
+		if [ x"${product_id}" != x"" ]; then
 			break;
 		fi
 
@@ -640,18 +641,20 @@ cell_power_off () {
 	cell_stop;
 	kill_proxy
 	
+
+	power_off_funcs="$(echo "$POWER_OFF_FUN" | sed -e "s/\$SLOT/$SLOT/g")"
+
 	IFS=$'\n'
-	for i in $POWER_OFF_FUN ;
+	for i in $power_off_funcs ;
 	do
 		eval "$i"
 	done
 
 	while ((1))
 	do
-		# reset port
-		init > /dev/null 2>&1
-
-		if [ x"${MODULE_NAME}" == x"" ]; then
+		product_id=$(cat ${MODULE_PATH[$((SLOT-1))]}/idProduct \
+			 2> /dev/null)
+		if [ x"${product_id}" == x"" ]; then
 			break;
 		fi
 
@@ -1756,6 +1759,8 @@ while getopts  "i:s:" flag; do
 			INTERFACE=$OPTARG
 			set_port
 		fi
+	elif [ "${flag}" == "s" ]; then
+		SLOT=$OPTARG
 	fi
 done
 
