@@ -13,8 +13,8 @@
  
 
 #--------- Initialize Global variables ---------
-VERSION="1.10.4"
-BUILD_DATE="17020210"
+VERSION="1.10.5"
+BUILD_DATE="17020216"
 SCRIPTNAME=$(basename $0)
 LOCK_DIR="/var/lock/${SCRIPTNAME}"
 CELL_MGMT_PID=$$
@@ -1064,9 +1064,6 @@ cell_start () {
 	Username="$(eval echo \$Username$interface_num)"
 	Password="$(eval echo \$Password$interface_num)"
 	PIN="$(eval echo \$PIN$interface_num)" 
-
-	echo "Note : Please remember to \`set_apn\` before start LTE connection,"
-	echo "       or the connection may fail."
 
 	# modify APN Username Password PIN
 	for args in $@
