@@ -1750,20 +1750,32 @@ load_state
 
 #--------- Initialize Global variables end ---------
 
-for var in "$@"; do
+while getopts  "i:s:" flag; do
+	if [ "${flag}" == "i" ]; then
+		if [ "${INTERFACE}" != "$OPTARG" ]; then
+			INTERFACE=$OPTARG
+			set_port
+		fi
+	fi
+done
+
+for i in $(seq $OPTIND 1 $#); do
+	eval "var=\$$i"
 	if [ "${var}" == "force" ]; then
 		FORCE=1
-		break
+		continue
 	fi
+	j=$(($j + 1))
+	eval "arg$j=\$$i"
 done
 
 (
 	if [ ${FORCE} -eq 0 ]; then
 		flock -w 60 9 || { echo "cell_mgmt is busy, please wait a moment and try again" ; _exit 1; }
 	fi
-	case "$1" in
+	case "$arg1" in
 		start)
-			cell_start $2 $3 $4 $5
+			cell_start $arg2 $arg3 $arg4 $arg5
 			;;
 		stop)
 			cell_stop
@@ -1808,19 +1820,19 @@ done
 			cell_pin_code_status
 			;;
 		unlock_pin)
-			cell_unlock_pin $2
+			cell_unlock_pin $arg2
 			;;
 		set_pin)
-			cell_unlock_pin $2
+			cell_unlock_pin $arg2
 			;;
 		pin_retries)
 			cell_pin_retries
 			;;
 		pin_protection)
-			cell_pin_protection $2 $3 $4
+			cell_pin_protection $arg2 $arg3 $arg4
 			;;
 		set_apn)
-			cell_set_apn $2
+			cell_set_apn $arg2
 			;;
 		number)
 			cell_number
@@ -1829,16 +1841,16 @@ done
 			cell_check_carrier
 			;;
 		switch_carrier)
-			cell_switch_carrier $2
+			cell_switch_carrier $arg2
 			;;
 		at)
-			cell_at_cmd "$2" $3
+			cell_at_cmd "$arg2" $arg3
 			;;
 		version)
 			cell_version
 			;;
 		interface)
-			cell_interface $2
+			cell_interface $arg2
 			;;
 		m_info)
 			cell_m_info
