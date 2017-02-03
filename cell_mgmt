@@ -1635,6 +1635,10 @@ cell_interfaces() {
 	echo ${#ALL_INTERFACE[@]}
 }
 
+cell_slot() {
+	echo ${SLOT}
+}
+
 # cell_mgmt version
 cell_version () {
 	echo "cell_mgmt"
@@ -1656,6 +1660,9 @@ cell_usage () {
 	#modules
 	echo -e "	modules"
 	echo -e "		Shows module numbers supported."
+	#slot
+	echo -e "	slot"
+	echo -e "		Shows module slot id"
 	#start
 	echo -e "       start [APN=[APN],Username=[user],Password=[pass],PIN=[pin_code]]"
 	echo -e "		Start network."
@@ -1794,6 +1801,9 @@ done
 	case "$arg1" in
 		modules)
 			cell_interfaces
+			;;
+		slot)
+			cell_slot
 			;;
 		start)
 			cell_start $arg2 $arg3 $arg4 $arg5
