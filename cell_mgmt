@@ -577,7 +577,7 @@ cell_signal () {
 	#signal=`$QMICLI -d ${QMI_PORT} --nas-get-signal-strength $QMICLI_END | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
 	signal=`_qmicli --nas-get-signal-strength | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
 	signal_dbm="$(echo $signal | awk '{print $2}')"
-	if [ "$signal_dbm" -le "-1" 2>/dev/null ] && [ "$signal_dbm" -ge "-110" 2>/dev/null ] ; then
+	if [ "$signal_dbm" -le "-1" 2>/dev/null ]; then
 		echo "${signal} dbm"
 		return 0
 	else
