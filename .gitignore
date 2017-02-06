@@ -1,4 +1,5 @@
-debian/moxa-cellular-utils/*
+debian/moxa-cellular-*/*
+debian/*.debhelper
 debian/*.debhelper.log
 debian/*.substvars
 debian/files

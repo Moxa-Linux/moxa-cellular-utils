@@ -18,12 +18,6 @@ BUILD_DATE:=$(shell date +%Y%m%d-%H%M%S)
 all:
 	@echo "$(VERSION)"
 
-install:
-	mkdir -p $(DESTDIR)/sbin
-	mkdir -p $(DESTDIR)/etc/
-	cp -arf cell_mgmt $(DESTDIR)/sbin/
-	cp -arf etc/* $(DESTDIR)/etc/
-
 dist: $(ARCHIVE)
 
 $(ARCHIVE): distclean $(STAGING_FILES)
@@ -37,7 +31,5 @@ $(PROJECT_STAGING_DIR)/%: %
 
 clean:
 	rm -rf $(DISTDIR)* $(STAGING_DIR)
-	rm -rf deb mxcloud_* *.deb
-	rm -rf mxcloud_build
 
 distclean: clean
