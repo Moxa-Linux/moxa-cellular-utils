@@ -57,7 +57,16 @@ _loop() {
 }
 
 usage() {
-	echo "Usage: $1 [-i <polling interval>]"
+	echo "Usage:"
+	echo "  $1 [OPTION]"
+	echo ""
+	echo "Options:"
+	echo "  -i <polling interval>"
+	echo "		Polling interval in seconds to update the signal LED"
+	echo "  -h"
+	echo "		Show help"
+	echo "  -v"
+	echo "		Print version"
 }
 
 
