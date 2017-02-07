@@ -1,0 +1,14 @@
+[Unit]
+Description=Moxa cellular signal service
+After=network.target syslog.target
+
+[Service]
+Type=simple
+ExecStart=/sbin/cell-signald
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target

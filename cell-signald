@@ -1,0 +1,79 @@
+#!/bin/sh
+
+INTERVAL=10
+CELL_MGMT=cell_mgmt
+LED_CTRL=mx_led_control
+
+_signal_led_flush() {
+	slot=$1
+	${LED_CTRL} signal off ${slot} 1 &> /dev/null
+	${LED_CTRL} signal off ${slot} 2 &> /dev/null
+	${LED_CTRL} signal off ${slot} 3 &> /dev/null
+}
+
+_signal_led() {
+	slot=$1
+	signal=$2
+
+	#echo slot: $slot
+	#echo signal: $signal
+	if [ "$signal" == "signal out of range" ]; then
+		_signal_led_flush
+		return
+	fi
+
+	signal=$(echo "$signal" | awk 'END {print $(NF-1)}')
+	if [ $signal -ge -70 ]; then
+		#echo "Excellent"
+		${LED_CTRL} signal on ${slot} 1 &> /dev/null
+		${LED_CTRL} signal on ${slot} 2 &> /dev/null
+		${LED_CTRL} signal on ${slot} 3 &> /dev/null
+	elif [ $signal -ge -100 ]; then
+		#echo "Fair"
+		${LED_CTRL} signal on ${slot} 1 &> /dev/null
+		${LED_CTRL} signal on ${slot} 2 &> /dev/null
+		${LED_CTRL} signal off ${slot} 3 &> /dev/null
+	elif [ $signal -ge -110 ]; then
+		#echo "Poor"
+		${LED_CTRL} signal on ${slot} 1 &> /dev/null
+		${LED_CTRL} signal off ${slot} 2 &> /dev/null
+		${LED_CTRL} signal off ${slot} 3 &> /dev/null
+	else
+		#echo "No signal"
+		_signal_led_flush ${slot}
+	fi
+}
+
+_loop() {
+	while [ 1 ]; do
+		modules=$(${CELL_MGMT} modules)
+		for i in $(seq 0 $((modules-1))); do
+			slot=$(${CELL_MGMT} -i $i slot)
+			signal=$(${CELL_MGMT} -i $i signal)
+			_signal_led ${slot} "${signal}"
+		done
+		sleep ${INTERVAL}
+	done
+}
+
+usage() {
+	echo "Usage: $1 [-i <polling interval>]"
+}
+
+
+while getopts  "i:h" flag; do
+	if [ "${flag}" == "i" ]; then
+		re='^[0-9]+$'
+		if ! [[ $OPTARG =~ $re ]] ; then
+			   echo "error: Interval should be a number" >&2
+			   usage $0
+			   exit 1
+		fi
+		INTERVAL=$OPTARG
+	elif [ "${flag}" == "h" ]; then
+		usage $0
+		exit 0
+	fi
+done
+
+_loop
