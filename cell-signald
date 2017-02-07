@@ -61,7 +61,7 @@ usage() {
 }
 
 
-while getopts  "i:h" flag; do
+while getopts  "i:vh" flag; do
 	if [ "${flag}" == "i" ]; then
 		re='^[0-9]+$'
 		if ! [[ $OPTARG =~ $re ]] ; then
@@ -72,6 +72,9 @@ while getopts  "i:h" flag; do
 		INTERVAL=$OPTARG
 	elif [ "${flag}" == "h" ]; then
 		usage $0
+		exit 0
+	elif [ "${flag}" == "v" ]; then
+		${CELL_MGMT} version
 		exit 0
 	fi
 done

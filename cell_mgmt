@@ -14,6 +14,7 @@
 
 #--------- Initialize Global variables ---------
 VERSION="1.11.0"
+PKG="moxa-cellular-utils"
 BUILD_DATE="17020717"
 SCRIPTNAME=$(basename $0)
 LOCK_DIR="/var/lock/${SCRIPTNAME}"
@@ -1641,8 +1642,7 @@ cell_slot() {
 
 # cell_mgmt version
 cell_version () {
-	echo "cell_mgmt"
-	echo "version:$VERSION"
+	echo "$PKG $VERSION"
 }
 
 # show cell_mgmt usage list
