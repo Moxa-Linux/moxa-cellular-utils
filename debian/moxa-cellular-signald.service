@@ -4,7 +4,7 @@ After=network.target syslog.target
 
 [Service]
 Type=simple
-ExecStart=/sbin/cell-signald
+ExecStart=/usr/sbin/cell-signald
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 StandardOutput=syslog
