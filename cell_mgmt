@@ -13,9 +13,9 @@
  
 
 #--------- Initialize Global variables ---------
-VERSION="1.12.0"
+VERSION="1.12.1"
 PKG="moxa-cellular-utils"
-BUILD_DATE="17020718"
+BUILD_DATE="17021521"
 SCRIPTNAME=$(basename $0)
 LOCK_DIR="/var/lock/${SCRIPTNAME}"
 CELL_MGMT_PID=$$
