@@ -1,5 +1,5 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: uc8100me-cellular-utils
+Upstream-Name: moxa-cellular-utils
 Source: <url://example.com>
 
 Files: *

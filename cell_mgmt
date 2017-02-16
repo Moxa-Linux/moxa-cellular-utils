@@ -13,8 +13,8 @@
  
 
 #--------- Initialize Global variables ---------
-VERSION="1.10.5"
-BUILD_DATE="17020216"
+VERSION="1.11.0"
+BUILD_DATE="17020717"
 SCRIPTNAME=$(basename $0)
 LOCK_DIR="/var/lock/${SCRIPTNAME}"
 CELL_MGMT_PID=$$
@@ -277,18 +277,6 @@ init ()
 	fi
 }
 
-init
-#__debug__
-# state file for different interface
-if [ x"$INTERFACE" == x"" -o x"$INTERFACE" == x"0" ]; then
-	STATE_FILE=/tmp/qmi-network-state
-else
-	STATE_FILE=/tmp/qmi-network-state$INTERFACE
-fi
-
-
-#--------- Initialize Global variables ---------
-
 #--------- qmi-network functions -----------
 _qmicli()
 {
@@ -531,26 +519,9 @@ _packet_service_status ()
 	fi
 }
 
-# Load previous state, if any
-load_state
 
 #--------- qmi-network functions -----------
 
-
-#check proxy status
-chk_proxy_status () {
-	local proxy_status=`ps ax | grep -v "grep" | grep "qmi-proxy"`	
-
-	#if [ ! -e ${QMI_PORT} ]; then
-	#	_exit 
-	#fi
-
-	if [ -z "$proxy_status" ]; then
-		#running in the background
-		start-stop-daemon --start --oknodo --quiet --background \
-			--exec ${QMI_PROXY}
-	fi
-}
 
 kill_proxy() {
 	local proxy_pid=`ps wwax | grep -v "grep" | grep "qmi-proxy" | awk '{print $1}'`
@@ -606,7 +577,7 @@ cell_signal () {
 	#signal=`$QMICLI -d ${QMI_PORT} --nas-get-signal-strength $QMICLI_END | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
 	signal=`_qmicli --nas-get-signal-strength | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
 	signal_dbm="$(echo $signal | awk '{print $2}')"
-	if [ "$signal_dbm" -le "-1" 2>/dev/null ] && [ "$signal_dbm" -ge "-110" 2>/dev/null ] ; then
+	if [ "$signal_dbm" -le "-1" 2>/dev/null ]; then
 		echo "${signal} dbm"
 		return 0
 	else
@@ -645,18 +616,19 @@ cell_signal_adv () {
 
 #cellular power on by GPIO
 cell_power_on () {
+	power_on_funcs="$(echo "$POWER_ON_FUN" | sed -e "s/\$SLOT/$SLOT/g")"
+
 	IFS=$'\n'
-	for i in $POWER_ON_FUN ;
+	for i in $power_on_funcs ;
 	do
 		eval "$i"
 	done
 
 	while ((1))
 	do
-		# reset port
-		init > /dev/null 2>&1
-
-		if [ x"${MODULE_NAME}" != x"" ]; then
+		product_id=$(cat ${MODULE_PATH[$((SLOT-1))]}/idProduct \
+			 2> /dev/null)
+		if [ x"${product_id}" != x"" ]; then
 			break;
 		fi
 
@@ -669,18 +641,20 @@ cell_power_off () {
 	cell_stop;
 	kill_proxy
 	
+
+	power_off_funcs="$(echo "$POWER_OFF_FUN" | sed -e "s/\$SLOT/$SLOT/g")"
+
 	IFS=$'\n'
-	for i in $POWER_OFF_FUN ;
+	for i in $power_off_funcs ;
 	do
 		eval "$i"
 	done
 
 	while ((1))
 	do
-		# reset port
-		init > /dev/null 2>&1
-
-		if [ x"${MODULE_NAME}" == x"" ]; then
+		product_id=$(cat ${MODULE_PATH[$((SLOT-1))]}/idProduct \
+			 2> /dev/null)
+		if [ x"${product_id}" == x"" ]; then
 			break;
 		fi
 
@@ -1657,6 +1631,14 @@ cell_interface () {
 
 }
 
+cell_interfaces() {
+	echo ${#ALL_INTERFACE[@]}
+}
+
+cell_slot() {
+	echo ${SLOT}
+}
+
 # cell_mgmt version
 cell_version () {
 	echo "cell_mgmt"
@@ -1667,8 +1649,20 @@ cell_version () {
 cell_usage () {
 	echo -e "cell_mgmt support sierra MC9090 MC7304 MC7354"
 	echo -e "Usage: "
-	echo -e "      $0 [OPTIONS]\n"
+	echo -e "      $0 [-i <module id>] [-s <slot id>] [OPTIONS]\n"
 	echo -e "OPTIONS"
+	echo -e "	-i <module id>"
+	echo -e "		Module identifier, start from 0 and default to 0."
+	echo -e "	-s <slot id>"
+	echo -e "		Slot identifier, start from 1 and default value depends "
+	echo -e "		on module interface."
+	echo -e "		example: module 0 may in slot 2"
+	#modules
+	echo -e "	modules"
+	echo -e "		Shows module numbers supported."
+	#slot
+	echo -e "	slot"
+	echo -e "		Shows module slot id"
 	#start
 	echo -e "       start [APN=[APN],Username=[user],Password=[pass],PIN=[pin_code]]"
 	echo -e "		Start network."
@@ -1761,21 +1755,58 @@ cell_usage () {
 
 }
 
-#chk_proxy_status
-for var in "$@"; do
+
+
+#--------- Initialize Global variables start ---------
+
+init
+#__debug__
+# state file for different interface
+if [ x"$INTERFACE" == x"" -o x"$INTERFACE" == x"0" ]; then
+	STATE_FILE=/tmp/qmi-network-state
+else
+	STATE_FILE=/tmp/qmi-network-state$INTERFACE
+fi
+
+# Load previous state, if any
+load_state
+
+#--------- Initialize Global variables end ---------
+
+while getopts  "i:s:" flag; do
+	if [ "${flag}" == "i" ]; then
+		if [ "${INTERFACE}" != "$OPTARG" ]; then
+			INTERFACE=$OPTARG
+			set_port
+		fi
+	elif [ "${flag}" == "s" ]; then
+		SLOT=$OPTARG
+	fi
+done
+
+for i in $(seq $OPTIND 1 $#); do
+	eval "var=\$$i"
 	if [ "${var}" == "force" ]; then
 		FORCE=1
-		break
+		continue
 	fi
+	j=$(($j + 1))
+	eval "arg$j=\$$i"
 done
 
 (
 	if [ ${FORCE} -eq 0 ]; then
 		flock -w 60 9 || { echo "cell_mgmt is busy, please wait a moment and try again" ; _exit 1; }
 	fi
-	case "$1" in
+	case "$arg1" in
+		modules)
+			cell_interfaces
+			;;
+		slot)
+			cell_slot
+			;;
 		start)
-			cell_start $2 $3 $4 $5
+			cell_start $arg2 $arg3 $arg4 $arg5
 			;;
 		stop)
 			cell_stop
@@ -1820,19 +1851,19 @@ done
 			cell_pin_code_status
 			;;
 		unlock_pin)
-			cell_unlock_pin $2
+			cell_unlock_pin $arg2
 			;;
 		set_pin)
-			cell_unlock_pin $2
+			cell_unlock_pin $arg2
 			;;
 		pin_retries)
 			cell_pin_retries
 			;;
 		pin_protection)
-			cell_pin_protection $2 $3 $4
+			cell_pin_protection $arg2 $arg3 $arg4
 			;;
 		set_apn)
-			cell_set_apn $2
+			cell_set_apn $arg2
 			;;
 		number)
 			cell_number
@@ -1841,16 +1872,16 @@ done
 			cell_check_carrier
 			;;
 		switch_carrier)
-			cell_switch_carrier $2
+			cell_switch_carrier $arg2
 			;;
 		at)
-			cell_at_cmd "$2" $3
+			cell_at_cmd "$arg2" $arg3
 			;;
 		version)
 			cell_version
 			;;
 		interface)
-			cell_interface $2
+			cell_interface $arg2
 			;;
 		m_info)
 			cell_m_info
