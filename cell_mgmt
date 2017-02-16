@@ -13,8 +13,9 @@
  
 
 #--------- Initialize Global variables ---------
-VERSION="1.11.0"
-BUILD_DATE="17020717"
+VERSION="1.12.1"
+PKG="moxa-cellular-utils"
+BUILD_DATE="17021521"
 SCRIPTNAME=$(basename $0)
 LOCK_DIR="/var/lock/${SCRIPTNAME}"
 CELL_MGMT_PID=$$
@@ -473,6 +474,7 @@ stop_network ()
 		# Cleanup the client
 		#$QMICLI -d "$QMI_PORT" --wds-noop --client-cid="$CID" $QMICLI_END
 		_qmicli --wds-noop --client-cid="$CID"
+		PDH=""
 	else
 		#STOP_NETWORK_CMD="$QMICLI -d $QMI_PORT --wds-stop-network=$PDH --client-cid=$CID $QMICLI_END"
 		STOP_NETWORK_CMD="_qmicli --wds-stop-network=$PDH --client-cid=$CID"
@@ -485,6 +487,8 @@ stop_network ()
 		else
 			STOP_NETWORK_OUT=`$STOP_NETWORK_CMD`
 		fi
+		PDH=""
+		CID=""
 
 		echo "Network stopped successfully"
 	fi
@@ -1641,8 +1645,7 @@ cell_slot() {
 
 # cell_mgmt version
 cell_version () {
-	echo "cell_mgmt"
-	echo "version:$VERSION"
+	echo "$PKG $VERSION"
 }
 
 # show cell_mgmt usage list

@@ -12,3 +12,8 @@ Package: moxa-cellular-utils
 Architecture: all
 Depends: ${misc:Depends}, udhcpc, libqmi-utils (>= 1.16.2), libqmi-proxy (>= 1.16.2)
 Description: Cellular modem utility on Moxa computer.
+
+Package: moxa-cellular-signald
+Architecture: all
+Depends: ${misc:Depends}, moxa-cellular-utils (>= 1.11.0)
+Description: Light signal LED for Cellular modem on Moxa computer.

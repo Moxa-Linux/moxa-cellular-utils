@@ -10,6 +10,7 @@ PROJECT_STAGING_DIR = $(STAGING_DIR)/$(DISTDIR)
 DIST_FILES = \
 	etc \
 	cell_mgmt \
+	cell-signald \
 	Makefile
 
 STAGING_FILES=$(addprefix $(PROJECT_STAGING_DIR)/,$(DIST_FILES))
