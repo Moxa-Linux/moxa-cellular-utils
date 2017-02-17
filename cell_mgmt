@@ -80,6 +80,13 @@ _search_wwan_node()
 			ALL_MODULE_ID[${#ALL_MODULE_ID[@]}]=${vendor_id}_${product_id}
 			ALL_MODULE_NAME[${#ALL_MODULE_NAME[@]}]=${module_name}
 			ALL_SLOT_NUM[${#ALL_SLOT_NUM[@]}]=$slot_num
+			ALL_INTERFACE[${#ALL_INTERFACE[@]}]=""
+			ALL_QMI_PROTOCOL[${#ALL_QMI_PROTOCOL[@]}]="802-3"
+			ALL_QMI_PORT[${#ALL_QMI_PORT[@]}]="NotSupport"
+			ALL_AT_PORT[${#ALL_AT_PORT[@]}]="NotSupport"
+			ALL_GPS_PORT[${#ALL_GPS_PORT[@]}]="NotSupport"
+			ALL_MODEM_PORT[${#ALL_MODEM_PORT[@]}]="NotSupport"
+			ALL_AT_TIMEOUT[${#ALL_AT_TIMEOUT[@]}]="0.3"
 		else
 			continue
 		fi
@@ -102,16 +109,26 @@ _set_variables ()
 
 	QMI_NODE="${ALL_INTERFACE[$INTERFACE]}"
 	if [ x"${ALL_QMI_PORT[$INTERFACE]}" == x"NotSupport" ]; then
-		QMI_PORT="${ALL_QMI_PORT[$INTERFACE]}"
+		QMI_PORT="NotSupport"
 	else
 		QMI_PORT="/dev/${ALL_QMI_PORT[$INTERFACE]}"
 	fi
-	AT_PORT="/dev/${ALL_AT_PORT[$INTERFACE]}"
+	if [ x"${ALL_AT_PORT[$INTERFACE]}" == x"NotSupport" ]; then
+		AT_PORT="NotSupport"
+	else
+		AT_PORT="/dev/${ALL_AT_PORT[$INTERFACE]}"
+	fi
 	if [ x"${ALL_GPS_PORT[$INTERFACE]}" == x"NotSupport" ]; then
 		GPS_PORT="NotSupport"
 	else
 		GPS_PORT="/dev/${ALL_GPS_PORT[$INTERFACE]}"
 	fi
+	if [ x"${ALL_MODEM_PORT[$INTERFACE]}" == x"NotSupport" ]; then
+		MODEM_PORT="NotSupport"
+	else
+		MODEM_PORT="/dev/${ALL_MODEM_PORT[$INTERFACE]}"
+	fi
+	AT_TIMEOUT="${ALL_AT_TIMEOUT[$INTERFACE]}"
 }
 
 init()
@@ -120,9 +137,12 @@ init()
 	unset ALL_MODULE_NAME
 	unset ALL_SLOT_NUM
 	unset ALL_INTERFACE
+	unset ALL_QMI_PROTOCOL
 	unset ALL_QMI_PORT
 	unset ALL_AT_PORT
 	unset ALL_GPS_PORT
+	unset ALL_MODEM_PORT
+	unset ALL_AT_TIMEOUT
 
 	if [ -f $PROFILE_FILE ]; then
 		_load_profile
