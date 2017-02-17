@@ -630,7 +630,7 @@ qmi_pin_protection (){
 #--------- at functions -----------
 
 # AT command 
-cell_at_cmd () {
+cell_at_cmd() {
 	local cmd="$1"
 	local timeout="$2"
 
@@ -646,7 +646,7 @@ cell_at_cmd () {
 	fi
 
 	if [ x"$timeout" == x"" ]; then
-		timeout=0.3
+		timeout="${AT_TIMEOUT}"
 	fi
 
 	#stty -F ${AT_PORT} -echo raw
