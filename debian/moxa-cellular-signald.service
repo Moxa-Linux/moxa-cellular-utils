@@ -1,6 +1,6 @@
 [Unit]
 Description=Moxa cellular signal service
-After=network.target syslog.target
+After=network.target syslog.target moxa-cellular-utils.service
 
 [Service]
 Type=simple

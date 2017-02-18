@@ -1,0 +1,13 @@
+[Unit]
+Description=Moxa cellular management initial service
+After=network.target syslog.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/sbin/cell_mgmt initialize all
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target
