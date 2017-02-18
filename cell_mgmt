@@ -627,6 +627,72 @@ qmi_pin_protection (){
 
 }
 
+qmi_module_ids() {
+	local info="$(_qmicli --dms-get-ids)"
+	local imei=$(_qmicli_value "${info}" "IMEI")
+	local esn=$(_qmicli_value "${info}" "ESN")
+
+	echo IMEI: $imei
+	echo ESN: $esn
+}
+
+qmi_iccid() {
+	local iccid=$(_qmicli_value "$(_qmicli --dms-uim-get-iccid)" "ICCID")
+	echo ICC-ID: $iccid
+}
+
+qmi_location_info() {
+	local info=""
+	local service=""
+	local lac=""
+	local tac=""
+	local cellid=""
+	local bid=""
+	local nid=""
+	local lcid=""
+
+
+	info="$(_qmicli --nas-get-cell-location-info)"
+	service="$(echo "${info}" | sed -n 2p | sed 's/[\t ]Info//g')"
+	if [[ ${service} == CDMA* ]]; then
+		bid=$(_qmicli_value "${info}" "Base Station ID")
+		nid=$(_qmicli_value "${info}" "Network ID")
+	elif [ "${service}" == "Intrafrequency LTE" ]; then
+		cellid=$(_qmicli_value "${info}" "Global Cell ID")
+		tac=$(_qmicli_value "${info}" "Tracking Area Code")
+	else
+		cellid=$(_qmicli_value "${info}" "Cell ID")
+		lac=$(_qmicli_value "${info}" "Location Area Code")
+		lcid=$(_qmicli_value "${info}" "${service} Cell ID")
+	fi
+
+	# for UMTS
+	if [ x"$lac" != x"" ]; then
+		echo LAC: $lac
+	fi
+	# for LTE
+	if [ x"$tac" != x"" ]; then
+		echo TAC: $tac
+	fi
+	# for CDMA
+	if [ x"$nid" != x"" ]; then
+		echo NID: $nid
+	fi
+
+	# for UMTS & LTE
+	if [ x"$cellid" != x"" ]; then
+		echo CellID: $cellid
+	fi
+	# for CDMA
+	if [ x"$bid" != x"" ]; then
+		echo BID: $bid
+	fi
+
+	if [ x"$lcid" != x"" ]; then
+		echo LCID: $lcid
+	fi
+}
+
 #--------- at functions -----------
 
 # AT command 
@@ -769,6 +835,37 @@ at_operator () {
 	fi
 }
 
+at_location_info() {
+	local ret=
+	local lac=""
+	local cellid=""
+
+	cell_at_cmd 'AT+CREG=2' > /dev/null
+	ret=$(cell_at_cmd 'AT+CREG?' | grep '+CREG:' )
+	[ "${#ret}" -lt "11" ] && ret=""
+	if [ x"$ret" != x"" ]; then
+		lac=${ret#*\"}
+		lac=${lac%%\"*}
+		cellid=${ret%\"*}
+		cellid=${cellid##*\"}
+	fi
+
+	if [ x"$lac" != x"" ]; then
+		echo LAC: $lac
+	fi
+	if [ x"$cellid" != x"" ]; then
+		echo CellID: $cellid
+	fi
+}
+
+at_module_ids() {
+	local info="$(cell_at_cmd 'ATI')"
+	local imei=$(echo "${info}" | grep "IMEI:" | awk '{print $2}')
+	local esn=$(echo "${info}" | grep "ESN:" | awk '{print $2}')
+
+	echo IMEI: $imei
+	echo ESN: $esn
+}
 
 #--------- generic functions -----------
 
@@ -881,7 +978,18 @@ cell_udhcpc () {
 }
 
 # module info
-cell_m_info () {
+cell_module_info() {
+	echo SLOT: $SLOT
+	echo Module: $MODULE_NAME
+	echo WWAN_node: $QMI_NODE
+	echo AT_port: $AT_PORT
+	echo GPS_port: $GPS_PORT	
+	echo QMI_port: $QMI_PORT
+	echo Modem_port: $QMI_PORT
+}
+
+# module info (fully)
+cell_m_info() {
 
 	local info=""
 	local lac=""
@@ -1186,6 +1294,21 @@ _get_op_func() {
 	fi
 }
 
+_exec_op_rtn() {
+	local func="$(_get_op_func $1)"
+
+	if [ x"${func}" != x"" ]; then
+		#echo "eval ${func} ${@:2}"
+		eval ${func} ${@:2}
+	else
+		>&2 echo "error: operation not support."
+		return 1
+	fi
+
+	#echo "eval ${func} ${@:2}"
+	eval ${func} ${@:2}
+}
+
 _exec_op() {
 	local func="$(_get_op_func $1)"
 
@@ -1258,7 +1381,6 @@ _exec_op() {
 			_exec_op pin_protection $arg2 $arg3 $arg4
 			;;
 		set_apn)
-			# FIXME: very 1st time will fail?
 			_exec_op set_apn $arg2
 			;;
 		number)
@@ -1281,6 +1403,18 @@ _exec_op() {
 			;;
 		m_info)
 			cell_m_info
+			;;
+		module_info)
+			cell_module_info
+			;;
+		module_ids)
+			_exec_op module_ids
+			;;
+		iccid)
+			_exec_op iccid
+			;;
+		location_info)
+			_exec_op location_info
 			;;
 		operator)
 			_exec_op operator
