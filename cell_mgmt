@@ -888,7 +888,10 @@ cell_initialize() {
 
 # cellular power on by GPIO
 cell_power_on () {
-	power_on_funcs="$(echo "$POWER_ON_FUN" | sed -e "s/\$SLOT/$SLOT/g")"
+	local vendor_id=""
+	local product_id=""
+	local module_id=""
+	local power_on_funcs="$(echo "$POWER_ON_FUN" | sed -e "s/\$SLOT/$SLOT/g")"
 
 	IFS=$'\n'
 	for i in $power_on_funcs ;
@@ -901,6 +904,14 @@ cell_power_on () {
 		product_id=$(cat ${MODULE_PATH[$((SLOT-1))]}/idProduct \
 			 2> /dev/null)
 		if [ x"${product_id}" != x"" ]; then
+			vendor_id=$(cat ${MODULE_PATH[$((SLOT-1))]}/idVendor \
+				2> /dev/null)
+
+			# initialize after power_on
+			module_id=${vendor_id}_${product_id}
+			if _func_exist _module_${module_id}_initialize; then
+				_module_${module_id}_initialize
+			fi
 			break;
 		fi
 
@@ -910,7 +921,7 @@ cell_power_on () {
 
 # cellular power off by GPIO
 cell_power_off () {
-	_exec_op stop_network
+	_exec_op_rtn stop_network
 	_qmi_kill_proxy
 	
 
