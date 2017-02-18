@@ -20,7 +20,7 @@ LOCK_FILE=/tmp/cell_mgmt.lock
 
 # profile
 CONF_DIR=/etc
-CONF_DIR=/home/moxa/moxa-cellular-utils/etc
+#CONF_DIR=/home/moxa/moxa-cellular-utils/etc
 PROFILE_FILE=${CONF_DIR}/${PKG}/${PKG}.conf
 KVERSION="$(kversion | awk '{print $1}')"
 PRODUCT_DIR=${CONF_DIR}/${PKG}/product.d
