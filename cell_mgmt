@@ -1000,15 +1000,15 @@ cell_m_info() {
 	local imei=""
 
 
-	iccid=$(_exec_op_rtn iccid | cut -d' ' -f 2-)
+	iccid="$(_exec_op_rtn iccid | cut -d' ' -s -f 2-)"
 
 	info="$(_exec_op_rtn location_info)"
-	cellid="$(echo "${info}" | grep "CellID:" | cut -d' ' -f 2-)"
-	lac="$(echo "${info}" | grep "LAC:" | cut -d' ' -f 2-)"
-	lcid="$(echo "${info}" | grep "LCID:" | cut -d' ' -f 2-)"
+	cellid="$(echo "${info}" | grep "CellID:" | cut -d' ' -s -f 2-)"
+	lac="$(echo "${info}" | grep "LAC:" | cut -d' ' -s -f 2-)"
+	lcid="$(echo "${info}" | grep "LCID:" | cut -d' ' -s -f 2-)"
 
 	info="$(_exec_op_rtn module_ids)"
-	imei="$(echo "${info}" | grep "IMEI:" | cut -d' ' -f 2-)"
+	imei="$(echo "${info}" | grep "IMEI:" | cut -d' ' -s -f 2-)"
 
 	echo Module=$MODULE_NAME
 	echo WWAN_node=$QMI_NODE
