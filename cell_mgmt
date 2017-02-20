@@ -718,6 +718,11 @@ cell_at_cmd() {
 	#stty -F ${AT_PORT} -echo raw
 	#echo -n -e "ATE0\r\n" > ${AT_PORT}
 	#timeout 0.3 cat ${AT_PORT} >/dev/null
+	ls -l ${AT_PORT} &> /dev/null
+	if [ $? -ne 0 ]; then
+		>&2 echo "Error: AT port (${AT_PORT}) not ready."
+		return 1
+	fi
 	echo -n -e "$cmd\r\n" > ${AT_PORT}
 	timeout $timeout cat ${AT_PORT} | tr -d '\r'
 }
@@ -783,8 +788,7 @@ at_unlock_pin() {
 }
 
 # set apn into PDP context id 1
-at_set_apn () {
-
+at_set_apn() {
 	local ret
 	local apn="$1"
 	[ -z $apn ] && echo "Usage: cell_mgmt set_apn [apn]" && _exit 1
