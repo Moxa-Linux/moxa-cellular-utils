@@ -911,7 +911,7 @@ cell_power_on () {
 
 # cellular power off by GPIO
 cell_power_off () {
-	_exec_op_rtn stop_network
+	_exec_op_rtn stop_network 2> /dev/null
 	_qmi_kill_proxy
 	
 
@@ -1305,9 +1305,6 @@ _exec_op_rtn() {
 		>&2 echo "error: operation not support."
 		return 1
 	fi
-
-	#echo "eval ${func} ${@:2}"
-	eval ${func} ${@:2}
 }
 
 _exec_op() {
