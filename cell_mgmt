@@ -986,57 +986,29 @@ cell_module_info() {
 	echo AT_port: $AT_PORT
 	echo GPS_port: $GPS_PORT	
 	echo QMI_port: $QMI_PORT
-	echo Modem_port: $QMI_PORT
+	echo Modem_port: $MODEM_PORT
 }
 
 # module info (fully)
 cell_m_info() {
-
 	local info=""
 	local lac=""
 	local cellid=""
 	local lcid=""
-	local info_apn=""
 	local ret=""
 	local iccid=""
 	local imei=""
 
 
-	# different module's ICCID may have different command
-	# for ublox L2xx
-	if [ x"MODEM-LTE" == x"$MODULE_NAME" ]; then
-		iccid=$(cell_at_cmd 'AT+CCID' | grep '+CCID:' | awk '{print $2}' )
-	fi
+	iccid=$(_exec_op_rtn iccid | cut -d' ' -f 2-)
 
-	if [ x"${QMI_PORT}" != x"NotSupport" ]; then
-		info="$(_qmicli --nas-get-cell-location-info)"
-		local service="$(echo "${info}" | sed -n 2p | sed 's/[\t ]Info//g')"
-		if [[ ${service} == CDMA* ]]; then
-			cellid=$(_qmicli_value "${info}" "Base Station ID")
-			lac=$(_qmicli_value "${info}" "Network ID")
-		else
-			cellid=$(_qmicli_value "${info}" "Cell ID")
-			lac=$(_qmicli_value "${info}" "Location Area Code")
-			lcid=$(_qmicli_value "${info}" "${service} Cell ID")
-		fi
+	info="$(_exec_op_rtn location_info)"
+	cellid="$(echo "${info}" | grep "CellID:" | cut -d' ' -f 2-)"
+	lac="$(echo "${info}" | grep "LAC:" | cut -d' ' -f 2-)"
+	lcid="$(echo "${info}" | grep "LCID:" | cut -d' ' -f 2-)"
 
-		iccid=$(_qmicli_value "$(_qmicli --dms-uim-get-iccid)" "ICCID")
-		imei=$(_qmicli_value "$(_qmicli --dms-get-ids)" "IMEI")
-	else
-		imei=$(cell_at_cmd 'at+cgsn' | grep -v "OK" | grep -v '^[[:space:]]*$')
-		cell_at_cmd 'AT+CREG=2' > /dev/null
-		ret=$(cell_at_cmd 'AT+CREG?' | grep '+CREG:' )
-		[ "${#ret}" -lt "11" ] && ret=""
-		if [ x"$ret" == x"" ]; then
-			lac="Unknown"
-			cellid="Unknown"
-		else
-			lac=${ret#*\"}
-			lac=${lac%%\"*}
-			cellid=${ret%\"*}
-			cellid=${cellid##*\"}
-		fi
-	fi
+	info="$(_exec_op_rtn module_ids)"
+	imei="$(echo "${info}" | grep "IMEI:" | cut -d' ' -f 2-)"
 
 	echo Module=$MODULE_NAME
 	echo WWAN_node=$QMI_NODE
@@ -1050,7 +1022,6 @@ cell_m_info() {
 	echo LCID=$lcid
 	#echo slot=$SLOT
 	#echo SYS_USB=$SYS_USB	
-
 }
 
 # verizon auto dialup
