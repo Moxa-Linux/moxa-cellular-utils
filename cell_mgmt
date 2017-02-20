@@ -782,16 +782,6 @@ at_unlock_pin() {
 	_exit 0
 }
 
-at_pin_retries() {
-	ret=$(cell_at_cmd 'AT+CPINR="SIM PIN"' | grep '+CPINR: SIM PIN' | \
-		cut -d ',' -f 2)
-	if [ x"${ret}" == x"" ]; then
-		echo -1
-	else
-		echo ${ret}
-	fi
-}
-
 # set apn into PDP context id 1
 at_set_apn () {
 
