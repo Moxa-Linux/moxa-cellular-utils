@@ -17,14 +17,15 @@ PKG="moxa-cellular-utils"
 VERSION="1.12.1"
 PID=$$
 LOCK_FILE=/tmp/cell_mgmt.lock
+STATE_FILE=/tmp/cell_mgmt.state
 
 # profile
-CONF_DIR=/etc
-#CONF_DIR=/home/moxa/moxa-cellular-utils/etc
-PROFILE_FILE=${CONF_DIR}/${PKG}/${PKG}.conf
+CONF_DIR=/etc/${PKG}
+#CONF_DIR=/home/moxa/moxa-cellular-utils${CONF_DIR}
+PROFILE_FILE=${CONF_DIR}/${PKG}.conf
 KVERSION="$(kversion | awk '{print $1}')"
-PRODUCT_DIR=${CONF_DIR}/${PKG}/product.d
-MODULE_DIR=${CONF_DIR}/${PKG}/module.d
+PRODUCT_DIR=${CONF_DIR}/product.d
+MODULE_DIR=${CONF_DIR}/module.d
 
 # QMI
 # new libqmi includes a tool called "qmi-proxy"
@@ -42,6 +43,40 @@ _exit() {
 	fi
 	exit $1
 }
+
+_save_state() {
+	local KEY=$1
+	local VAL=$2
+
+	echo "Saving state... ($KEY: $VAL)"
+
+	if [ -f $STATE_FILE ]; then
+		PREVIOUS=`cat $STATE_FILE 2>/dev/null`
+		PREVIOUS=`echo "$PREVIOUS" | grep -v $KEY`
+		if [ "x$PREVIOUS" != "x" ]; then
+			echo $PREVIOUS > $STATE_FILE
+		else
+			rm $STATE_FILE
+		fi
+	fi
+
+	if [ "x$VAL" != "x" ]; then
+		echo "$KEY=\"$VAL\"" >> $STATE_FILE
+	fi
+}
+
+_load_state() {
+	if [ -f $STATE_FILE ]; then
+		# Loading previous state
+		. $STATE_FILE
+	fi
+}
+
+_clear_state () {
+	echo "Clearing state..."
+	rm -f $STATE_FILE
+}
+
 
 _load_profile ()
 {
@@ -129,6 +164,14 @@ _set_variables ()
 		MODEM_PORT="/dev/${ALL_MODEM_PORT[$INTERFACE]}"
 	fi
 	AT_TIMEOUT="${ALL_AT_TIMEOUT[$INTERFACE]}"
+
+	# state file for different interface
+	if [ x"$INTERFACE" != x"" -a x"$INTERFACE" != x"0" ]; then
+		STATE_FILE=${STATE_FILE}.${INTERFACE}
+	fi
+
+	# Load previous state, if any
+	_load_state
 }
 
 init()
@@ -244,42 +287,6 @@ _qmicli_value()
 	eval "${cmd}"
 }
 
-_qmi_save_state ()
-{
-	local KEY=$1
-	local VAL=$2
-
-	echo "Saving state... ($KEY: $VAL)"
-
-	if [ -f $QMI_STATE_FILE ]; then
-		PREVIOUS=`cat $QMI_STATE_FILE 2>/dev/null`
-		PREVIOUS=`echo "$PREVIOUS" | grep -v $KEY`
-		if [ "x$PREVIOUS" != "x" ]; then
-			echo $PREVIOUS > $QMI_STATE_FILE
-		else
-			rm $QMI_STATE_FILE
-		fi
-	fi
-
-	if [ "x$VAL" != "x" ]; then
-		echo "$KEY=\"$VAL\"" >> $QMI_STATE_FILE
-	fi
-}
-
-_qmi_load_state ()
-{
-	if [ -f $QMI_STATE_FILE ]; then
-		# Loading previous state
-		. $QMI_STATE_FILE
-	fi
-}
-
-_qmi_clear_state ()
-{
-	echo "Clearing state..."
-	rm -f $QMI_STATE_FILE
-}
-
 _qmi_start_network ()
 {
 	local is_raw_ip="N"
@@ -344,7 +351,7 @@ _qmi_start_network ()
 			_connect_error_note
 			_exit 1
 		else
-			_qmi_save_state "CID" $CID
+			_save_state "CID" $CID
 		fi
 	fi
 
@@ -355,10 +362,10 @@ _qmi_start_network ()
 		# Cleanup the client
 		#$QMICLI -d "$QMI_PORT" --wds-noop --client-cid="$CID" $QMICLI_END
 		_qmicli --wds-noop --client-cid="$CID"
-		_qmi_clear_state
+		_clear_state
 		_exit 2
 	else
-		_qmi_save_state "PDH" $PDH
+		_save_state "PDH" $PDH
 	fi
 
 	echo "Network started successfully"
@@ -392,7 +399,7 @@ _qmi_stop_network ()
 		echo "Network stopped successfully"
 	fi
 
-	_qmi_clear_state
+	_clear_state
 }
 
 _qmi_packet_service_status ()
@@ -525,7 +532,7 @@ qmi_start_network() {
 	local card_status=""
 	local ignore_dns_gw=0
 	local pin_status
-	
+
 
 	_start_network_init $@
 	# Check PIN status
@@ -859,6 +866,77 @@ at_module_ids() {
 
 	echo IMEI: $imei
 	echo ESN: $esn
+}
+
+at_wvdial_template_file() {
+	echo ${CONF_DIR}/wvdial/wvdial.conf.template
+}
+
+at_ppp_template_file() {
+	echo ${CONF_DIR}/ppp/peers/wvdial.template
+}
+
+# Using wvdial & ppp as default
+at_start_network() {
+	local ignore_dns_gw=0
+
+	local isp_name=wvdial-${INTERFACE}
+	local wvdial_temp=$(_exec_op_rtn wvdial_template_file)
+	local wvdial_conf=$(cat ${wvdial_temp})
+	local wvdial_path=${CONF_DIR}/wvdial/wvdial-${INTERFACE}.conf
+	local ppp_temp=$(_exec_op_rtn ppp_template_file)
+	local ppp_conf=$(cat ${ppp_temp})
+	local ppp_path=/etc/ppp/peers/${isp_name}
+	local modem_port=
+
+
+	_start_network_init $@
+
+	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@apn@|${APN}|g")
+	if [ x"${MODEM_PORT}" == "NotSupport" ]; then
+		if [ x"${AT_PORT}" == "NotSupport" ]; then
+			>&2 echo "Error: AT port and modem port not available."
+			return 1
+		fi
+		modem_port=${AT_PORT}
+	else
+		modem_port=${MODEM_PORT}
+	fi
+	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@modem_port@|${modem_port}|g")
+	if [ x"${PHONE}" == x"" ]; then
+		PHONE="*99#"
+	fi
+	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@phone@|${PHONE}|g")
+	echo "${wvdial_conf}" > ${wvdial_path}
+
+	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@wvdial_conf@|${wvdial_path}|g")
+	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@name@|${INTERFACE}|g")
+
+	# ignore-dns-gw
+	local route=defaultroute
+	local dns=
+
+	if [ x"$ignore_dns_gw" == x"1" ];   then
+		route=nodefaultroute
+		dns=nodns
+	fi
+	# defaultroute | nodefaultroute
+	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@defaultroute@|${route}|g")
+	# nodns or ""
+	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@nodns@|${dns}|g")
+	# name
+	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@name@|${INTERFACE}|g")
+	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@modem_port@|${modem_port}|g")
+	echo "${ppp_conf}" > ${ppp_path}
+
+	pon ${isp_name}
+	_save_state "PPP_ISP_NAME" ${isp_name}
+}
+
+at_stop_network() {
+	echo at_stop_network
+	poff ${PPP_ISP_NAME}
+	_clear_state
 }
 
 #--------- generic functions -----------
@@ -1216,15 +1294,6 @@ cell_usage () {
 
 init
 
-# state file for different interface
-if [ x"$INTERFACE" == x"" -o x"$INTERFACE" == x"0" ]; then
-	QMI_STATE_FILE=/tmp/qmi-network-state
-else
-	QMI_STATE_FILE=/tmp/qmi-network-state$INTERFACE
-fi
-
-# Load previous state, if any
-_qmi_load_state
 
 #--------- Initialize Global variables end ---------
 

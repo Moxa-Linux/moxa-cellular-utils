@@ -1,0 +1,14 @@
+noauth
+name wvdial.@name@
+connect "wvdial -C @wvdial_conf@ --chat connectlite"
+usepeerdns
+@modem_port@
+460800
+modem
+crtscts
+usehostname
+noipdefault
+idle 0
+logfd 6
+@defaultroute@
+ipparam "name=@name@ @nodns@"
