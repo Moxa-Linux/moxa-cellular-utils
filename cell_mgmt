@@ -576,7 +576,8 @@ qmi_stop_network() {
 			cat /var/run/udhcpc-${QMI_NODE}.pid 2> /dev/null| \
 				xargs --no-run-if-empty kill
 		else
-			dhclient -r ${QMI_NODE}
+			dhclient -r -pf /var/run/dhclient-${QMI_NODE}.pid \
+				${QMI_NODE}
 		fi
 	fi
 	# cellular stop by qmi-network
@@ -1043,7 +1044,7 @@ esac
 EOF
 	fi
 
-	dhclient $node
+	dhclient -pf /var/run/dhclient-${node}.pid $node
 	rm /etc/dhcp/dhclient-enter-hooks.d/no-default-route 2>/dev/null
 }
 
