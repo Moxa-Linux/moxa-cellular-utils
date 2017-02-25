@@ -1,0 +1,8 @@
+#!/bin/sh
+
+PKG=moxa-cellular-utils
+STATUS_DIR="/var/run/${PKG}"
+STATUS_FILE="${STATUS_DIR}/${IFNAME}.status"
+
+mkdir -p "${STATUS_DIR}"
+rm -rf "${STATUS_FILE}"

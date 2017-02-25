@@ -18,6 +18,7 @@ VERSION="1.12.1"
 PID=$$
 LOCK_FILE=/tmp/cell_mgmt.lock
 STATE_FILE=/tmp/cell_mgmt.state
+STATUS_DIR=/var/run/${PKG}
 
 # profile
 CONF_DIR=/etc/${PKG}
@@ -168,6 +169,7 @@ _set_variables ()
 	# state file for different interface
 	if [ x"$INTERFACE" != x"" -a x"$INTERFACE" != x"0" ]; then
 		STATE_FILE=${STATE_FILE}.${INTERFACE}
+		STATUS_FILE="${STATUS_DIR}/${INTERFACE}.status"
 	fi
 
 	# Load previous state, if any
@@ -942,6 +944,7 @@ at_start_network() {
 	echo "${ppp_conf}" > ${ppp_path}
 
 	pon ${isp_name}
+	echo "Status: connecting" > "${STATUS_FILE}"
 	_save_state "PPP_ISP_NAME" ${isp_name}
 }
 
@@ -949,6 +952,14 @@ at_stop_network() {
 	echo at_stop_network
 	poff ${PPP_ISP_NAME}
 	_clear_state
+}
+
+at_status() {
+	if [ -f "${STATUS_FILE}" ]; then
+		cat "${STATUS_FILE}"
+	else
+		echo "Status: disconnected"
+	fi
 }
 
 #--------- generic functions -----------

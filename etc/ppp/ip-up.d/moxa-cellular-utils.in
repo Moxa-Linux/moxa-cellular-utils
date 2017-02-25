@@ -1,0 +1,21 @@
+#!/bin/sh
+
+PKG_CONF_DIR=@conf_dir@
+#PKG_CONF_DIR=/home/moxa/moxa-cellular-utils/etc/moxa-cellular-utils
+HOOK_DIR=${PKG_CONF_DIR}/ip-up.d
+
+for arg in $6; do
+	if echo ${arg} | grep -q -v '=' ; then
+		arg="${arg}=1"
+	fi
+	eval "${arg}"
+done
+
+export IFNAME="${name}"
+export PPPIFNAME="${IFNAME}"
+export DEVICE="${DEVICE}"
+export IPLOCAL="${IPLOCAL}"
+export IPREMOTE="${IPREMOTE}"
+export DNS_LIST="${DNS1} ${DNS2}"
+
+run-parts "${HOOK_DIR}"

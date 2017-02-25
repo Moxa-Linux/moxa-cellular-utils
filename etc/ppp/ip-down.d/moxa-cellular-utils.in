@@ -1,0 +1,7 @@
+#!/bin/sh
+
+PKG_CONF_DIR=@conf_dir@
+#PKG_CONF_DIR=/home/moxa/moxa-cellular-utils/etc/moxa-cellular-utils
+HOOK_DIR=${PKG_CONF_DIR}/ip-down.d
+
+run-parts "${HOOK_DIR}"

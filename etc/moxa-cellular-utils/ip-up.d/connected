@@ -1,0 +1,22 @@
+#!/bin/sh
+
+PKG=moxa-cellular-utils
+STATUS_DIR="/var/run/${PKG}"
+STATUS_FILE="${STATUS_DIR}/${IFNAME}.status"
+
+mkdir -p "${STATUS_DIR}"
+rm -rf "${STATUS_FILE}"
+
+echo2status() {
+	if [ x"$2" != x"" ]; then
+		echo "$1: $2" >> "${STATUS_FILE}"
+	fi
+}
+
+echo2status "Status" "connected"
+echo2status "PPPIFName" "${PPPIFNAME}"
+echo2status "IP" "${IPLOCAL}"
+echo2status "IPRemote" "${IPREMOTE}"
+echo2status "SubnetMask" "${SUBNETMASK}"
+echo2status "Gateway" "${GATEWAY}"
+echo2status "DNS" "${DNS_LIST}"
