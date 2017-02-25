@@ -3,3 +3,5 @@ debian/*.debhelper
 debian/*.debhelper.log
 debian/*.substvars
 debian/files
+staging/
+moxa-cellular-utils*.tar.gz

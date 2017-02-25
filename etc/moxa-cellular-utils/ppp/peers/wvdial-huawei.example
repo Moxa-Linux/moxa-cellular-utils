@@ -1,0 +1,15 @@
+noauth
+name wvdial
+connect "/usr/bin/wvdial -C /etc/moxa-cellular-utils/huawei_wvdial.conf --chat connectlite"
+usepeerdns
+/dev/ttyUSB5
+460800
+modem
+crtscts
+usehostname
+noipdefault
+idle 0
+logfd 6
+#defaultroute
+nodefaultroute
+ipparam "name=usb0 nodns"
