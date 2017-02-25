@@ -635,6 +635,11 @@ qmi_pin_protection (){
 
 }
 
+qmi_get_profiles() {
+	_qmicli --wds-get-profile-list=3gpp | \
+		awk -f ${CONF_DIR}/qmicli-profile-scan.awk
+}
+
 qmi_module_ids() {
 	local info="$(_qmicli --dms-get-ids)"
 	local imei=$(_qmicli_value "${info}" "IMEI")
@@ -793,6 +798,12 @@ at_unlock_pin() {
 		echo -e "APN=\nusername=\npassword=\nPIN=$pin_code"
 	fi
 	_exit 0
+}
+
+# get profile list
+at_get_profiles() {
+	cell_at_cmd 'at+cgdcont?' | grep "+CGDCONT" | cut -d' ' -s -f 2 | \
+		awk -F"," '{print $1","$3","$2}' | sed -e 's/\"//g'
 }
 
 # set apn into PDP context id 1
@@ -1264,6 +1275,13 @@ cell_usage () {
 	#protection_pin 
 	echo -e "       pin_protection [PIN1|PIN2] [enable|disable] [current_PIN]"
 	echo -e "		Set PIN protection in the UIM."
+	#get_profiles
+	echo -e "       get_profiles"
+	echo -e "		Get profile list."
+ 	echo -e "               format:"
+	echo -e "                       <id>,<APN>,<PDP Type>"
+ 	echo -e "               example:"
+	echo -e "                       1,internet,IPV4V6"
 	#set_apn 
 	echo -e "       set_apn [APN]"	
 	echo -e "		Set APN to configuration file."
@@ -1422,6 +1440,9 @@ _exec_op() {
 			;;
 		pin_protection)
 			_exec_op pin_protection $arg2 $arg3 $arg4
+			;;
+		get_profiles)
+			_exec_op get_profiles
 			;;
 		set_apn)
 			_exec_op set_apn $arg2
