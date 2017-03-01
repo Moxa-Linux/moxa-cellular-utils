@@ -712,6 +712,7 @@ qmi_location_info() {
 
 # AT command 
 cell_at_cmd() {
+	local at_port=""
 	local cmd="$1"
 	local timeout="$2"
 
@@ -721,25 +722,30 @@ cell_at_cmd() {
 		return
 	fi
 
-	if [ x"${AT_PORT}" == x"/dev/" ]; then
-		echo "modem port not found."
-		return
+	if [ x"${AT_PORT}" == x"NotSupport" ]; then
+		if [ x"${MODEM_PORT}" == x"NotSupport" ]; then
+			>&2 echo "Error: AT port and modem port not available."
+			return 1
+		fi
+		at_port=${MODEM_PORT}
+	else
+		at_port=${AT_PORT}
 	fi
 
 	if [ x"$timeout" == x"" ]; then
 		timeout="${AT_TIMEOUT}"
 	fi
 
-	#stty -F ${AT_PORT} -echo raw
-	#echo -n -e "ATE0\r\n" > ${AT_PORT}
-	#timeout 0.3 cat ${AT_PORT} >/dev/null
-	ls -l ${AT_PORT} &> /dev/null
+	#stty -F ${at_port} -echo raw
+	#echo -n -e "ATE0\r\n" > ${at_port}
+	#timeout 0.3 cat ${at_port} >/dev/null
+	ls -l ${at_port} &> /dev/null
 	if [ $? -ne 0 ]; then
-		>&2 echo "Error: AT port (${AT_PORT}) not ready."
+		>&2 echo "Error: AT/Modem port (${at_port}) not ready."
 		return 1
 	fi
-	echo -n -e "$cmd\r\n" > ${AT_PORT}
-	timeout $timeout cat ${AT_PORT} | tr -d '\r'
+	echo -n -e "$cmd\r\n" > ${at_port}
+	timeout $timeout cat ${at_port} | tr -d '\r'
 }
 
 at_signal_csq () {
