@@ -1,3 +1,21 @@
+moxa-cellular-utils (1.15.0) unstable; urgency=low
+
+  * refactor: Separate configs of modules & products and module specific
+    operations.
+  * feat: Add `initialize` to initialize the module.
+  * feat: Add module, ids, and location info.
+  * feat: Initialize all modules at system boot and after `power_on`.
+  * fix: Adjust `m_info` based on new arch. and cmd.
+  * fix: Check AT port before send command.
+  * feat: Support connection via wvdial & ppp.
+  * fix: Use pid file to kill dhclient.
+  * feat: Support `get_profiles` to get PDP list.
+  * feat: Add `status` for AT connection.
+  * feat: Support `Phone` in config. (for AT based modules).
+  * feat: Add `post_start` to execute after start.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Wed, 01 Mar 2017 22:37:32 +0800
+
 moxa-cellular-utils (1.12.1) unstable; urgency=low
 
   * fix: restart failed at "start".

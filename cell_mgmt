@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.12.1"
+VERSION="1.15.0"
 PID=$$
 LOCK_FILE=/tmp/cell_mgmt.lock
 STATE_FILE=/tmp/cell_mgmt.state
