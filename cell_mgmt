@@ -294,11 +294,11 @@ _qmi_start_network ()
 	local is_raw_ip="N"
 	local raw_ip_file="/sys/class/net/${QMI_NODE}/qmi/raw_ip"
 
-	if [ "x$CID" != "x" ]; then
+	if [ x"$CID" != x"" ]; then
 		USE_PREVIOUS_CID="--client-cid=$CID"
 	fi
 
-	if [ "x$PDH" != "x" ]; then
+	if [ x"$PDH" != x"" ]; then
 		echo "error: cannot re-start network, PDH already exists" 1>&2
 		_exit 3
 	fi
@@ -325,7 +325,7 @@ _qmi_start_network ()
 	START_NETWORK_CMD="_qmicli --wds-start-network='apn=$APN,ip-type=4' --client-no-release-cid --device-open-net=net-${QMI_PROTOCOL}|net-no-qos-header"
 	echo "Starting network with '$START_NETWORK_CMD'..."
 
-	if [ "x$QMIDEBUG" != "x" ]; then
+	if [ x"$QMIDEBUG" != x"" ]; then
 		if [ x"$INTERFACE" == x"" -o x"$INTERFACE" == x"1" ]; then
 			START_NETWORK_OUT="\
 [/dev/cdc-wdm0] Network started
@@ -346,9 +346,9 @@ _qmi_start_network ()
 	fi
 
 	# Save the new CID if we didn't use any before
-	if [ "x$CID" = "x" ]; then
+	if [ x"$CID" == x"" ]; then
 		CID=`echo "$START_NETWORK_OUT" | sed -n "s/.*CID.*'\(.*\)'.*/\1/p"`
-		if [ "x$CID" = "x" ]; then
+		if [ x"$CID" == x"" ]; then
 			echo "error: network start failed, client not allocated" 1>&2
 			_connect_error_note
 			_exit 1
@@ -358,7 +358,7 @@ _qmi_start_network ()
 	fi
 
 	PDH=`echo "$START_NETWORK_OUT" | sed -n "s/.*handle.*'\(.*\)'.*/\1/p"`
-	if [ "x$PDH" = "x" ]; then
+	if [ x"$PDH" == x"" ]; then
 		echo "error: network start failed, no packet data handle" 1>&2
 		_connect_error_note
 		# Cleanup the client
@@ -375,9 +375,9 @@ _qmi_start_network ()
 
 _qmi_stop_network ()
 {
-	if [ "x$CID" = "x" ]; then
+	if [ x"$CID" == x"" ]; then
 		echo "Network already stopped"
-	elif [ "x$PDH" = "x" ]; then
+	elif [ x"$PDH" == x"" ]; then
 		echo "Network already stopped; need to cleanup CID $CID"
 		# Cleanup the client
 		#$QMICLI -d "$QMI_PORT" --wds-noop --client-cid="$CID" $QMICLI_END
@@ -388,7 +388,7 @@ _qmi_stop_network ()
 		STOP_NETWORK_CMD="_qmicli --wds-stop-network=$PDH --client-cid=$CID"
 		echo "Stopping network with '$STOP_NETWORK_CMD'..."
 
-		if [ "x$QMIDEBUG" != "x" ]; then
+		if [ x"$QMIDEBUG" != x"" ]; then
 			STOP_NETWORK_OUT="\
 [/dev/cdc-wdm$INTERFACE] Network stopped
 "
@@ -406,7 +406,7 @@ _qmi_stop_network ()
 
 _qmi_packet_service_status ()
 {
-	if [ "x$CID" != "x" ]; then
+	if [ x"$CID" != x"" ]; then
 		USE_PREVIOUS_CID="--client-cid=$CID --client-no-release-cid"
 	fi
 
@@ -414,18 +414,18 @@ _qmi_packet_service_status ()
 	STATUS_CMD="_qmicli --wds-get-packet-service-status $USE_PREVIOUS_CID"
 	echo "Getting status with '$STATUS_CMD'..."
 
-	if [ "x$QMIDEBUG" != "x" ]; then
+	if [ x"$QMIDEBUG" != x"" ]; then
 		CONN="disconnected"
 	else
 		CONN="$(_qmicli_value "$(${STATUS_CMD})" "Connection status")"
 	fi
 
-	if [ "x$CONN" = "x" ]; then
+	if [ x"$CONN" == x"" ]; then
 		echo "error: couldn't get packet service status" 1>&2
 		_exit 2
 	else
 		echo "Status: $CONN"
-		if [ "x$CONN" != "xconnected" ]; then
+		if [ x"$CONN" != x"connected" ]; then
 			_exit 64
 		fi
 	fi
@@ -624,9 +624,9 @@ qmi_pin_protection (){
 	# user does not give current pin
 	[ $# -ne 3 ] && par_fail="1"
 	[ x"$pin_num" != x"PIN1" ] && [ x$pin_num != x"PIN2" ] && par_fail="1"
-	[ x"$pin_enable" != x"enable" ] && [ x$pin_enable != x"disable" ] && par_fail="1"
+	[ x"$pin_enable" != x"enable" ] && [ x"$pin_enable" != x"disable" ] && par_fail="1"
 
-	if [ $par_fail = "1" ]; then
+	if [ x"$par_fail" == x"1" ]; then
 		echo "Usage: cell_mgmt pin_protection [PIN1|PIN2] [enable|disable] [current_PIN]"
 		_exit 1
 	else
@@ -672,7 +672,7 @@ qmi_location_info() {
 	if [[ ${service} == CDMA* ]]; then
 		bid=$(_qmicli_value "${info}" "Base Station ID")
 		nid=$(_qmicli_value "${info}" "Network ID")
-	elif [ "${service}" == "Intrafrequency LTE" ]; then
+	elif [ x"${service}" == x"Intrafrequency LTE" ]; then
 		cellid=$(_qmicli_value "${info}" "Global Cell ID")
 		tac=$(_qmicli_value "${info}" "Tracking Area Code")
 	else
@@ -913,8 +913,8 @@ at_start_network() {
 	_start_network_init $@
 
 	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@apn@|${APN}|g")
-	if [ x"${MODEM_PORT}" == "NotSupport" ]; then
-		if [ x"${AT_PORT}" == "NotSupport" ]; then
+	if [ x"${MODEM_PORT}" == x"NotSupport" ]; then
+		if [ x"${AT_PORT}" == x"NotSupport" ]; then
 			>&2 echo "Error: AT port and modem port not available."
 			return 1
 		fi
@@ -1366,9 +1366,9 @@ _get_op_func() {
 
 	if _func_exist _module_${MODULE_ID}_${op}; then
 		echo _module_${MODULE_ID}_${op}
-	elif [ "${QMI_PORT}" != "NotSupport" ] && _func_exist qmi_${op}; then
+	elif [ x"${QMI_PORT}" != x"NotSupport" ] && _func_exist qmi_${op}; then
 		echo qmi_${op}
-	elif [ "${AT_PORT}" != "NotSupport" ] && _func_exist at_${op}; then
+	elif [ x"${AT_PORT}" != x"NotSupport" ] && _func_exist at_${op}; then
 		echo at_${op}
 	else
 		echo ""
