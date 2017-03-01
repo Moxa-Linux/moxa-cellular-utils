@@ -214,9 +214,10 @@ _start_network_init() {
 
 
 	APN="$(eval echo \$APN$interface_num)"
+	PIN="$(eval echo \$PIN$interface_num)" 
+	Phone="$(eval echo \$Phone$interface_num)" 
 	Username="$(eval echo \$Username$interface_num)"
 	Password="$(eval echo \$Password$interface_num)"
-	PIN="$(eval echo \$PIN$interface_num)" 
 
 	# modify APN Username Password PIN
 	for args in $@; do
