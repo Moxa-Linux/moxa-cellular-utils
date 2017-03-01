@@ -14,15 +14,29 @@ set -e
 # the debian-policy package
 
 PKG=moxa-cellular-utils
+DIVERT_ROOT=/usr/etc/${PKG}/divert
+CONFFILES="
+    /etc/udhcpc/default.script
+    /etc/ppp/ip-up.d/0000usepeerdns
+    /etc/ppp/ip-down.d/0000usepeerdns"
 
 add_diversion() {
-    dpkg-divert --package ${PKG} --add --rename \
-        --divert "$1.dist" "$1"
+    if [ "$(dpkg-divert --listpackage "$1")" != "${PKG}" ]; then
+        mkdir -p ${DIVERT_ROOT}/$(dirname $1)
+        dpkg-divert --package ${PKG} --add --rename \
+            --divert "${DIVERT_ROOT}$1" "$1"
+    fi
+}
+
+divert_conffiles() {
+    for file in $CONFFILES; do
+        add_diversion ${file}
+    done
 }
 
 case "$1" in
     install|upgrade|abort-upgrade)
-        add_diversion /etc/udhcpc/default.script
+        divert_conffiles
     ;;
 
     *)

@@ -19,14 +19,35 @@ set -e
 # the debian-policy package
 
 PKG=moxa-cellular-utils
+CONFFILES="
+    /etc/udhcpc/default.script
+    /etc/ppp/ip-up.d/0000usepeerdns
+    /etc/ppp/ip-down.d/0000usepeerdns"
 
 rm_diversion() {
     dpkg-divert --package ${PKG} --rename --remove "$1"
 }
 
+recover_diverted_conffiles() {
+    for file in $CONFFILES; do
+        rm_diversion ${file}
+    done
+}
+
+purge_diversion() {
+    for file in $(dpkg-divert --list ${PKG} | awk '{print $3}'); do
+        rm_diversion ${file}
+    done
+}
+
 case "$1" in
-    purge|remove|abort-install|disappear)
-        rm_diversion /etc/udhcpc/default.script
+    remove|abort-install|disappear)
+        recover_diverted_conffiles
+    ;;
+
+    purge)
+        recover_diverted_conffiles
+        purge_diversion
     ;;
 
     upgrade|failed-upgrade|abort-upgrade)
