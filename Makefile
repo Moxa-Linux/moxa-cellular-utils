@@ -15,6 +15,7 @@ OUT_FILES=$(IN_FILES:.in=)
 DIST_FILES = \
 	$(IN_FILES) \
 	etc/ppp/ip-up.d/0000usepeerdns \
+	etc/ppp/ip-down.d/0000usepeerdns \
 	etc/udhcpc/default.script \
 	etc/udhcpc/ignore-gw-dns.script \
 	etc/${PROJECT}/${PROJECT}.conf \
