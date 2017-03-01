@@ -194,7 +194,7 @@ init()
 		_search_wwan_node
 		_set_variables
 	else
-		>&2 echo "Error: $PROFILE_FILE does not exist." && _exit
+		>&2 echo "Error: $PROFILE_FILE does not exist." && _exit 2
 	fi
 }
 
@@ -298,8 +298,8 @@ _qmi_start_network ()
 	fi
 
 	if [ x"$PDH" != x"" ]; then
-		echo "error: cannot re-start network, PDH already exists" 1>&2
-		_exit 3
+		>&2 echo "Error: cannot re-start network, PDH already exists."
+		_exit 1
 	fi
 
 	# initialize the interface with protocol
@@ -315,7 +315,7 @@ _qmi_start_network ()
 	if [ -f "${raw_ip_file}" ]; then
 		echo ${is_raw_ip} > ${raw_ip_file} 2> /dev/null
 	elif [ x"${QMI_PROTOCOL}" == x"raw-ip" ]; then
-		echo "error: raw-ip not supported" 1>&2
+		>&2 echo "Error: raw-ip not supported."
 		_exit 1
 	fi
 	_qmicli --set-expected-data-format=${QMI_PROTOCOL}
@@ -348,7 +348,7 @@ _qmi_start_network ()
 	if [ x"$CID" == x"" ]; then
 		CID=`echo "$START_NETWORK_OUT" | sed -n "s/.*CID.*'\(.*\)'.*/\1/p"`
 		if [ x"$CID" == x"" ]; then
-			echo "error: network start failed, client not allocated" 1>&2
+			>&2 echo "Error: network start failed, client not allocated."
 			_connect_error_note
 			_exit 1
 		else
@@ -358,13 +358,13 @@ _qmi_start_network ()
 
 	PDH=`echo "$START_NETWORK_OUT" | sed -n "s/.*handle.*'\(.*\)'.*/\1/p"`
 	if [ x"$PDH" == x"" ]; then
-		echo "error: network start failed, no packet data handle" 1>&2
+		>&2 echo "Error: network start failed, no packet data handle."
 		_connect_error_note
 		# Cleanup the client
 		#$QMICLI -d "$QMI_PORT" --wds-noop --client-cid="$CID" $QMICLI_END
 		_qmicli --wds-noop --client-cid="$CID"
 		_clear_state
-		_exit 2
+		_exit 1
 	else
 		_save_state "PDH" $PDH
 	fi
@@ -420,12 +420,12 @@ _qmi_packet_service_status ()
 	fi
 
 	if [ x"$CONN" == x"" ]; then
-		echo "error: couldn't get packet service status" 1>&2
-		_exit 2
+		>&2 echo "Error: couldn't get packet service status."
+		_exit 1
 	else
 		echo "Status: $CONN"
 		if [ x"$CONN" != x"connected" ]; then
-			_exit 64
+			_exit 1
 		fi
 	fi
 }
@@ -724,7 +724,7 @@ cell_at_cmd() {
 	if [ x"${AT_PORT}" == x"NotSupport" ]; then
 		if [ x"${MODEM_PORT}" == x"NotSupport" ]; then
 			>&2 echo "Error: AT port and modem port not available."
-			return 1
+			return 3
 		fi
 		at_port=${MODEM_PORT}
 	else
@@ -741,7 +741,7 @@ cell_at_cmd() {
 	ls -l ${at_port} &> /dev/null
 	if [ $? -ne 0 ]; then
 		>&2 echo "Error: AT/Modem port (${at_port}) not ready."
-		return 1
+		return 3
 	fi
 	echo -n -e "$cmd\r\n" > ${at_port}
 	timeout $timeout cat ${at_port} | tr -d '\r'
@@ -915,7 +915,7 @@ at_start_network() {
 	if [ x"${MODEM_PORT}" == x"NotSupport" ]; then
 		if [ x"${AT_PORT}" == x"NotSupport" ]; then
 			>&2 echo "Error: AT port and modem port not available."
-			return 1
+			return 3
 		fi
 		modem_port=${AT_PORT}
 	else
@@ -1182,7 +1182,6 @@ cell_sim_status() {
 
 # cell_mgmt setinterface
 cell_interface () {
-
 	case $1 in
 		"0" | "1" | "2" | "3")
 			[ $1 -ge ${#ALL_INTERFACE[@]} ] && echo "Interface out of range." && _exit 1 
@@ -1203,7 +1202,6 @@ cell_interface () {
 			_exit 1
 			;;
 	esac
-
 }
 
 cell_interfaces() {
@@ -1391,8 +1389,8 @@ _exec_op_rtn() {
 		#echo "eval ${func} ${@:2}"
 		eval ${func} ${@:2}
 	else
-		>&2 echo "error: operation not support."
-		return 1
+		>&2 echo "Error: operation not support."
+		return 3
 	fi
 }
 
@@ -1400,8 +1398,8 @@ _exec_op() {
 	local func="$(_get_op_func $1)"
 
 	if [ x"${func}" == x"" ]; then
-		>&2 echo "error: operation not support."
-		_exit 1
+		>&2 echo "Error: operation not support."
+		_exit 3
 	fi
 
 	#echo "eval ${func} ${@:2}"
@@ -1410,7 +1408,7 @@ _exec_op() {
 
 (
 	if [ ${FORCE} -eq 0 ]; then
-		flock -w 60 9 || { echo "cell_mgmt is busy, please wait a moment and try again" ; _exit 1; }
+		flock -w 60 9 || { >&2 echo "Error: cell_mgmt is busy, please wait a moment and try again" ; _exit 1; }
 	fi
 	case "$arg1" in
 		modules)
