@@ -228,9 +228,9 @@ _start_network_init() {
 		done
 		[ x"$args" == x"ignore-dns-gw" ] && ignore_dns_gw=1
 	done
-	
+
 	# check APN
-	if [ x"$(eval echo \$APN$interface_num)" == x"" ]; then
+	if [ x"$APN" == x"" ]; then
 		echo "warning : APN is NULL."
 		echo "Usage:"
 		echo "	cell_mgmt \"start\"[APN=[APN], Username=[username], Password=[password], PIN=[pin_code]]"
