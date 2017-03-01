@@ -479,9 +479,9 @@ _qmi_card_status() {
 
 #check cellular status
 qmi_status () {
-	flock -u 9 2>/dev/null
-
 	local con_status=$(_qmi_packet_service_status | grep "Status")
+
+
 	echo ${con_status}
 	if [ x"$(echo ${con_status}| awk '{print $2}')" == x"connected" ]; then
 		_exit 0
@@ -492,9 +492,9 @@ qmi_status () {
 
 #cellular signal strength in dbm
 qmi_signal () {
-	flock -u 9 2>/dev/null
-
 	local signal 
+
+
 	#signal=`$QMICLI -d ${QMI_PORT} --nas-get-signal-strength $QMICLI_END | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
 	signal=`_qmicli --nas-get-signal-strength | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
 	signal_dbm="$(echo $signal | awk '{print $2}')"
@@ -509,8 +509,6 @@ qmi_signal () {
 
 # cell_signal_adv
 qmi_signal_adv () {
-	flock -u 9 2>/dev/null
-
 	local csq
 	local rssi
 	local ecio
@@ -1374,6 +1372,8 @@ _get_op_func() {
 	if _func_exist _module_${MODULE_ID}_${op}; then
 		echo _module_${MODULE_ID}_${op}
 	elif [ x"${QMI_PORT}" != x"NotSupport" ] && _func_exist qmi_${op}; then
+		# unlock if using qmi (proxy is used)
+		flock -u 9 2>/dev/null
 		echo qmi_${op}
 	elif [ x"${AT_PORT}" != x"NotSupport" ] && _func_exist at_${op}; then
 		echo at_${op}
