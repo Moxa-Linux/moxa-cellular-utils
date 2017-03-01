@@ -221,7 +221,7 @@ _start_network_init() {
 
 	# modify APN Username Password PIN
 	for args in $@; do
-		for par in "APN" "Username" "Password" "PIN"; do
+		for par in "APN" "Username" "Password" "PIN" "Phone"; do
 			if [ $(echo $args | grep "$par=") ]; then
 				eval "$par=${args##*$par=}"
 				eval "sed -i s/$par$interface_num=.*/$par$interface_num=\$$par/ $PROFILE_FILE"
@@ -922,10 +922,10 @@ at_start_network() {
 		modem_port=${MODEM_PORT}
 	fi
 	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@modem_port@|${modem_port}|g")
-	if [ x"${PHONE}" == x"" ]; then
-		PHONE="*99#"
+	if [ x"${Phone}" == x"" ]; then
+		Phone="*99#"
 	fi
-	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@phone@|${PHONE}|g")
+	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@phone@|${Phone}|g")
 	echo "${wvdial_conf}" > ${wvdial_path}
 
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@wvdial_conf@|${wvdial_path}|g")
