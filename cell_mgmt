@@ -232,12 +232,10 @@ _start_network_init() {
 
 	# check APN
 	if [ x"$APN" == x"" ]; then
-		echo "warning : APN is NULL."
+		>&2 echo "Error: Please assign a valid APN."
 		echo "Usage:"
-		echo "	cell_mgmt \"start\"[APN=[APN], Username=[username], Password=[password], PIN=[pin_code]]"
-		echo "example:"
-		echo "          cell_mgmt start APN=internet Username=user Password=pass PIN=0000"
-		_exit 1
+		_cell_usage_start
+		_exit 4
 	fi
 }
 
@@ -1222,7 +1220,24 @@ cell_version () {
 }
 
 # show cell_mgmt usage list
-cell_usage () {
+_cell_usage_start() {
+	echo -e "	start [OPTIONS]"
+	echo -e "		Start network."
+	echo -e ""
+	echo -e "		OPTIONS:"
+	echo -e "		APN - Access point name"
+	echo -e "		PIN - PIN code"
+	echo -e "		Phone - Phone number (especially for AT based modules)"
+	echo -e "		Username"
+	echo -e "		Password"
+	echo -e ""
+	echo -e "		example:"
+	echo -e "			cell_mgmt start"
+	echo -e "			cell_mgmt start APN=internet"
+	echo -e "			cell_mgmt start APN=internet PIN=0000"
+	echo -e "			cell_mgmt start APN=internet PIN=0000 Phone=*99#"
+}
+cell_usage() {
 	echo -e "Usage: "
 	echo -e "      $0 [-i <module id>] [-s <slot id>] [OPTIONS]\n"
 	echo -e "OPTIONS"
@@ -1239,90 +1254,83 @@ cell_usage () {
 	echo -e "	slot"
 	echo -e "		Shows module slot id"
 	#interface
-	echo -e "       interface [#slot]"	
+	echo -e "	interface [#slot]"
 	echo -e "		Switching and checking module slot."
 	#start
-	echo -e "       start [APN=[APN],Username=[user],Password=[pass],PIN=[pin_code]]"
-	echo -e "		Start network."
-	echo -e ""
- 	echo -e "               example:"
-	echo -e "                       cell_mgmt start"
-	echo -e "                       cell_mgmt start APN=internet"
-	echo -e "                       cell_mgmt start APN=internet PIN=0000"
-	echo -e "                       cell_mgmt start APN=internet Username=moxa Password=pass PIN=0000"
+	_cell_usage_start
 	#stop
-	echo -e "       stop"	
+	echo -e "	stop"
 	echo -e "		Stop network."
 	#restart
-	echo -e "       restart"	
+	echo -e "	restart"
 	echo -e "		Restart network."
 	#power on
-	echo -e "       power_on"	
+	echo -e "	power_on"
 	echo -e "		Power ON."
 	#power off 
-	echo -e "       power_off"	
+	echo -e "	power_off"
 	echo -e "		Power OFF."
 	#power cycle 
-	echo -e "       power_cycle"	
+	echo -e "	power_cycle"
 	echo -e "		Power cycle"
 	#gps on
-	echo -e "       gps_on"	
+	echo -e "	gps_on"
 	echo -e "		GPS ON."
 	#gps off 
-	echo -e "       gps_off"	
+	echo -e "	gps_off"
 	echo -e "		GPS OFF."
 	#status 
-	echo -e "       status"	
+	echo -e "	status"
 	echo -e "		Query network connection status."
 	#signal 
-	echo -e "       signal"	
+	echo -e "	signal"
 	echo -e "		Get signal strength."
 	#at 
-	echo -e "       at ['AT_COMMAND']"	
+	echo -e "	at ['AT_COMMAND']"
 	echo -e "		Input AT Command."
 	echo -e "		Must use SINGLE QUOTATION to enclose AT Command."
 	#sim_status
-	echo -e "       sim_status"	
+	echo -e "	sim_status"
 	echo -e "		Query sim card status."
 	#unlock_pin 
-	echo -e "       unlock_pin [PIN]"	
+	echo -e "	unlock_pin [PIN]"
 	echo -e "		Unlock PIN code and save to configuration file."
 	#pin_retries
-	echo -e "       pin_retries"
+	echo -e "	pin_retries"
 	echo -e "		Get PIN code retry remain times."
 	#protection_pin 
-	echo -e "       pin_protection [PIN1|PIN2] [enable|disable] [current_PIN]"
+	echo -e "	pin_protection [PIN1|PIN2] [enable|disable] [current_PIN]"
 	echo -e "		Set PIN protection in the UIM."
 	#get_profiles
-	echo -e "       get_profiles"
+	echo -e "	get_profiles"
 	echo -e "		Get profile list."
- 	echo -e "               format:"
-	echo -e "                       <id>,<APN>,<PDP Type>"
- 	echo -e "               example:"
-	echo -e "                       1,internet,IPV4V6"
+	echo -e "		format:"
+	echo -e "			<id>,<APN>,<PDP Type>"
+	echo -e "		example:"
+	echo -e "			1,internet,IPV4V6"
 	#set_apn 
-	echo -e "       set_apn [APN]"	
+	echo -e "	set_apn [APN]"
 	echo -e "		Set APN to configuration file."
 	#number 
-	echo -e "       number"	
+	echo -e "	number"
 	echo -e "		Get SIM number."
 	#check_carrier 
-	echo -e "       check_carrier"	
+	echo -e "	check_carrier"
 	echo -e "		Check current carrier."
 	#switch_carrier 
-	echo -e "       switch_carrier [$CARRIER]"	
+	echo -e "	switch_carrier [$CARRIER]"
 	echo -e "		Switching between US carrier frequency bands."
 	#m_info
-	echo -e "       m_info"	
+	echo -e "	m_info"
 	echo -e "		Module information."
 	#operator
-	echo -e "       operator"	
+	echo -e "	operator"
 	echo -e "		Telecommunication operator."
 	#verizon auto dial up
-	echo -e "       vzwauto"	
+	echo -e "	vzwauto"
 	echo -e "		Verizon Private Network auto dialup."
 	#version
-	echo -e "       version"	
+	echo -e "	version"
 	echo -e "		Cellular management version."
 }
 
