@@ -1411,6 +1411,11 @@ _exec_op() {
 		flock -w 60 9 || { >&2 echo "Error: cell_mgmt is busy, please wait a moment and try again" ; _exit 1; }
 	fi
 	case "$arg1" in
+		# private options
+		post_start)
+			_exec_op post_start
+			;;
+		# public options
 		modules)
 			cell_interfaces
 			;;
