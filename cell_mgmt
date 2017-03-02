@@ -819,18 +819,20 @@ at_signal_csq () {
 }
 
 at_signal () {
-	local signal
+	local signal=""
+	local service="umts"
 
 	signal=$(cell_at_cmd 'AT+CSQ\r\n' | awk '{print $2}')
 	signal=${signal##*AT}
 	signal=${signal%%,*}
-	
+
+	service=$(_exec_op_rtn service | grep "Service:" | \
+		cut -d ' ' -f 2- | awk '{print tolower($0)}')
 	if [ x"$signal" != x"" ]; then
 		if [ "$signal" -le "30" 2>/dev/null ] && [ "$signal" -ge "2" 2>/dev/null ] ; then
 			let signal=signal-2
 			let signal=signal*2-109
-			# FIXME: not always be umts
-			echo "umts $signal dbm"	
+			echo "${service} $signal dbm"	
 		else
 			echo "signal out of range"
 		fi
@@ -1597,6 +1599,9 @@ done
 			;;
 		operator)
 			_exec_op operator
+			;;
+		service)
+			_exec_op service
 			;;
 		vzwauto)
 			cell_vzwauto
