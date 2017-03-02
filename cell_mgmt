@@ -269,6 +269,7 @@ _connect_error_note()
 
 _start_network_init() {
 	ignore_dns_gw=0
+	local card_status=""
 	local interface_num="$INTERFACE"
 	[ x"$interface_num" == x"0" ] && interface_num=""
 
@@ -297,6 +298,17 @@ _start_network_init() {
 		_cell_usage_start
 		_exit 4
 	fi
+
+	card_status="$(_exec_op sim_status | grep "+CPIN")"
+	if [ "$(echo "${card_status}" | grep "PIN")" ] && [ x"$PIN" == x"" ]; then
+		>&2 echo "Error: Please assign the PIN code to unlock SIM card"
+		echo "Usage:"
+		_cell_usage_start
+		_exit 4
+	fi
+
+	# Check PIN status
+	_cell_unlock_pin "${PIN}" "_cell_usage_start"
 }
 
 #--------- qmi base functions -----------
@@ -594,26 +606,6 @@ qmi_start_network() {
 
 
 	_start_network_init $@
-	# Check PIN status
-	# if PIN status are not verified
-	# use the PIN code user input to verify automatically.
-	card_status="$(_qmi_card_status | grep "+CPIN")"
-	if [ "$(echo "${card_status}" | grep "READY")" ]; then
-		echo "PIN code: Disabled or verified"
-	elif [ "$(echo "${card_status}" | grep "PIN")" ]; then
-		echo "PIN code: Not Verified"
-		_qmicli --uim-verify-pin=PIN1,$PIN
-		echo "Please wait ..."
-		sleep 10
-	elif [ "$(echo "${card_status}" | grep "PUK")" ]; then
-		#--uim-unblock-pin=[(PIN1|PIN2|UPIN),(PUK),(new PIN)]
-		echo "PIN code: Blocked"
-		echo "Please unblock PIN first."
-		_exit 1
-	else
-		echo "SIM card not available, please check."
-		_exit 1
-	fi
 
 	_qmi_start_network
 	# query IP from DHCP Server 
@@ -645,6 +637,15 @@ qmi_stop_network() {
 
 qmi_sim_status() {
 	_qmi_card_status
+}
+
+# unlock pin code
+qmi_unlock_pin() {
+	ret=$(_qmicli --uim-verify-pin=PIN1,$1)
+	if ! grep -q 'PIN verified successfully'; then
+		echo $ret
+		_exit 1
+	fi
 }
 
 qmi_pin_retries() {
@@ -842,27 +843,13 @@ at_sim_status() {
 	cell_at_cmd 'AT+CPIN?' | grep '+CPIN:'
 }
 
-# set pin code
+# unlock pin code
 at_unlock_pin() {
-	local ret
-	local pin_code="$1"
-	[ -z $pin_code ] && echo "Usage: cell_mgmt unlock_pin [pin_code]" && _exit 1
-	if [ -e $PROFILE_FILE ]; then
-		echo "old PIN=$PIN, new PIN=$pin_code"
-		sed -i "s/PIN=.*/PIN=$pin_code/" $PROFILE_FILE
-		if [ x"$(at_sim_status |grep READY)" == x"" ]; then
-			ret=$(cell_at_cmd "AT+CPIN=$pin_code" | grep 'ERROR')
-			if [ x"$ret" != x"" ]; then
-				echo $ret
-				_exit 8
-			fi
-		fi
-		#verify pin code
-		#$QMICLI -d $QMI_PORT --uim-verify-pin=PIN1,$pin_code $QMICLI_END
-	else
-		echo -e "APN=\nusername=\npassword=\nPIN=$pin_code"
+	ret=$(cell_at_cmd "AT+CPIN=$1" 1 | grep 'ERROR')
+	if [ x"$ret" != x"" ]; then
+		echo $ret
+		_exit 1
 	fi
-	_exit 0
 }
 
 # get profile list
@@ -1217,6 +1204,59 @@ cell_pin_code_status () {
 	fi
 }
 
+_cell_unlock_pin() {
+	local pin_code="$1"
+	local usage_func="$2"
+	local card_status=""
+
+
+	# unlock PIN
+	card_status="$(_exec_op sim_status | grep "+CPIN")"
+	if [ "$(echo "${card_status}" | grep "READY")" ]; then
+		echo "PIN code: Disabled or verified"
+	elif [ "$(echo "${card_status}" | grep "PIN")" ]; then
+		echo "PIN code: Not Verified"
+		if [ -z "$pin_code" ]; then
+			>&2 echo "Error: Please assign the PIN code."
+			echo "Usage:"
+			if [ -z "${usage_func}" ]; then
+				_cell_usage_unlock_pin
+			else
+				eval "${usage_func}"
+			fi
+			_exit 1
+		fi
+		_exec_op unlock_pin ${pin_code}
+		return $?
+	elif [ "$(echo "${card_status}" | grep "PUK")" ]; then
+		echo "PIN code: Blocked"
+		echo "Please unblock PIN first."
+		_exit 1
+	else
+		echo "SIM card not available, please check."
+		_exit 1
+	fi
+}
+
+cell_unlock_pin() {
+	local ret=""
+	local pin_code="$1"
+	local card_status=""
+
+
+
+	# save to profile
+	if [ -e $PROFILE_FILE ]; then
+		echo "old PIN=$PIN, new PIN=$pin_code"
+		sed -i "s/PIN=.*/PIN=$pin_code/" $PROFILE_FILE
+	else
+		echo -e "APN=\nusername=\npassword=\nPIN=$pin_code"
+	fi
+	PIN=${pin_code}
+
+	_cell_unlock_pin ${PIN}
+}
+
 # cellular restart
 cell_restart () {
 	# restart cellular (reconnect)
@@ -1275,6 +1315,11 @@ cell_version () {
 }
 
 # show cell_mgmt usage list
+_cell_usage_unlock_pin() {
+	echo -e "	unlock_pin [PIN]"
+	echo -e "		Unlock PIN code and save to configuration file."
+}
+
 _cell_usage_start() {
 	echo -e "	start [OPTIONS]"
 	echo -e "		Start network."
@@ -1347,9 +1392,8 @@ cell_usage() {
 	#sim_status
 	echo -e "	sim_status"
 	echo -e "		Query sim card status."
-	#unlock_pin 
-	echo -e "	unlock_pin [PIN]"
-	echo -e "		Unlock PIN code and save to configuration file."
+	#unlock_pin
+	_cell_usage_unlock_pin
 	#pin_retries
 	echo -e "	pin_retries"
 	echo -e "		Get PIN code retry remain times."
@@ -1475,7 +1519,8 @@ done
 			cell_pin_code_status
 			;;
 		unlock_pin)
-			_exec_op unlock_pin $arg2
+			cell_unlock_pin $arg2
+			#_exec_op unlock_pin $arg2
 			;;
 		pin_retries)
 			_exec_op pin_retries
