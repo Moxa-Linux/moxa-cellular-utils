@@ -1031,7 +1031,7 @@ cell_initialize() {
 }
 
 # cellular power on by GPIO
-cell_power_on () {
+cell_power_on() {
 	local vendor_id=""
 	local product_id=""
 	local module_id=""
@@ -1064,7 +1064,7 @@ cell_power_on () {
 }
 
 # cellular power off by GPIO
-cell_power_off () {
+cell_power_off() {
 	_exec_op_rtn stop_network 2> /dev/null
 	_qmi_kill_proxy
 	
@@ -1088,10 +1088,32 @@ cell_power_off () {
 }
 
 #cellular power off and on by GPIO
-cell_power_cycle () {
+cell_power_cycle() {
 	cell_power_off
 	sleep 1
 	cell_power_on
+}
+
+cell_switch_sim() {
+	local sim_slot=$1
+
+
+	if [ -z "$SWITCH_SIM_FUNC" ]; then
+		>&2 echo "Error: operation not support."
+		_exit 3
+	fi
+
+	_exec_op_rtn stop_network &> /dev/null
+	_qmi_kill_proxy &> /dev/null
+
+	switch_sim_funcs="$(echo "$SWITCH_SIM_FUNC" | \
+		sed -e "s/\$SLOT/$SLOT/g" | sed -e "s/\$SIM_SLOT/$sim_slot/g")"
+
+	IFS=$'\n'
+	for i in $switch_sim_funcs; do
+		eval "$i"
+	done
+	cell_power_cycle
 }
 
 # dhclient
@@ -1372,7 +1394,10 @@ cell_usage() {
 	echo -e "		Power OFF."
 	#power cycle 
 	echo -e "	power_cycle"
-	echo -e "		Power cycle"
+	echo -e "		Power cycle the module slot."
+	#switch sim slot
+	echo -e "	switch_sim [1|2]"
+	echo -e "		Switch SIM slot."
 	#gps on
 	echo -e "	gps_on"
 	echo -e "		GPS ON."
@@ -1502,6 +1527,9 @@ done
 			;;
 		power_cycle)
 			cell_power_cycle
+			;;
+		switch_sim)
+			cell_switch_sim $arg2
 			;;
 		status)
 			_exec_op status
