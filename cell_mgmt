@@ -45,6 +45,53 @@ _exit() {
 	exit $1
 }
 
+_func_exist() {
+	if type ${1} 2> /dev/null | grep -q 'function' 2>/dev/null; then
+		return 0
+	fi
+	return 1
+}
+
+_get_op_func() {
+	local op="$1"
+
+	if _func_exist _module_${MODULE_ID}_${op}; then
+		echo _module_${MODULE_ID}_${op}
+	elif [ x"${QMI_PORT}" != x"NotSupport" ] && _func_exist qmi_${op}; then
+		# unlock if using qmi (proxy is used)
+		flock -u 9 2>/dev/null
+		echo qmi_${op}
+	elif [ x"${AT_PORT}" != x"NotSupport" ] && _func_exist at_${op}; then
+		echo at_${op}
+	else
+		echo ""
+	fi
+}
+
+_exec_op_rtn() {
+	local func="$(_get_op_func $1)"
+
+	if [ x"${func}" != x"" ]; then
+		#echo "eval ${func} ${@:2}"
+		eval ${func} ${@:2}
+	else
+		>&2 echo "Error: operation not support."
+		return 3
+	fi
+}
+
+_exec_op() {
+	local func="$(_get_op_func $1)"
+
+	if [ x"${func}" == x"" ]; then
+		>&2 echo "Error: operation not support."
+		_exit 3
+	fi
+
+	#echo "eval ${func} ${@:2}"
+	eval ${func} ${@:2}
+}
+
 _save_state() {
 	local KEY=$1
 	local VAL=$2
@@ -79,7 +126,7 @@ _clear_state () {
 }
 
 
-_load_profile ()
+_load_profile()
 {
 	. $PROFILE_FILE
 	for conf in $(ls ${PRODUCT_DIR}); do
@@ -106,31 +153,39 @@ _search_wwan_node()
 	local vendor_id
 	local product_id
 	local slot_num=0
+	local id=-1
 
 	for i in ${MODULE_PATH[@]}; do
 		let slot_num++
-		if [ -e $i ]; then
-			vendor_id=$(cat $i/idVendor 2> /dev/null)
-			product_id=$(cat $i/idProduct 2> /dev/null)
-			module_name=$(cat $i/product 2> /dev/null)
-			ALL_MODULE_ID[${#ALL_MODULE_ID[@]}]=${vendor_id}_${product_id}
-			ALL_MODULE_NAME[${#ALL_MODULE_NAME[@]}]=${module_name}
-			ALL_SLOT_NUM[${#ALL_SLOT_NUM[@]}]=$slot_num
-			ALL_INTERFACE[${#ALL_INTERFACE[@]}]=""
-			ALL_QMI_PROTOCOL[${#ALL_QMI_PROTOCOL[@]}]="802-3"
-			ALL_QMI_PORT[${#ALL_QMI_PORT[@]}]="NotSupport"
-			ALL_AT_PORT[${#ALL_AT_PORT[@]}]="NotSupport"
-			ALL_GPS_PORT[${#ALL_GPS_PORT[@]}]="NotSupport"
-			ALL_MODEM_PORT[${#ALL_MODEM_PORT[@]}]="NotSupport"
-			ALL_AT_TIMEOUT[${#ALL_AT_TIMEOUT[@]}]="0.3"
-		else
+		if [ ! -e $i ]; then
 			continue
 		fi
 
-		eval "_module_${vendor_id}_${product_id} \
-			$i $((${slot_num}-1)) \"${module_name}\"" 2>/dev/null
-		if [ $? -ne 0 ]; then
+		vendor_id=$(cat $i/idVendor 2> /dev/null)
+		product_id=$(cat $i/idProduct 2> /dev/null)
+		module_name=$(cat $i/product 2> /dev/null)
+
+		if ! _func_exist _module_${vendor_id}_${product_id}; then
 			>&2 echo "Error: module ${module_name} not support."
+			continue
+		fi
+
+		let id++
+		ALL_MODULE_ID[${id}]=${vendor_id}_${product_id}
+		ALL_MODULE_NAME[${id}]=${module_name}
+		ALL_SLOT_NUM[${id}]=$slot_num
+		ALL_INTERFACE[${id}]=""
+		ALL_QMI_PROTOCOL[${id}]="802-3"
+		ALL_QMI_PORT[${id}]="NotSupport"
+		ALL_AT_PORT[${id}]="NotSupport"
+		ALL_GPS_PORT[${id}]="NotSupport"
+		ALL_MODEM_PORT[${id}]="NotSupport"
+		ALL_AT_TIMEOUT[${id}]="0.3"
+
+		eval "_module_${vendor_id}_${product_id} \
+			$i ${id} \"${module_name}\"" 2>/dev/null
+		if [ $? -ne 0 ]; then
+			>&2 echo "Error: initialize module ${module_name} failed."
 			continue
 		fi
 	done
@@ -192,6 +247,10 @@ init()
 	if [ -f $PROFILE_FILE ]; then
 		_load_profile
 		_search_wwan_node
+		if [ x"${INTERFACE}" == x"" ] || \
+			[ ${INTERFACE} -ge ${#ALL_INTERFACE[@]} ]; then
+			INTERFACE=0
+		fi
 		_set_variables
 	else
 		>&2 echo "Error: $PROFILE_FILE does not exist." && _exit 2
@@ -1359,52 +1418,6 @@ for i in $(seq $OPTIND 1 $#); do
 	eval "arg$j=\$$i"
 done
 
-_func_exist() {
-	if type ${1} 2> /dev/null | grep -q 'function' 2>/dev/null; then
-		return 0
-	fi
-	return 1
-}
-
-_get_op_func() {
-	local op="$1"
-
-	if _func_exist _module_${MODULE_ID}_${op}; then
-		echo _module_${MODULE_ID}_${op}
-	elif [ x"${QMI_PORT}" != x"NotSupport" ] && _func_exist qmi_${op}; then
-		# unlock if using qmi (proxy is used)
-		flock -u 9 2>/dev/null
-		echo qmi_${op}
-	elif [ x"${AT_PORT}" != x"NotSupport" ] && _func_exist at_${op}; then
-		echo at_${op}
-	else
-		echo ""
-	fi
-}
-
-_exec_op_rtn() {
-	local func="$(_get_op_func $1)"
-
-	if [ x"${func}" != x"" ]; then
-		#echo "eval ${func} ${@:2}"
-		eval ${func} ${@:2}
-	else
-		>&2 echo "Error: operation not support."
-		return 3
-	fi
-}
-
-_exec_op() {
-	local func="$(_get_op_func $1)"
-
-	if [ x"${func}" == x"" ]; then
-		>&2 echo "Error: operation not support."
-		_exit 3
-	fi
-
-	#echo "eval ${func} ${@:2}"
-	eval ${func} ${@:2}
-}
 
 (
 	if [ ${FORCE} -eq 0 ]; then
