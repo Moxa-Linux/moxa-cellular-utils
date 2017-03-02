@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.15.1) unstable; urgency=low
+
+  * fix: Scan by interface number not slot number.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 02 Mar 2017 13:15:41 +0800
+
 moxa-cellular-utils (1.15.0) unstable; urgency=low
 
   * refactor: Separate configs of modules & products and module specific
