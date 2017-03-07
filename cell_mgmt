@@ -1456,8 +1456,7 @@ _cell_usage_unlock_pin() {
 }
 
 _cell_usage_pin_protection() {
-{
-	echo -e "	pin_protection <PIN1|PIN2> <enable|disable> [current_PIN]"
+	echo -e "	pin_protection <PIN1|PIN2> <enable|disable> <current PIN>"
 	echo -e "		Set PIN protection in the UIM."
 }
 
