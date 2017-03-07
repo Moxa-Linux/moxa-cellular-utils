@@ -901,22 +901,18 @@ at_get_profiles() {
 		awk -F"," '{print $1","$3","$2}' | sed -e 's/\"//g'
 }
 
-# set apn into PDP context id 1
-at_set_apn() {
-	local ret
-	local apn="$1"
-	[ -z $apn ] && echo "Usage: cell_mgmt set_apn [apn]" && _exit 1
-	if [ -e $PROFILE_FILE ]; then
-		echo "old APN=$APN, new APN=$apn"
-		sed -i "s/APN=.*/APN=$apn/" $PROFILE_FILE
+at_set_profile() {
+	local id="$1"
+	local apn="$2"
+	local type="${3}"
+
+
+	if [ -z "${apn}" ]; then
+		data="${id}"
 	else
-		echo -e "APN=$apn\nusername=\npassword=\nPIN="
+		data="${id},\"${type}\",\"${apn}\""
 	fi
-	APN=${apn}
-	cell_at_cmd 'AT+CFUN=4' 0.8 > /dev/null
-	cell_at_cmd "AT+CGDCONT=1,\"IPV4V6\",\"$APN\"" 1 > /dev/null
-	cell_at_cmd 'AT+CFUN=1' 0.5 > /dev/null
-	_exit 0
+	cell_at_cmd "AT+CGDCONT=${data}" 1 > /dev/null || return 1
 }
 
 # +CNUM: "ABC","12345678901",129
@@ -1186,6 +1182,48 @@ cell_switch_sim() {
 	cell_power_cycle
 }
 
+cell_set_profile() {
+	local id="$1"
+	local apn="$2"
+	local type="${3:-IPV4V6}"
+
+
+	if [ $# -lt 1 ]; then
+		_cell_usage_cmd _cell_usage_set_profile
+		_exit 1
+	fi
+
+	[ -z "${apn}" ] && apn="\"\""
+	_exec_op_rtn set_flight_mode 1 && \
+		_exec_op_rtn set_profile "${id}" "${apn}" "${type}" && \
+		_exec_op_rtn set_flight_mode 0 &&
+		_exit 0
+	_exit 1
+}
+
+# set apn into PDP context id 1
+cell_set_apn() {
+	local ret
+	local apn="$1"
+
+
+	if [ -z "${apn}" ]; then
+		_cell_usage_cmd _cell_usage_set_apn
+		_exit 1
+	fi
+
+	if [ -e $PROFILE_FILE ]; then
+		echo "old APN=$APN, new APN=$apn"
+		sed -i "s/APN=.*/APN=$apn/" $PROFILE_FILE
+	else
+		echo -e "APN=$apn\nusername=\npassword=\nPIN="
+	fi
+	APN=${apn}
+
+	cell_set_profile 1 "${APN}" "IPV4V6" || _exit 1
+	_exit 0
+}
+
 # dhclient
 cell_dhclient () {
 	local node="$1"
@@ -1416,6 +1454,18 @@ _cell_usage_unlock_pin() {
 	echo -e "		Unlock PIN code and save to configuration file."
 }
 
+_cell_usage_set_profile() {
+	#set_profile
+	echo -e "       set_profile [id] [APN] [PDP Type]"
+	echo -e "		Update PDP profile."
+}
+
+_cell_usage_set_apn() {
+	#set_apn 
+	echo -e "	set_apn [APN]"
+	echo -e "		Set APN to configuration file."
+}
+
 _cell_usage_start() {
 	echo -e "	start [OPTIONS]"
 	echo -e "		Start network."
@@ -1513,9 +1563,10 @@ cell_usage() {
 	echo -e "			<id>,<APN>,<PDP Type>"
 	echo -e "		example:"
 	echo -e "			1,internet,IPV4V6"
+	#set_profile
+	_cell_usage_set_profile
 	#set_apn 
-	echo -e "	set_apn [APN]"
-	echo -e "		Set APN to configuration file."
+	_cell_usage_set_apn
 	#number 
 	echo -e "	number"
 	echo -e "		Get SIM number."
@@ -1646,8 +1697,11 @@ done
 		get_profiles)
 			_exec_op get_profiles
 			;;
+		set_profile)
+			cell_set_profile $arg2 $arg3 $arg4
+			;;
 		set_apn)
-			_exec_op set_apn $arg2
+			cell_set_apn $arg2
 			;;
 		number)
 			_exec_op number
