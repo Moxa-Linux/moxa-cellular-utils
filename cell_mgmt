@@ -1411,7 +1411,9 @@ cell_sim_status() {
 cell_interface () {
 	case $1 in
 		"0" | "1" | "2" | "3")
-			[ $1 -ge ${#ALL_INTERFACE[@]} ] && echo "Interface out of range." && _exit 1 
+			[ $1 -ge ${#ALL_INTERFACE[@]} ] && \
+				>&2 echo "Error: Interface out of range." && \
+				_exit 4
 			sed -i "s/INTERFACE=.*/INTERFACE=$1/" $PROFILE_FILE
 			echo "set interface=$1"
 			_exit 0
@@ -1419,14 +1421,15 @@ cell_interface () {
 		"")
 			for (( i=0 ; i<${#ALL_INTERFACE[@]} ; i++ ))
 			do
-				echo "[$i] ${ALL_INTERFACE[$i]}$([ x$i == x$INTERFACE ] && echo '   <Current>')"
+				echo "[$i] ${ALL_INTERFACE[$i]}" \
+					"$([ x$i == x$INTERFACE ] &&
+						echo '   <Current>')"
 			done
 			;;
 		*)
-			echo "Usage: cell_mgmt \"interface\" [0~3]"
-			echo "example:"
-			echo "          cell_mgmt interface 0"
-			_exit 1
+			>&2 echo "Error: Invalid interface."
+			_cell_usage_cmd _cell_usage_interface
+			_exit 4
 			;;
 	esac
 }
@@ -1448,6 +1451,11 @@ cell_version () {
 _cell_usage_cmd() {
 	echo "Usage:"
 	eval "$1"
+}
+
+_cell_usage_interface() {
+	echo -e "	interface [interface id]"
+	echo -e "		Switching and checking module interface(s)"
 }
 
 _cell_usage_unlock_pin() {
@@ -1507,8 +1515,7 @@ cell_usage() {
 	echo -e "	slot"
 	echo -e "		Shows module slot id"
 	#interface
-	echo -e "	interface [#slot]"
-	echo -e "		Switching and checking module slot."
+	_cell_usage_interface
 	#start
 	_cell_usage_start
 	#stop
