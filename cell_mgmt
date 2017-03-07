@@ -934,7 +934,7 @@ at_operator () {
 	if [ ! -z "${result}" ]; then
 		echo $result
 	else
-		echo "Unknown telecom operator"
+		echo "Unknown"
 	fi
 }
 
