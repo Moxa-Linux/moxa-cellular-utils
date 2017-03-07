@@ -376,11 +376,12 @@ _qmi_start_network() {
 
 	if [ -f "${raw_ip_file}" ]; then
 		echo ${is_raw_ip} > ${raw_ip_file} 2> /dev/null
+		_qmicli --set-expected-data-format=${QMI_PROTOCOL} && \
+			>&2 echo "Error: cannot update data format." && _exit 1
 	elif [ x"${QMI_PROTOCOL}" == x"raw-ip" ]; then
 		>&2 echo "Error: raw-ip not supported."
 		_exit 1
 	fi
-	_qmicli --set-expected-data-format=${QMI_PROTOCOL}
 
 	#START_NETWORK_CMD="$QMICLI -d $QMI_PORT --wds-start-network=$APN --client-no-release-cid --device-open-net=net-802-3|net-no-qos-header $QMICLI_END"
 	START_NETWORK_CMD="_qmicli --wds-start-network='apn=$APN,ip-type=4' --client-no-release-cid --device-open-net=net-${QMI_PROTOCOL}|net-no-qos-header"
