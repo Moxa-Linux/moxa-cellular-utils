@@ -892,13 +892,12 @@ at_number() {
 # telecommunication operator
 at_operator () {
 	local result
-	result=$(cell_at_cmd 'AT+COPS?' | grep COPS:)
-	result=${result#*,\"}
-	result=${result%%\",*}
-	if [ x"$(echo $result | grep COPS)" != x ]; then
-		echo "Unknown telecom operator"
-	else
+	result=$(cell_at_cmd 'AT+COPS?' | grep "+COPS:" | \
+		cut -d ' ' -f 2- | cut -s -d ',' -f 3 | sed 's/\"//g')
+	if [ ! -z "${result}" ]; then
 		echo $result
+	else
+		echo "Unknown telecom operator"
 	fi
 }
 
