@@ -1310,12 +1310,16 @@ cell_m_info() {
 }
 
 # verizon auto dialup
-cell_vzwauto () {
-	result=$(cell_at_cmd 'AT+CGDCONT?'|grep '+CGDCONT: 3')
-	APN=`echo $result|cut -d ',' -f 3|tr -d '"'`
-	export APN=${APN}
+cell_vzwauto() {
+	local profile=$(_exec_op_rtn get_profiles | grep "^3")
+
+
+	[ -z "${profile}" ] && \
+		>&2 echo "Error: PDP context 3 doesn't exist." && exit 1
+	APN=$(echo "${profile}" | cut -d ',' -f 2)
 	_exec_op start_network
-	echo -e "\n\n APN=${APN} is in used\n\n"
+	#echo -e "\n\n APN=${APN} is in used\n\n"
+	_exit 0
 }
 
 cell_pin_code_status () {
