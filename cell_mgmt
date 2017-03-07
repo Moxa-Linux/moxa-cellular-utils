@@ -704,6 +704,23 @@ qmi_pin_protection (){
 
 }
 
+qmi_set_flight_mode() {
+	local flight=${1:-1}
+	local mode=""
+
+	# flight mode (persistent-low-power)
+	# online mode (online)
+	if [ ${flight} -eq 1 ]; then
+		mode="low-power"
+	else
+		mode="online"
+	fi
+	if _qmicli --dms-set-operating-mode="${mode}" &> /dev/null; then
+		return 0
+	fi
+	return 1
+}
+
 qmi_get_profiles() {
 	_qmicli --wds-get-profile-list=3gpp | \
 		awk -f ${CONF_DIR}/qmicli-profile-scan.awk
@@ -861,6 +878,23 @@ at_unlock_pin() {
 		echo $ret
 		_exit 1
 	fi
+}
+
+at_set_flight_mode() {
+	local flight=${1:-1}
+	local mode=""
+
+	# flight mode (persistent-low-power)
+	# online mode (online)
+	if [ ${flight} -eq 1 ]; then
+		mode=4
+	else
+		mode=1
+	fi
+	if cell_at_cmd "AT+CFUN=${mode}" 1 | grep -q "OK"; then
+		return 0
+	fi
+	return 1
 }
 
 # get profile list
@@ -1466,6 +1500,9 @@ cell_usage() {
 	#protection_pin 
 	echo -e "	pin_protection [PIN1|PIN2] [enable|disable] [current_PIN]"
 	echo -e "		Set PIN protection in the UIM."
+	#set_flight_mode
+	echo -e "	set_flight_mode [0|1]"
+	echo -e "		Set module into flight mode (1) or online mode (0)."
 	#get_profiles
 	echo -e "	get_profiles"
 	echo -e "		Get profile list."
@@ -1599,6 +1636,9 @@ done
 			;;
 		pin_protection)
 			_exec_op pin_protection $arg2 $arg3 $arg4
+			;;
+		set_flight_mode)
+			_exec_op set_flight_mode $arg2
 			;;
 		get_profiles)
 			_exec_op get_profiles
