@@ -686,16 +686,17 @@ qmi_pin_protection (){
 	local pin_enable="$2"
 	local pin_current="$3"
 	local par_fail="0"		
+
+
 	# user does not give current pin
 	[ $# -ne 3 ] && par_fail="1"
 	[ x"$pin_num" != x"PIN1" ] && [ x$pin_num != x"PIN2" ] && par_fail="1"
 	[ x"$pin_enable" != x"enable" ] && [ x"$pin_enable" != x"disable" ] && par_fail="1"
 
 	if [ x"$par_fail" == x"1" ]; then
-		echo "Usage: cell_mgmt pin_protection [PIN1|PIN2] [enable|disable] [current_PIN]"
-		_exit 1
+		_cell_usage_cmd _cell_usage_set_profile
+		_exit 4
 	else
-		#$QMICLI -d $QMI_PORT --uim-set-pin-protection=$pin_num,$pin_enable,$pin_current $QMICLI_END
 		_qmicli --uim-set-pin-protection=$pin_num,$pin_enable,$pin_current
 		_exit 0
 	fi
@@ -1190,7 +1191,7 @@ cell_set_profile() {
 
 	if [ $# -lt 1 ]; then
 		_cell_usage_cmd _cell_usage_set_profile
-		_exit 1
+		_exit 4
 	fi
 
 	[ -z "${apn}" ] && apn="\"\""
@@ -1209,7 +1210,7 @@ cell_set_apn() {
 
 	if [ -z "${apn}" ]; then
 		_cell_usage_cmd _cell_usage_set_apn
-		_exit 1
+		_exit 4
 	fi
 
 	if [ -e $PROFILE_FILE ]; then
@@ -1353,7 +1354,7 @@ _cell_unlock_pin() {
 			else
 				_cell_usage_cmd "${usage_func}"
 			fi
-			_exit 1
+			_exit 4
 		fi
 		_exec_op unlock_pin ${pin_code}
 		return $?
@@ -1454,6 +1455,12 @@ _cell_usage_unlock_pin() {
 	echo -e "		Unlock PIN code and save to configuration file."
 }
 
+_cell_usage_pin_protection() {
+{
+	echo -e "	pin_protection <PIN1|PIN2> <enable|disable> [current_PIN]"
+	echo -e "		Set PIN protection in the UIM."
+}
+
 _cell_usage_set_profile() {
 	#set_profile
 	echo -e "	set_profile <id> [APN [PDP Type]]"
@@ -1550,9 +1557,8 @@ cell_usage() {
 	#pin_retries
 	echo -e "	pin_retries"
 	echo -e "		Get PIN code retry remain times."
-	#protection_pin 
-	echo -e "	pin_protection <PIN1|PIN2> <enable|disable> [current_PIN]"
-	echo -e "		Set PIN protection in the UIM."
+	#pin_protection
+	_cell_usage_pin_protection
 	#set_flight_mode
 	echo -e "	set_flight_mode <0|1>"
 	echo -e "		Set module into flight mode (1) or online mode (0)."
