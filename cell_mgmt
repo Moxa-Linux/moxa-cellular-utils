@@ -1450,19 +1450,19 @@ _cell_usage_cmd() {
 }
 
 _cell_usage_unlock_pin() {
-	echo -e "	unlock_pin [PIN]"
+	echo -e "	unlock_pin <PIN>"
 	echo -e "		Unlock PIN code and save to configuration file."
 }
 
 _cell_usage_set_profile() {
 	#set_profile
-	echo -e "       set_profile [id] [APN] [PDP Type]"
+	echo -e "	set_profile <id> [APN [PDP Type]]"
 	echo -e "		Update PDP profile."
 }
 
 _cell_usage_set_apn() {
 	#set_apn 
-	echo -e "	set_apn [APN]"
+	echo -e "	set_apn <APN>"
 	echo -e "		Set APN to configuration file."
 }
 
@@ -1486,7 +1486,7 @@ _cell_usage_start() {
 
 cell_usage() {
 	echo -e "Usage: "
-	echo -e "      $0 [-i <module id>] [-s <slot id>] [OPTIONS]\n"
+	echo -e "	$0 [-i <module id>] [-s <slot id>] <OPTIONS>\n"
 	echo -e "OPTIONS"
 	echo -e "	-i <module id>"
 	echo -e "		Module identifier, start from 0 and default to 0."
@@ -1521,7 +1521,7 @@ cell_usage() {
 	echo -e "	power_cycle"
 	echo -e "		Power cycle the module slot."
 	#switch sim slot
-	echo -e "	switch_sim [1|2]"
+	echo -e "	switch_sim <1|2>"
 	echo -e "		Switch SIM slot."
 	#gps on
 	echo -e "	gps_on"
@@ -1530,7 +1530,7 @@ cell_usage() {
 	echo -e "	gps_off"
 	echo -e "		GPS OFF."
 	#attach_status 
-	echo -e "       attach_status"	
+	echo -e "	attach_status"
 	echo -e "		Query network registration status."
 	#status 
 	echo -e "	status"
@@ -1539,7 +1539,7 @@ cell_usage() {
 	echo -e "	signal"
 	echo -e "		Get signal strength."
 	#at 
-	echo -e "	at ['AT_COMMAND']"
+	echo -e "	at <'AT_COMMAND'>"
 	echo -e "		Input AT Command."
 	echo -e "		Must use SINGLE QUOTATION to enclose AT Command."
 	#sim_status
@@ -1551,10 +1551,10 @@ cell_usage() {
 	echo -e "	pin_retries"
 	echo -e "		Get PIN code retry remain times."
 	#protection_pin 
-	echo -e "	pin_protection [PIN1|PIN2] [enable|disable] [current_PIN]"
+	echo -e "	pin_protection <PIN1|PIN2> <enable|disable> [current_PIN]"
 	echo -e "		Set PIN protection in the UIM."
 	#set_flight_mode
-	echo -e "	set_flight_mode [0|1]"
+	echo -e "	set_flight_mode <0|1>"
 	echo -e "		Set module into flight mode (1) or online mode (0)."
 	#get_profiles
 	echo -e "	get_profiles"
@@ -1574,7 +1574,7 @@ cell_usage() {
 	echo -e "	check_carrier"
 	echo -e "		Check current carrier."
 	#switch_carrier 
-	echo -e "	switch_carrier [$CARRIER]"
+	echo -e "	switch_carrier <$CARRIER>"
 	echo -e "		Switching between US carrier frequency bands."
 	#m_info
 	echo -e "	m_info"
