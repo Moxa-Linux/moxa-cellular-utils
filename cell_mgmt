@@ -294,16 +294,14 @@ _start_network_init() {
 	# check APN
 	if [ x"$APN" == x"" ]; then
 		>&2 echo "Error: Please assign a valid APN."
-		echo "Usage:"
-		_cell_usage_start
+		_cell_usage_cmd _cell_usage_start
 		_exit 4
 	fi
 
 	card_status="$(_exec_op sim_status | grep "+CPIN")"
 	if [ "$(echo "${card_status}" | grep "PIN")" ] && [ x"$PIN" == x"" ]; then
 		>&2 echo "Error: Please assign the PIN code to unlock SIM card"
-		echo "Usage:"
-		_cell_usage_start
+		_cell_usage_cmd __cell_usage_start
 		_exit 4
 	fi
 
@@ -1312,11 +1310,10 @@ _cell_unlock_pin() {
 		echo "PIN code: Not Verified"
 		if [ -z "$pin_code" ]; then
 			>&2 echo "Error: Please assign the PIN code."
-			echo "Usage:"
 			if [ -z "${usage_func}" ]; then
-				_cell_usage_unlock_pin
+				_cell_usage_cmd "_cell_usage_unlock_pin"
 			else
-				eval "${usage_func}"
+				_cell_usage_cmd "${usage_func}"
 			fi
 			_exit 1
 		fi
@@ -1409,6 +1406,11 @@ cell_version () {
 }
 
 # show cell_mgmt usage list
+_cell_usage_cmd() {
+	echo "Usage:"
+	eval "$1"
+}
+
 _cell_usage_unlock_pin() {
 	echo -e "	unlock_pin [PIN]"
 	echo -e "		Unlock PIN code and save to configuration file."
@@ -1431,6 +1433,7 @@ _cell_usage_start() {
 	echo -e "			cell_mgmt start APN=internet PIN=0000"
 	echo -e "			cell_mgmt start APN=internet PIN=0000 Phone=*99#"
 }
+
 cell_usage() {
 	echo -e "Usage: "
 	echo -e "      $0 [-i <module id>] [-s <slot id>] [OPTIONS]\n"
