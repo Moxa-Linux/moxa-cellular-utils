@@ -1585,7 +1585,19 @@ cell_usage() {
 	echo -e "		Switching between US carrier frequency bands."
 	#m_info
 	echo -e "	m_info"
+	echo -e "		Module/SIM information."
+	#module_info
+	echo -e "	module_info"
 	echo -e "		Module information."
+	#module_ids
+	echo -e "	module_ids"
+	echo -e "		Get device IDs (ex: IMEI and/or ESN)."
+	#iccid
+	echo -e "	iccid"
+	echo -e "		Get SIM card ID"
+	#location_info
+	echo -e "	location_info"
+	echo -e "		Get cell location information."
 	#operator
 	echo -e "	operator"
 	echo -e "		Telecommunication operator."
