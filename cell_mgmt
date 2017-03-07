@@ -120,14 +120,13 @@ _load_state() {
 	fi
 }
 
-_clear_state () {
+_clear_state() {
 	echo "Clearing state..."
 	rm -f $STATE_FILE
 }
 
 
-_load_profile()
-{
+_load_profile() {
 	. $PROFILE_FILE
 	for conf in $(ls ${PRODUCT_DIR}); do
 		if [ "${conf: -5}" == ".conf" ]; then
@@ -147,8 +146,7 @@ _load_profile()
 	fi
 }
 
-_search_wwan_node()
-{
+_search_wwan_node() {
 	local module_name
 	local vendor_id
 	local product_id
@@ -191,8 +189,7 @@ _search_wwan_node()
 	done
 }
 
-_set_variables ()
-{
+_set_variables() {
 	MODULE_ID="${ALL_MODULE_ID[$INTERFACE]}"
 	SLOT="${ALL_SLOT_NUM[$INTERFACE]}"
 	MODULE_NAME="${ALL_MODULE_NAME[$INTERFACE]}"	
@@ -232,8 +229,7 @@ _set_variables ()
 	_load_state
 }
 
-init()
-{
+init() {
 	unset ALL_MODULE_ID
 	unset ALL_MODULE_NAME
 	unset ALL_SLOT_NUM
@@ -258,8 +254,7 @@ init()
 	fi
 }
 
-_connect_error_note()
-{
+_connect_error_note() {
 	echo "Please check the following items before start LTE connection:"
 	echo "  1. Antenna setting"
 	echo "  2. SIM card inserted and PIN code unlocked, \`sim_status\`"
@@ -310,8 +305,7 @@ _start_network_init() {
 }
 
 #--------- qmi base functions -----------
-_qmicli()
-{
+_qmicli() {
 	local i
 	local qmi_cmd=""
 	local qmi_std=""
@@ -340,8 +334,7 @@ _qmicli()
 	_exit 1
 }
 
-_qmicli_value()
-{
+_qmicli_value() {
 	local output="$1"
 	local key="$2"
 	local num="$3"
@@ -358,8 +351,7 @@ _qmicli_value()
 	eval "${cmd}"
 }
 
-_qmi_start_network ()
-{
+_qmi_start_network() {
 	local is_raw_ip="N"
 	local raw_ip_file="/sys/class/net/${QMI_NODE}/qmi/raw_ip"
 
@@ -442,8 +434,7 @@ _qmi_start_network ()
 	echo "Network started successfully"
 }
 
-_qmi_stop_network ()
-{
+_qmi_stop_network() {
 	if [ x"$CID" == x"" ]; then
 		echo "Network already stopped"
 	elif [ x"$PDH" == x"" ]; then
@@ -473,8 +464,7 @@ _qmi_stop_network ()
 	_clear_state
 }
 
-_qmi_packet_service_status ()
-{
+_qmi_packet_service_status() {
 	if [ x"$CID" != x"" ]; then
 		USE_PREVIOUS_CID="--client-cid=$CID --client-no-release-cid"
 	fi
@@ -557,7 +547,7 @@ qmi_attach_status() {
 }
 
 #check cellular status
-qmi_status () {
+qmi_status() {
 	local con_status=$(_qmi_packet_service_status | grep "Status")
 
 
@@ -570,7 +560,7 @@ qmi_status () {
 }
 
 #cellular signal strength in dbm
-qmi_signal () {
+qmi_signal() {
 	local signal 
 
 
@@ -587,7 +577,7 @@ qmi_signal () {
 }
 
 # cell_signal_adv
-qmi_signal_adv () {
+qmi_signal_adv() {
 	local csq
 	local rssi
 	local ecio
@@ -681,7 +671,7 @@ qmi_pin_retries() {
 }
 
 # sim card pin code protection
-qmi_pin_protection (){
+qmi_pin_protection(){
 	local pin_num="$1"
 	local pin_enable="$2"
 	local pin_current="$3"
@@ -831,7 +821,7 @@ cell_at_cmd() {
 	timeout $timeout cat ${at_port} | tr -d '\r'
 }
 
-at_signal_csq () {
+at_signal_csq() {
 	local signal
 
 	signal=$(cell_at_cmd 'AT+CSQ\r\n')
@@ -843,7 +833,7 @@ at_signal_csq () {
 	echo ${signal}
 }
 
-at_signal () {
+at_signal() {
 	local signal=""
 	local service="umts"
 
@@ -928,7 +918,7 @@ at_number() {
 }
 
 # telecommunication operator
-at_operator () {
+at_operator() {
 	local result
 	result=$(cell_at_cmd 'AT+COPS?' | grep "+COPS:" | \
 		cut -d ' ' -f 2- | cut -s -d ',' -f 3 | sed 's/\"//g')
@@ -1226,7 +1216,7 @@ cell_set_apn() {
 }
 
 # dhclient
-cell_dhclient () {
+cell_dhclient() {
 	local node="$1"
 	local ignore_dns_gw="$2"
 
@@ -1251,7 +1241,7 @@ EOF
 }
 
 # udhcpc
-cell_udhcpc () {
+cell_udhcpc() {
 	local node="$1"
 	local ignore_dns_gw="$2"
 	local udhcpc_opt=""
@@ -1322,7 +1312,7 @@ cell_vzwauto() {
 	_exit 0
 }
 
-cell_pin_code_status () {
+cell_pin_code_status() {
 	local card_status="$(_exec_op sim_status | grep "+CPIN")"
 
 
@@ -1392,7 +1382,7 @@ cell_unlock_pin() {
 }
 
 # cellular restart
-cell_restart () {
+cell_restart() {
 	# restart cellular (reconnect)
 	_exec_op stop_network
 	sleep 5
@@ -1412,7 +1402,7 @@ cell_sim_status() {
 }
 
 # cell_mgmt setinterface
-cell_interface () {
+cell_interface() {
 	case $1 in
 		"0" | "1" | "2" | "3")
 			[ $1 -ge ${#ALL_INTERFACE[@]} ] && \
@@ -1447,7 +1437,7 @@ cell_slot() {
 }
 
 # cell_mgmt version
-cell_version () {
+cell_version() {
 	echo "$PKG $VERSION"
 }
 
