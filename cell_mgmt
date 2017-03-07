@@ -255,11 +255,11 @@ init() {
 }
 
 _connect_error_note() {
-	echo "Please check the following items before start LTE connection:"
-	echo "  1. Antenna setting"
-	echo "  2. SIM card inserted and PIN code unlocked, \`sim_status\`"
-	echo "  3. Signal strength \`signal\`"
-	echo "  4. Remember to set_apn before start LTE connection"
+	>&2 echo "Please check the following items before start LTE connection:"
+	>&2 echo "  1. Antenna setting"
+	>&2 echo "  2. SIM card inserted and PIN code unlocked, \`sim_status\`"
+	>&2 echo "  3. Signal strength \`signal\`"
+	>&2 echo "  4. Remember to set_apn before start LTE connection"
 }
 
 _start_network_init() {
