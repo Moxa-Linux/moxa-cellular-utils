@@ -649,7 +649,7 @@ qmi_sim_status() {
 # unlock pin code
 qmi_unlock_pin() {
 	ret=$(_qmicli --uim-verify-pin=PIN1,$1)
-	if ! grep -q 'PIN verified successfully'; then
+	if ! echo "${ret}" | grep -q 'PIN verified successfully'; then
 		echo $ret
 		_exit 1
 	fi
