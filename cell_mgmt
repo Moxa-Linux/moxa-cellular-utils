@@ -296,7 +296,7 @@ _start_network_init() {
 	card_status="$(_exec_op sim_status | grep "+CPIN")"
 	if [ "$(echo "${card_status}" | grep "PIN")" ] && [ x"$PIN" == x"" ]; then
 		>&2 echo "Error: Please assign the PIN code to unlock SIM card"
-		_cell_usage_cmd __cell_usage_start
+		_cell_usage_cmd _cell_usage_start
 		_exit 4
 	fi
 
