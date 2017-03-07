@@ -1649,7 +1649,7 @@ done
 			_exec_op gps_on
 			;;
 		gps_off)
-			_exec_op gps_on
+			_exec_op gps_off
 			;;
 		power_on)
 			cell_power_on
