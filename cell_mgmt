@@ -549,6 +549,15 @@ _qmi_card_status() {
 
 #--------- qmi functions -----------
 
+qmi_attach_status() {
+	local info="$(_qmicli --nas-get-serving-system)"
+	local cs=$(_qmicli_value "${info}" "CS")
+	local ps=$(_qmicli_value "${info}" "PS")
+
+	echo "CS: ${cs}"
+	echo "PS: ${ps}"
+}
+
 #check cellular status
 qmi_status () {
 	local con_status=$(_qmi_packet_service_status | grep "Status")
@@ -1004,6 +1013,34 @@ at_stop_network() {
 	_clear_state
 }
 
+at_attach_status() {
+	local info="$(cell_at_cmd "AT^SYSINFO")"
+	local status="0"
+	local service="0"
+	local cs="detached"
+	local ps="detached"
+
+
+	if ! echo "${info}" | grep -q "OK"; then
+		return 1
+	fi
+	info=$(echo "${info}" | grep "\^SYSINFO:" | awk '{print $2}')
+	status=$(echo "${info}" | cut -d ',' -f 1)
+	service=$(echo "${info}" | cut -d ',' -f 2)
+	if [ "${status}" == "2" ]; then
+		if [ "${service}" == "1" ]; then
+			cs="attached"
+		elif [ "${service}" == "2" ]; then
+			ps="attached"
+		elif [ "${service}" == "3" ]; then
+			cs="attached"
+			ps="attached"
+		fi
+	fi
+	echo "CS: ${cs}"
+	echo "PS: ${ps}"
+}
+
 at_status() {
 	if [ -f "${STATUS_FILE}" ]; then
 		cat "${STATUS_FILE}"
@@ -1405,6 +1442,9 @@ cell_usage() {
 	#gps off 
 	echo -e "	gps_off"
 	echo -e "		GPS OFF."
+	#attach_status 
+	echo -e "       attach_status"	
+	echo -e "		Query network registration status."
 	#status 
 	echo -e "	status"
 	echo -e "		Query network connection status."
@@ -1531,6 +1571,9 @@ done
 			;;
 		switch_sim)
 			cell_switch_sim $arg2
+			;;
+		attach_status)
+			_exec_op attach_status
 			;;
 		status)
 			_exec_op status
