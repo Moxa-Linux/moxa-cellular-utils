@@ -75,7 +75,7 @@ _exec_op_rtn() {
 		#echo "eval ${func} ${@:2}"
 		eval ${func} ${@:2}
 	else
-		>&2 echo "Error: operation not support."
+		>&2 echo "Error: Operation not support."
 		return 3
 	fi
 }
@@ -84,7 +84,7 @@ _exec_op() {
 	local func="$(_get_op_func $1)"
 
 	if [ x"${func}" == x"" ]; then
-		>&2 echo "Error: operation not support."
+		>&2 echo "Error: Operation not support."
 		_exit 3
 	fi
 
@@ -141,8 +141,8 @@ _load_profile() {
 
 	eval "_product_${KVERSION}_profile" 2>/dev/null
 	if [ x"$?" != x"0" ]; then
-		>&2 echo "Error: kversion or profile not found."
-		_exit 9
+		>&2 echo "Error: \`kversion\` or profile not found."
+		_exit 1
 	fi
 }
 
@@ -164,7 +164,7 @@ _search_wwan_node() {
 		module_name=$(cat $i/product 2> /dev/null)
 
 		if ! _func_exist _module_${vendor_id}_${product_id}; then
-			>&2 echo "Error: module ${module_name} not support."
+			>&2 echo "Error: Module \"${module_name}\" not support."
 			continue
 		fi
 
@@ -183,7 +183,7 @@ _search_wwan_node() {
 		eval "_module_${vendor_id}_${product_id} \
 			$i ${id} \"${module_name}\"" 2>/dev/null
 		if [ $? -ne 0 ]; then
-			>&2 echo "Error: initialize module ${module_name} failed."
+			>&2 echo "Error: Initialize module \"${module_name}\" failed."
 			continue
 		fi
 	done
@@ -250,7 +250,8 @@ init() {
 		fi
 		_set_variables
 	else
-		>&2 echo "Error: $PROFILE_FILE does not exist." && _exit 2
+		>&2 echo "Error: "${PROFILE_FILE}" does not exist." && \
+			_exit 2
 	fi
 }
 
@@ -360,7 +361,7 @@ _qmi_start_network() {
 	fi
 
 	if [ x"$PDH" != x"" ]; then
-		>&2 echo "Error: cannot re-start network, PDH already exists."
+		>&2 echo "Error: Cannot re-start network, PDH already exists."
 		_exit 1
 	fi
 
@@ -377,9 +378,9 @@ _qmi_start_network() {
 	if [ -f "${raw_ip_file}" ]; then
 		echo ${is_raw_ip} > ${raw_ip_file} 2> /dev/null
 		_qmicli --set-expected-data-format=${QMI_PROTOCOL} && \
-			>&2 echo "Error: cannot update data format." && _exit 1
+			>&2 echo "Error: Cannot update data format." && _exit 1
 	elif [ x"${QMI_PROTOCOL}" == x"raw-ip" ]; then
-		>&2 echo "Error: raw-ip not supported."
+		>&2 echo "Error: \"raw-ip\" not supported."
 		_exit 1
 	fi
 
@@ -411,7 +412,7 @@ _qmi_start_network() {
 	if [ x"$CID" == x"" ]; then
 		CID=`echo "$START_NETWORK_OUT" | sed -n "s/.*CID.*'\(.*\)'.*/\1/p"`
 		if [ x"$CID" == x"" ]; then
-			>&2 echo "Error: network start failed, client not allocated."
+			>&2 echo "Error: Network start failed, client not allocated."
 			_connect_error_note
 			_exit 1
 		else
@@ -421,7 +422,7 @@ _qmi_start_network() {
 
 	PDH=`echo "$START_NETWORK_OUT" | sed -n "s/.*handle.*'\(.*\)'.*/\1/p"`
 	if [ x"$PDH" == x"" ]; then
-		>&2 echo "Error: network start failed, no packet data handle."
+		>&2 echo "Error: Network start failed, no packet data handle."
 		_connect_error_note
 		# Cleanup the client
 		#$QMICLI -d "$QMI_PORT" --wds-noop --client-cid="$CID" $QMICLI_END
@@ -481,7 +482,7 @@ _qmi_packet_service_status() {
 	fi
 
 	if [ x"$CONN" == x"" ]; then
-		>&2 echo "Error: couldn't get packet service status."
+		>&2 echo "Error: Couldn't get packet service status."
 		_exit 1
 	else
 		echo "Status: $CONN"
@@ -1157,7 +1158,7 @@ cell_switch_sim() {
 
 
 	if [ -z "$SWITCH_SIM_FUNC" ]; then
-		>&2 echo "Error: operation not support."
+		>&2 echo "Error: Operation not support."
 		_exit 3
 	fi
 
@@ -1617,6 +1618,8 @@ init
 
 #--------- Initialize Global variables end ---------
 
+PROG=$0
+
 while getopts  "i:s:" flag; do
 	if [ "${flag}" == "i" ]; then
 		if [ "${INTERFACE}" != "$OPTARG" ]; then
@@ -1641,7 +1644,9 @@ done
 
 (
 	if [ ${FORCE} -eq 0 ]; then
-		flock -w 60 9 || { >&2 echo "Error: cell_mgmt is busy, please wait a moment and try again" ; _exit 1; }
+		flock -w 60 9 || \
+			{ >&2 echo "Error: ${PROG} is busy, please wait a " \
+				"moment and try again." ; _exit 1; }
 	fi
 	case "$arg1" in
 		# private options
