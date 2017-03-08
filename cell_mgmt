@@ -24,15 +24,20 @@ STATUS_DIR=/var/run/${PKG}
 CONF_DIR=/etc/${PKG}
 #CONF_DIR=/home/moxa/moxa-cellular-utils${CONF_DIR}
 PROFILE_FILE=${CONF_DIR}/${PKG}.conf
-KVERSION="$(kversion | awk '{print $1}')"
 PRODUCT_DIR=${CONF_DIR}/product.d
 MODULE_DIR=${CONF_DIR}/module.d
+
+KVERSION=$(which kversion)
+[ -z "${KVERSION}" ] && >&2 echo "Error: \`kversion\` not found." && exit 1
+
+PRODUCT="$(${KVERSION} 2> /dev/null | awk '{print $1}')"
 
 # QMI
 # new libqmi includes a tool called "qmi-proxy"
 # use qmicli -p means interaction with the QMI interface of modem by "qmi-proxy"
-QMICLI="/usr/bin/qmicli"
+QMICLI=$(which qmicli)
 QMICLI_END="-p"
+[ -z "${QMICLI}" ] && >&2 echo "Error: \`qmicli\` not found." && exit 1
 
 # variables
 FORCE=0
@@ -139,7 +144,7 @@ _load_profile() {
 		fi
 	done
 
-	eval "_product_${KVERSION}_profile" 2>/dev/null
+	eval "_product_${PRODUCT}_profile" 2>/dev/null
 	if [ x"$?" != x"0" ]; then
 		>&2 echo "Error: \`kversion\` or profile not found."
 		_exit 1
