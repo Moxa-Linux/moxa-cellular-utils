@@ -595,6 +595,7 @@ qmi_signal_adv() {
 		 sed "s/'\|'://g;s/^[ \t]*Network //g")
 	rssi=$(echo "${signal}" | awk '/Current:/{getline; print}')
 	ecio=$(echo "${signal}" | awk '/ECIO:/{getline; print}')
+	[ -z "${csq}" ] && csq=99
 
 	echo "CSQ: ${csq}"
 	echo "RSSI: ${rssi}"
@@ -831,9 +832,9 @@ cell_at_cmd() {
 at_signal_csq() {
 	local signal
 
-	signal=$(cell_at_cmd 'AT+CSQ\r\n')
+	signal=$(cell_at_cmd 'AT+CSQ')
 	if $(echo "${signal}" | grep -q "ERROR"); then
-		echo "-1"
+		echo "99"
 		_exit 1
 	fi
 	signal=$(echo "${signal}" | grep "+CSQ" | awk '{print $2}' | cut -d',' -f1)
