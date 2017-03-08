@@ -691,7 +691,7 @@ qmi_pin_protection(){
 	[ x"$pin_enable" != x"enable" ] && [ x"$pin_enable" != x"disable" ] && par_fail="1"
 
 	if [ x"$par_fail" == x"1" ]; then
-		_cell_usage_cmd _cell_usage_set_profile
+		_cell_usage_cmd _cell_usage_pin_protection
 		_exit 4
 	else
 		_qmicli --uim-set-pin-protection=$pin_num,$pin_enable,$pin_current
