@@ -382,8 +382,9 @@ _qmi_start_network() {
 
 	if [ -f "${raw_ip_file}" ]; then
 		echo ${is_raw_ip} > ${raw_ip_file} 2> /dev/null
-		_qmicli --set-expected-data-format=${QMI_PROTOCOL} && \
-			>&2 echo "Error: Cannot update data format." && _exit 1
+		_qmicli --set-expected-data-format=${QMI_PROTOCOL} || \
+			(>&2 echo "Error: Cannot update data format." && \
+			 _exit 1)
 	elif [ x"${QMI_PROTOCOL}" == x"raw-ip" ]; then
 		>&2 echo "Error: \"raw-ip\" not supported."
 		_exit 1
