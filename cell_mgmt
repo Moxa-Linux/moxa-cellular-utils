@@ -917,7 +917,7 @@ at_set_profile() {
 # +CNUM: "ABC","12345678901",129
 # OK
 at_number() {
-	number=$(cell_at_cmd 'AT+CNUM?' | grep "+CNUM" | head -1 | sed 's/"//g')
+	number=$(cell_at_cmd 'AT+CNUM' | grep "+CNUM" | head -1 | sed 's/"//g')
 	if [ ! -z "${number}" ]; then
 		echo $(echo "${number}" | cut -d ',' -f 2)
 	else
