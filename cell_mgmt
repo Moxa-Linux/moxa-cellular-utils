@@ -797,6 +797,7 @@ cell_at_cmd() {
 	local at_port=""
 	local cmd="$1"
 	local timeout="$2"
+	local ret=""
 
 
 	if [ x"$cmd" == x"" ]; then
@@ -827,7 +828,12 @@ cell_at_cmd() {
 		return 3
 	fi
 	echo -n -e "$cmd\r\n" > ${at_port}
-	timeout $timeout cat ${at_port} | tr -d '\r'
+	ret=$(timeout $timeout cat ${at_port} | tr -d '\r')
+	echo "${ret}"
+	if echo "${ret}" | grep -q "OK"; then
+		return 0
+	fi
+	return 1
 }
 
 at_signal_csq() {
