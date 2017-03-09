@@ -1103,18 +1103,11 @@ cell_initialize() {
 	fi
 }
 
-# cellular power on by GPIO
-cell_power_on() {
+_cell_wait_module_back() {
 	local vendor_id=""
 	local product_id=""
 	local module_id=""
-	local power_on_funcs="$(echo "$POWER_ON_FUN" | sed -e "s/\$SLOT/$SLOT/g")"
 
-	IFS=$'\n'
-	for i in $power_on_funcs ;
-	do
-		eval "$i"
-	done
 
 	while ((1))
 	do
@@ -1129,11 +1122,24 @@ cell_power_on() {
 			if _func_exist _module_${module_id}_initialize; then
 				_module_${module_id}_initialize
 			fi
-			break;
+			break
 		fi
 
 		sleep 1
 	done
+}
+
+# cellular power on by GPIO
+cell_power_on() {
+	local power_on_funcs="$(echo "$POWER_ON_FUN" | sed -e "s/\$SLOT/$SLOT/g")"
+
+	IFS=$'\n'
+	for i in $power_on_funcs ;
+	do
+		eval "$i"
+	done
+
+	_cell_wait_module_back
 }
 
 # cellular power off by GPIO
