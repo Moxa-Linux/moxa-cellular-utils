@@ -844,7 +844,7 @@ at_signal_csq() {
 		echo "99"
 		_exit 1
 	fi
-	signal=$(echo "${signal}" | grep "+CSQ" | awk '{print $2}' | cut -d',' -f1)
+	signal=$(echo "${signal}" | grep "^+CSQ:" | awk '{print $2}' | cut -d',' -f1)
 	echo ${signal}
 }
 
@@ -872,7 +872,7 @@ at_signal() {
 }
 
 at_sim_status() {
-	cell_at_cmd 'AT+CPIN?' | grep '+CPIN:'
+	cell_at_cmd 'AT+CPIN?' | grep '^+CPIN:'
 }
 
 # unlock pin code
@@ -903,7 +903,7 @@ at_set_flight_mode() {
 
 # get profile list
 at_get_profiles() {
-	cell_at_cmd 'at+cgdcont?' | grep "+CGDCONT" | cut -d' ' -s -f 2 | \
+	cell_at_cmd 'AT+CGDCONT?' | grep "^+CGDCONT:" | cut -d' ' -s -f 2 | \
 		awk -F"," '{print $1","$3","$2}' | sed -e 's/\"//g'
 }
 
@@ -924,7 +924,7 @@ at_set_profile() {
 # +CNUM: "ABC","12345678901",129
 # OK
 at_number() {
-	number=$(cell_at_cmd 'AT+CNUM' | grep "+CNUM" | head -1 | sed 's/"//g')
+	number=$(cell_at_cmd 'AT+CNUM' | grep "^+CNUM:" | head -1 | sed 's/"//g')
 	if [ ! -z "${number}" ]; then
 		echo $(echo "${number}" | cut -d ',' -f 2)
 	else
@@ -935,7 +935,7 @@ at_number() {
 # telecommunication operator
 at_operator() {
 	local result
-	result=$(cell_at_cmd 'AT+COPS?' | grep "+COPS:" | \
+	result=$(cell_at_cmd 'AT+COPS?' | grep "^+COPS:" | \
 		cut -d ' ' -f 2- | cut -s -d ',' -f 3 | sed 's/\"//g')
 	if [ ! -z "${result}" ]; then
 		echo $result
@@ -950,7 +950,7 @@ at_location_info() {
 	local cellid=""
 
 	cell_at_cmd 'AT+CREG=2' > /dev/null
-	ret=$(cell_at_cmd 'AT+CREG?' | grep '+CREG:' )
+	ret=$(cell_at_cmd 'AT+CREG?' | grep '^+CREG:' )
 	[ "${#ret}" -lt "11" ] && ret=""
 	if [ x"$ret" != x"" ]; then
 		lac=${ret#*\"}
@@ -969,8 +969,8 @@ at_location_info() {
 
 at_module_ids() {
 	local info="$(cell_at_cmd 'ATI')"
-	local imei=$(echo "${info}" | grep "IMEI:" | awk '{print $2}')
-	local esn=$(echo "${info}" | grep "ESN:" | awk '{print $2}')
+	local imei=$(echo "${info}" | grep "^IMEI:" | awk '{print $2}')
+	local esn=$(echo "${info}" | grep "^ESN:" | awk '{print $2}')
 
 	echo IMEI: $imei
 	echo ESN: $esn
@@ -1058,7 +1058,7 @@ at_attach_status() {
 	if ! echo "${info}" | grep -q "OK"; then
 		return 1
 	fi
-	info=$(echo "${info}" | grep "\^SYSINFO:" | awk '{print $2}')
+	info=$(echo "${info}" | grep "^\^SYSINFO:" | awk '{print $2}')
 	status=$(echo "${info}" | cut -d ',' -f 1)
 	service=$(echo "${info}" | cut -d ',' -f 2)
 	if [ "${status}" == "2" ]; then
