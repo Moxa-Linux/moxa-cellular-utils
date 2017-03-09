@@ -1793,6 +1793,8 @@ done
 			_exit 3
 			;;
 	esac
+	RET=$?
+	[ ${RET} -ne 0 ] && _exit ${RET}
 
 	if [ ${FORCE} -eq 0 ]; then
 		flock -u 9
