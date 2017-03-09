@@ -1759,9 +1759,6 @@ done
 		at)
 			cell_at_cmd "$arg2" $arg3
 			;;
-		version)
-			cell_version
-			;;
 		interface)
 			cell_interface $arg2
 			;;
@@ -1791,6 +1788,9 @@ done
 			;;
 		initialize)
 			cell_initialize $arg2
+			;;
+		version)
+			cell_version
 			;;
 		help)
 			cell_usage	
