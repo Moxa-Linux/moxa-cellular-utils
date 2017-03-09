@@ -1,3 +1,30 @@
+moxa-cellular-utils (1.16.0) unstable; urgency=low
+
+  * fix: No status file.
+  * fix: Unlock PIN during connection.
+  * feat: Add `switch_sim` to switch SIM slot.
+  * fix: Get empty operator with AT command.
+  * feat: Support YUGA CLM920_CN.
+  * feat: Support network registration status (`attach_status`).
+  * feat: Support `set_flight_mode` for both at & qmi.
+  * fix: Huawei module cannot leave flight mode.
+  * feat: Support `set_profile`.
+  * fix: `unlock_pin` for QMI device hangs.
+  * Using QMI to retrieve operator only for Sierra.
+  * text: Adjust usages.
+  * fix: Wrong function name for `gps_off`.
+  * fix: Adjust error code and messages.
+  * fix: "PIN" is required for `pin_protection`.
+  * fix: Check `kversion` and `qmicli` before using.
+  * fix: "99" instead of "-1" for signal CSQ.
+  * fix: Update data format failed for qmi.
+  * fix: Return option exit code.
+  * fix: `grep` AT command may failed with "echo on".
+  * fix: Separate state and lock file by interface.
+  * fix: Wait module back for Huawei after leave flight mode.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Wed, 08 Mar 2017 15:03:02 +0800
+
 moxa-cellular-utils (1.15.1) unstable; urgency=low
 
   * fix: Scan by interface number not slot number.
