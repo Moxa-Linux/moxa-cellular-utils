@@ -16,8 +16,6 @@
 PKG="moxa-cellular-utils"
 VERSION="1.15.1"
 PID=$$
-LOCK_FILE=/tmp/cell_mgmt.lock
-STATE_FILE=/tmp/cell_mgmt.state
 STATUS_DIR=/var/run/${PKG}
 
 # profile
@@ -226,11 +224,14 @@ _set_variables() {
 	# state file for different interface
 	if [ x"$INTERFACE" != x"" ]; then
 		mkdir -p "${STATUS_DIR}"
-		STATE_FILE=${STATE_FILE}.${INTERFACE}
+		LOCK_FILE="${STATUS_DIR}/${INTERFACE}.lock"
+		STATE_FILE="${STATUS_DIR}/${INTERFACE}.state"
 		STATUS_FILE="${STATUS_DIR}/${INTERFACE}.status"
 	fi
 
 	# Load previous state, if any
+	CID=""
+	PDH=""
 	_load_state
 }
 
