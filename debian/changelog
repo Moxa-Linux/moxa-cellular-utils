@@ -1,3 +1,12 @@
+moxa-cellular-utils (1.17.0) unstable; urgency=low
+
+  * feat: Support `check/switch_carrier` for MC7455.
+  * fix: Set default value to slot number.
+  * fix: Re-initialize after `power_on`.
+  * fix: Only "SIM PIN" requires a PIN code.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Wed, 15 Mar 2017 21:33:22 +0800
+
 moxa-cellular-utils (1.16.0) unstable; urgency=low
 
   * fix: No status file.
