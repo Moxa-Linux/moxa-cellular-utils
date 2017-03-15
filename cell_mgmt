@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.16.0"
+VERSION="1.17.0"
 PID=$$
 STATUS_DIR=/var/run/${PKG}
 
@@ -193,8 +193,9 @@ _search_wwan_node() {
 }
 
 _set_variables() {
-	MODULE_ID="${ALL_MODULE_ID[$INTERFACE]}"
 	SLOT="${ALL_SLOT_NUM[$INTERFACE]}"
+	[ -z "${SLOT}" ] && SLOT=1
+	MODULE_ID="${ALL_MODULE_ID[$INTERFACE]}"
 	MODULE_NAME="${ALL_MODULE_NAME[$INTERFACE]}"	
 	QMI_PROTOCOL=${ALL_QMI_PROTOCOL[${INTERFACE}]}
 
@@ -235,7 +236,7 @@ _set_variables() {
 	_load_state
 }
 
-init() {
+_init() {
 	unset ALL_MODULE_ID
 	unset ALL_MODULE_NAME
 	unset ALL_SLOT_NUM
@@ -247,14 +248,18 @@ init() {
 	unset ALL_MODEM_PORT
 	unset ALL_AT_TIMEOUT
 
+	_search_wwan_node
+	if [ x"${INTERFACE}" == x"" ] || \
+		[ ${INTERFACE} -ge ${#ALL_INTERFACE[@]} ]; then
+		INTERFACE=0
+	fi
+	_set_variables
+}
+
+init() {
 	if [ -f $PROFILE_FILE ]; then
 		_load_profile
-		_search_wwan_node
-		if [ x"${INTERFACE}" == x"" ] || \
-			[ ${INTERFACE} -ge ${#ALL_INTERFACE[@]} ]; then
-			INTERFACE=0
-		fi
-		_set_variables
+		_init
 	else
 		>&2 echo "Error: "${PROFILE_FILE}" does not exist." && \
 			_exit 2
@@ -301,7 +306,7 @@ _start_network_init() {
 	fi
 
 	card_status="$(_exec_op sim_status | grep "+CPIN")"
-	if [ "$(echo "${card_status}" | grep "PIN")" ] && [ x"$PIN" == x"" ]; then
+	if [ "$(echo "${card_status}" | grep "SIM PIN")" ] && [ x"$PIN" == x"" ]; then
 		>&2 echo "Error: Please assign the PIN code to unlock SIM card"
 		_cell_usage_cmd _cell_usage_start
 		_exit 4
@@ -1104,6 +1109,7 @@ cell_initialize() {
 }
 
 _cell_wait_module_back() {
+	local slot=${SLOT}
 	local vendor_id=""
 	local product_id=""
 	local module_id=""
@@ -1114,6 +1120,15 @@ _cell_wait_module_back() {
 		product_id=$(cat ${MODULE_PATH[$((SLOT-1))]}/idProduct \
 			 2> /dev/null)
 		if [ x"${product_id}" != x"" ]; then
+			_init
+			for (( i=0 ; i<${#ALL_INTERFACE[@]} ; i++ )); do
+				if [ x"${ALL_SLOT_NUM[$i]}" == x"${slot}" ]; then
+					INTERFACE=$i
+					_set_variables
+					break
+				fi
+			done
+
 			vendor_id=$(cat ${MODULE_PATH[$((SLOT-1))]}/idVendor \
 				2> /dev/null)
 
