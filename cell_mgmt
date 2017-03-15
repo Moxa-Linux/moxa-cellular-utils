@@ -1121,10 +1121,11 @@ _cell_wait_module_back() {
 			 2> /dev/null)
 		if [ x"${product_id}" != x"" ]; then
 			_init
-			for i in ${#ALL_INTERFACE[@]}; do
+			for (( i=0 ; i<${#ALL_INTERFACE[@]} ; i++ )); do
 				if [ x"${ALL_SLOT_NUM[$i]}" == x"${slot}" ]; then
-					INTERFACE=${ALL_INTERFACE[$i]}
+					INTERFACE=$i
 					_set_variables
+					break
 				fi
 			done
 
