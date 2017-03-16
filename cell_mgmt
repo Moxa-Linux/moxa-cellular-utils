@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.17.0"
+VERSION="1.17.1"
 PID=$$
 STATUS_DIR=/var/run/${PKG}
 
@@ -1342,7 +1342,7 @@ cell_vzwauto() {
 
 
 	[ -z "${profile}" ] && \
-		>&2 echo "Error: PDP context 3 doesn't exist." && exit 1
+		>&2 echo "Error: PDP context 3 doesn't exist." && _exit 1
 	APN=$(echo "${profile}" | cut -d ',' -f 2)
 	_exec_op start_network
 	#echo -e "\n\n APN=${APN} is in used\n\n"
