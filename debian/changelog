@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.17.2) unstable; urgency=low
+
+  * fix: Remove extra "ATE0" from initialization.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 16 Mar 2017 18:34:20 +0800
+
 moxa-cellular-utils (1.17.1) unstable; urgency=low
 
   * fix: Use `_exit` to unlock `flock`.
