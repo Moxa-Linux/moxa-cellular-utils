@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.17.1) unstable; urgency=low
+
+  * fix: Use `_exit` to unlock `flock`.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 16 Mar 2017 13:43:17 +0800
+
 moxa-cellular-utils (1.17.0) unstable; urgency=low
 
   * feat: Support `check/switch_carrier` for MC7455.
