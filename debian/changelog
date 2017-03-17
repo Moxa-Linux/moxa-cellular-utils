@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.17.4) unstable; urgency=low
+
+  * fix: Re-initialized if never initialized.
+  * fix: Use "slot" index instead of "interface" index.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Fri, 17 Mar 2017 19:04:29 +0800
+
 moxa-cellular-utils (1.17.3) unstable; urgency=low
 
   * fix: Add `gawk` in dependency.
