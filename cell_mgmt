@@ -226,8 +226,14 @@ _set_variables() {
 	if [ x"$INTERFACE" != x"" ]; then
 		mkdir -p "${STATUS_DIR}"
 		LOCK_FILE="${STATUS_DIR}/${INTERFACE}.lock"
+		INIT_FILE="${STATUS_DIR}/${SLOT}.init"
 		STATE_FILE="${STATUS_DIR}/${INTERFACE}.state"
 		STATUS_FILE="${STATUS_DIR}/${INTERFACE}.status"
+	fi
+
+	# Initialize if never initialized before
+	if [ ! -f "${INIT_FILE}" ]; then
+		_cell_initialize ${INTERFACE}
 	fi
 
 	# Load previous state, if any
@@ -1095,6 +1101,9 @@ _cell_initialize() {
 	module_id="${ALL_MODULE_ID[$1]}"
 	if _func_exist _module_${module_id}_initialize; then
 		_module_${module_id}_initialize
+		if [ $? -eq 0 ]; then
+			echo "_module_${module_id}_initialize" > ${INIT_FILE}
+		fi
 	fi
 }
 
