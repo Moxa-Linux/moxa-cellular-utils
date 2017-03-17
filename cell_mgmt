@@ -225,10 +225,10 @@ _set_variables() {
 	# state file for different interface
 	if [ x"$INTERFACE" != x"" ]; then
 		mkdir -p "${STATUS_DIR}"
-		LOCK_FILE="${STATUS_DIR}/${INTERFACE}.lock"
+		LOCK_FILE="${STATUS_DIR}/${SLOT}.lock"
 		INIT_FILE="${STATUS_DIR}/${SLOT}.init"
-		STATE_FILE="${STATUS_DIR}/${INTERFACE}.state"
-		STATUS_FILE="${STATUS_DIR}/${INTERFACE}.status"
+		STATE_FILE="${STATUS_DIR}/${SLOT}.state"
+		STATUS_FILE="${STATUS_DIR}/${SLOT}.status"
 	fi
 
 	# Initialize if never initialized before
