@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.17.4"
+VERSION="1.17.5"
 PID=$$
 STATUS_DIR=/var/run/${PKG}
 
@@ -1685,12 +1685,15 @@ for i in $(seq $OPTIND 1 $#); do
 	eval "arg$j=\$$i"
 done
 
+# set timeout for specific commands
+FLOCK_TIMEOUT=$(eval echo \${${arg1}_timeout})
+FLOCK_TIMEOUT=${FLOCK_TIMEOUT:-60}
 
 (
 	if [ ${FORCE} -eq 0 ]; then
-		flock -w 60 9 || \
+		flock -w ${FLOCK_TIMEOUT} 9 || \
 			{ >&2 echo "Error: ${PROG} is busy, please wait a " \
-				"moment and try again." ; _exit 1; }
+				"moment and try again." ; _exit 60; }
 	fi
 	case "$arg1" in
 		# private options

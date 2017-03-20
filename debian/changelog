@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.17.5) unstable; urgency=low
+
+  * fix: Adjust default timeout by different command.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Sun, 19 Mar 2017 15:35:36 +0800
+
 moxa-cellular-utils (1.17.4) unstable; urgency=low
 
   * fix: Re-initialized if never initialized.
