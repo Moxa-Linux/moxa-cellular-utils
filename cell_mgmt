@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.17.5"
+VERSION="1.17.6"
 PID=$$
 STATUS_DIR=/var/run/${PKG}
 
@@ -270,6 +270,39 @@ init() {
 		>&2 echo "Error: "${PROFILE_FILE}" does not exist." && \
 			_exit 2
 	fi
+}
+
+_signal_csq2dbm() {
+	local signal="$1"
+	local service="$2"
+
+	signal=${signal##*AT}
+	signal=${signal%%,*}
+	
+	if [ x"$signal" != x"" ]; then
+		if [ "$signal" -le "30" 2>/dev/null ] && [ "$signal" -ge "2" 2>/dev/null ] ; then
+			let signal=signal-2
+			let signal=signal*2-109
+			echo "${service} $signal dbm"
+		else
+			echo "signal out of range"
+		fi
+	else
+		echo "signal out of range"
+	fi
+}
+
+_signal_dbm2csq() {
+	local signal="$1"
+
+
+	# csq = (dbm + 113) / 2
+	if [ "${signal}" == "signal out of range" ] || [ $signal -le -113 ]; then
+		echo "99"
+		return 0
+	fi
+	signal=$(echo ${signal} | awk '{printf "%d\n",int((($1+113)/2+0.5))}')
+	echo ${signal}
 }
 
 _connect_error_note() {
@@ -602,12 +635,15 @@ qmi_signal_adv() {
 	local rssi
 	local ecio
 	local signal 
-	csq=$(at_signal_csq)
 
 	signal=$(_qmicli --nas-get-signal-strength | \
 		 sed "s/'\|'://g;s/^[ \t]*Network //g")
 	rssi=$(echo "${signal}" | awk '/Current:/{getline; print}')
 	ecio=$(echo "${signal}" | awk '/ECIO:/{getline; print}')
+
+	#csq=$(at_signal_csq)
+	signal=$(echo "${rssi}" | awk '{print $(NF-1)}')
+	csq=$(_signal_dbm2csq ${signal})
 	[ -z "${csq}" ] && csq=99
 
 	echo "CSQ: ${csq}"
@@ -861,26 +897,11 @@ at_signal_csq() {
 }
 
 at_signal() {
-	local signal=""
 	local service="umts"
-
-	signal=$(cell_at_cmd 'AT+CSQ\r\n' | awk '{print $2}')
-	signal=${signal##*AT}
-	signal=${signal%%,*}
 
 	service=$(_exec_op_rtn service | grep "Service:" | \
 		cut -d ' ' -f 2- | awk '{print tolower($0)}')
-	if [ x"$signal" != x"" ]; then
-		if [ "$signal" -le "30" 2>/dev/null ] && [ "$signal" -ge "2" 2>/dev/null ] ; then
-			let signal=signal-2
-			let signal=signal*2-109
-			echo "${service} $signal dbm"	
-		else
-			echo "signal out of range"
-		fi
-	else
-		echo "signal out of range"
-	fi
+	_signal_csq2dbm $(at_signal_csq) ${service:-umts}
 }
 
 at_sim_status() {
