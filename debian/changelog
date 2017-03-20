@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.17.6) unstable; urgency=low
+
+  * fix: Use "dbm2csq` by default on QMI device.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Mon, 20 Mar 2017 12:25:41 +0800
+
 moxa-cellular-utils (1.17.5) unstable; urgency=low
 
   * fix: Adjust default timeout by different command.
