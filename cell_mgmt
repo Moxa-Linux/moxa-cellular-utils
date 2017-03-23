@@ -1722,27 +1722,20 @@ FLOCK_TIMEOUT=${FLOCK_TIMEOUT:-60}
 			_exec_op post_start
 			;;
 		# public options
+		# module info.
 		modules)
 			cell_interfaces
 			;;
 		slot)
 			cell_slot
 			;;
-		start)
-			_exec_op start_network $arg2 $arg3 $arg4 $arg5
+		interface)
+			cell_interface $arg2
 			;;
-		stop)
-			_exec_op stop_network
+		module_info)
+			cell_module_info
 			;;
-		restart)
-			cell_restart
-			;;
-		gps_on)
-			_exec_op gps_on
-			;;
-		gps_off)
-			_exec_op gps_off
-			;;
+		# module related
 		power_on)
 			cell_power_on
 			;;
@@ -1755,20 +1748,42 @@ FLOCK_TIMEOUT=${FLOCK_TIMEOUT:-60}
 		switch_sim)
 			cell_switch_sim $arg2
 			;;
+		initialize)
+			cell_initialize $arg2
+			;;
+		check_carrier)
+			_exec_op check_carrier
+			;;
+		switch_carrier)
+			_exec_op switch_carrier $arg2
+			;;
+		# connection
+		start)
+			_exec_op start_network $arg2 $arg3 $arg4 $arg5
+			;;
+		stop)
+			_exec_op stop_network
+			;;
+		restart)
+			cell_restart
+			;;
+		sim_status)
+			cell_sim_status
+			;;
 		attach_status)
 			_exec_op attach_status
 			;;
 		status)
 			_exec_op status
 			;;
+		service)
+			_exec_op service
+			;;
 		signal)
 			_exec_op signal
 			;;
 		signal_adv)
 			_exec_op signal_adv
-			;;
-		sim_status)
-			cell_sim_status
 			;;
 		pin_code_status)
 			cell_pin_code_status
@@ -1795,26 +1810,24 @@ FLOCK_TIMEOUT=${FLOCK_TIMEOUT:-60}
 		set_apn)
 			cell_set_apn $arg2
 			;;
-		number)
-			_exec_op number
-			;;
-		check_carrier)
-			_exec_op check_carrier
-			;;
-		switch_carrier)
-			_exec_op switch_carrier $arg2
-			;;
+		# others
 		at)
 			cell_at_cmd "$arg2" $arg3
 			;;
-		interface)
-			cell_interface $arg2
+		gps_on)
+			_exec_op gps_on
+			;;
+		gps_off)
+			_exec_op gps_off
+			;;
+		operator)
+			_exec_op operator
+			;;
+		number)
+			_exec_op number
 			;;
 		m_info)
 			cell_m_info
-			;;
-		module_info)
-			cell_module_info
 			;;
 		module_ids)
 			_exec_op module_ids
@@ -1825,17 +1838,8 @@ FLOCK_TIMEOUT=${FLOCK_TIMEOUT:-60}
 		location_info)
 			_exec_op location_info
 			;;
-		operator)
-			_exec_op operator
-			;;
-		service)
-			_exec_op service
-			;;
 		vzwauto)
 			cell_vzwauto
-			;;
-		initialize)
-			cell_initialize $arg2
 			;;
 		version)
 			cell_version
