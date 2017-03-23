@@ -39,6 +39,8 @@ QMICLI_END="-p"
 
 # variables
 FORCE=0
+NEED_LOCK=0
+NEED_INITIALIZE=0
 
 
 _exit() {
@@ -61,8 +63,6 @@ _get_op_func() {
 	if _func_exist _module_${MODULE_ID}_${op}; then
 		echo _module_${MODULE_ID}_${op}
 	elif [ x"${QMI_PORT}" != x"NotSupport" ] && _func_exist qmi_${op}; then
-		# unlock if using qmi (proxy is used)
-		flock -u 9 2>/dev/null
 		echo qmi_${op}
 	elif [ x"${AT_PORT}" != x"NotSupport" ] && _func_exist at_${op}; then
 		echo at_${op}
@@ -225,7 +225,10 @@ _set_variables() {
 	# state file for different interface
 	if [ x"$INTERFACE" != x"" ]; then
 		mkdir -p "${STATUS_DIR}"
+		LOCK_FD=$((SLOT+119))
+		LOCK_FD_GLOBAL=$((SLOT+129))
 		LOCK_FILE="${STATUS_DIR}/${SLOT}.lock"
+		LOCK_FILE_GLOBAL="${STATUS_DIR}/${SLOT}.global.lock"
 		INIT_FILE="${STATUS_DIR}/${SLOT}.init"
 		STATE_FILE="${STATUS_DIR}/${SLOT}.state"
 		STATUS_FILE="${STATUS_DIR}/${SLOT}.status"
@@ -233,7 +236,7 @@ _set_variables() {
 
 	# Initialize if never initialized before
 	if [ ! -f "${INIT_FILE}" ]; then
-		_cell_initialize ${INTERFACE}
+		NEED_INITIALIZE=1
 	fi
 
 	# Load previous state, if any
@@ -841,11 +844,25 @@ qmi_location_info() {
 #--------- at functions -----------
 
 # AT command 
+_at_cmd() {
+	local at_port=$1
+	local cmd="${2}"
+	local timeout=${3:-0.3}
+
+
+	echo -n -e "$cmd\r\n" > ${at_port}
+	ret=$(timeout $timeout cat ${at_port} | tr -d '\r')
+	echo "${ret}"
+	if echo "${ret}" | grep -q "OK"; then
+		return 0
+	fi
+	return 1
+}
 cell_at_cmd() {
 	local at_port=""
 	local cmd="$1"
-	local timeout="$2"
-	local ret=""
+	local timeout="${2:-${AT_TIMEOUT}}"
+	local ret=0
 
 
 	if [ x"$cmd" == x"" ]; then
@@ -863,25 +880,19 @@ cell_at_cmd() {
 		at_port=${AT_PORT}
 	fi
 
-	if [ x"$timeout" == x"" ]; then
-		timeout="${AT_TIMEOUT}"
-	fi
-
-	#stty -F ${at_port} -echo raw
-	#echo -n -e "ATE0\r\n" > ${at_port}
-	#timeout 0.3 cat ${at_port} >/dev/null
 	ls -l ${at_port} &> /dev/null
 	if [ $? -ne 0 ]; then
 		>&2 echo "Error: AT/Modem port (${at_port}) not ready."
 		return 3
 	fi
-	echo -n -e "$cmd\r\n" > ${at_port}
-	ret=$(timeout $timeout cat ${at_port} | tr -d '\r')
-	echo "${ret}"
-	if echo "${ret}" | grep -q "OK"; then
-		return 0
-	fi
-	return 1
+
+	at_cmd="_at_cmd \"${at_port}\" \"${cmd}\" ${timeout}"
+	_lock ${LOCK_FD} ${LOCK_FILE} ${FLOCK_TIMEOUT}
+	exec_func "${at_cmd}"
+	ret=$?
+	_unlock ${LOCK_FD}
+
+	return ${ret}
 }
 
 at_signal_csq() {
@@ -951,7 +962,7 @@ at_set_profile() {
 	else
 		data="${id},\"${type}\",\"${apn}\""
 	fi
-	cell_at_cmd "AT+CGDCONT=${data}" 1 > /dev/null || return 1
+	cell_at_cmd 'AT+CGDCONT=${data}' 1 > /dev/null || return 1
 }
 
 # +CNUM: "ABC","12345678901",129
@@ -1138,6 +1149,18 @@ cell_initialize() {
 	fi
 }
 
+_cell_interface_by_slot() {
+	local slot=$1
+
+
+	for (( i=0 ; i<${#ALL_INTERFACE[@]} ; i++ )); do
+		if [ x"${ALL_SLOT_NUM[$i]}" == x"${slot}" ]; then
+			echo $i
+			return 0
+		fi
+	done
+	return 4
+}
 _cell_wait_module_back() {
 	local slot=${SLOT}
 	local vendor_id=""
@@ -1151,13 +1174,10 @@ _cell_wait_module_back() {
 			 2> /dev/null)
 		if [ x"${product_id}" != x"" ]; then
 			_init
-			for (( i=0 ; i<${#ALL_INTERFACE[@]} ; i++ )); do
-				if [ x"${ALL_SLOT_NUM[$i]}" == x"${slot}" ]; then
-					INTERFACE=$i
-					_set_variables
-					break
-				fi
-			done
+			INTERFACE=$(_cell_interface_by_slot ${slot})
+			[ -z "${INTERFACE}" ] && \
+				>&2 echo "Error: Module not found." && _exit 1
+			_set_variables
 
 			vendor_id=$(cat ${MODULE_PATH[$((SLOT-1))]}/idVendor \
 				2> /dev/null)
@@ -1675,11 +1695,253 @@ cell_usage() {
 	echo -e "		Cellular management version."
 }
 
+get_op_func() {
+	local arg1=$1
+	local args="$2"
+	local op_func=""
+
+
+	case "$arg1" in
+		# private options
+		post_start)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		# public options
+		# module info.
+		modules)
+			op_func=cell_interfaces
+			;;
+		slot)
+			op_func=cell_slot
+			;;
+		interface)
+			op_func=cell_interface
+			;;
+		module_info)
+			op_func=cell_module_info
+			;;
+		# module related
+		power_on)
+			op_func=cell_power_on
+			NEED_LOCK=1
+			NEED_INITIALIZE=0
+			;;
+		power_off)
+			op_func=cell_power_off
+			NEED_LOCK=1
+			NEED_INITIALIZE=0
+			;;
+		power_cycle)
+			op_func=cell_power_cycle
+			NEED_LOCK=1
+			NEED_INITIALIZE=0
+			;;
+		switch_sim)
+			op_func=cell_switch_sim
+			NEED_LOCK=1
+			NEED_INITIALIZE=0
+			;;
+		initialize)
+			op_func=cell_initialize
+			NEED_LOCK=1
+			NEED_INITIALIZE=0
+			;;
+		check_carrier)
+			op_func="$(_get_op_func $arg1)"
+			NEED_LOCK=1
+			;;
+		switch_carrier)
+			op_func="$(_get_op_func $arg1)"
+			NEED_LOCK=1
+			;;
+		# connection
+		start)
+			op_func="$(_get_op_func ${arg1}_network)"
+			;;
+		stop)
+			op_func="$(_get_op_func ${arg1}_network)"
+			;;
+		restart)
+			op_func=cell_restart
+			;;
+		sim_status)
+			op_func=cell_sim_status
+			;;
+		attach_status)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		status)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		service)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		signal)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		signal_adv)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		pin_code_status)
+			op_func=cell_pin_code_status
+			;;
+		unlock_pin)
+			op_func="cell_unlock_pin"
+			#_exec_op unlock_pin $arg2
+			;;
+		pin_retries)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		pin_protection)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		set_flight_mode)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		get_profiles)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		set_profile)
+			op_func="cell_set_profile"
+			;;
+		set_apn)
+			op_func="cell_set_apn"
+			;;
+		# others
+		at)
+			op_func="cell_at_cmd"
+			;;
+		gps_on)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		gps_off)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		operator)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		number)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		m_info)
+			op_func=cell_m_info
+			;;
+		module_ids)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		iccid)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		location_info)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		vzwauto)
+			op_func=cell_vzwauto
+			;;
+		version)
+			cell_version
+			exit 0
+			;;
+		help)
+			cell_usage	
+			exit 0
+			;;
+		sleep)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		test_sleep)
+			op_func=test_sleep
+			NEED_LOCK=1
+			;;
+		*)
+			cell_usage
+			exit 3
+			;;
+	esac
+
+	if [ x"${op_func}" == x"" ]; then
+		>&2 echo "Error: Operation not support."
+		exit 3
+	fi
+
+	OP_FUNC="${op_func} ${args}"
+}
+
+_lock() {
+	local fd=${1:-$LOCK_FD}
+	local lock_file=${2:-$LOCK_FILE}
+	local wait_timeout=${3}
+
+
+	# create lock file
+	eval "exec $fd>$lock_file"
+
+	# acquier the lock
+	if [ -z "${wait_timeout}" ]; then
+		flock -n $fd
+	else
+		flock -w ${wait_timeout} $fd
+	fi
+	[ $? -eq 0 ] || \
+		 { >&2 echo "Error: ${PROG} is busy, please " \
+			"wait a moment and try again."; \
+			_exit 60; }
+	return 0
+}
+
+_unlock() {
+	eval "flock -u ${1:-$LOCK_FD}"
+}
+
+_wait_lock() {
+	local fd=${1:-${LOCK_FD}}
+	local file=${2:-${LOCK_FILE}}
+	local timeout=${3:-${FLOCK_TIMEOUT}}
+	local start_time=$(date +%s)
+
+
+	_lock ${fd} ${file} ${timeout}
+	_unlock ${fd}
+	echo $(expr `date +%s` - ${start_time})
+}
+
+
+exec_func() {
+	local cmd="${1}"
+	local timeout="${2}"
+
+
+	# check global lock
+	_wait_lock ${LOCK_FD_GLOBAL} ${LOCK_FILE_GLOBAL} ${timeout} \
+		1 > /dev/null 2>&1
+
+	eval "${cmd}"
+	return $?
+}
+
+
+### test
+qmi_sleep() {
+	echo "--- start $1 ---"
+	sleep $1
+	echo "--- end $1 ---"
+}
+at_sleep() {
+	_lock ${LOCK_FD} ${LOCK_FILE} ${FLOCK_TIMEOUT}
+	echo "--- start $1 ---"
+	sleep $1
+	echo "--- end $1 ---"
+	_unlock ${LOCK_FD}
+}
+test_sleep() {
+	echo "--- start $1 ---"
+	sleep $1
+	echo "--- end $1 ---"
+}
 
 #--------- Initialize Global variables start ---------
 
 init
-
 
 #--------- Initialize Global variables end ---------
 
@@ -1693,9 +1955,14 @@ while getopts  "i:s:" flag; do
 		fi
 	elif [ "${flag}" == "s" ]; then
 		SLOT=$OPTARG
+		INTERFACE=$(_cell_interface_by_slot ${SLOT})
+		[ -z "${INTERFACE}" ] && \
+			>&2 echo "Error: Module not found." && exit 1
+		_set_variables
 	fi
 done
 
+args=""
 for i in $(seq $OPTIND 1 $#); do
 	eval "var=\$$i"
 	if [ "${var}" == "force" ]; then
@@ -1704,158 +1971,36 @@ for i in $(seq $OPTIND 1 $#); do
 	fi
 	j=$(($j + 1))
 	eval "arg$j=\$$i"
+	args+=" '${var}'"
 done
+
+args="$(echo ${args} | cut -s -d' ' -f2-)"
+#echo "args: ${args}"
 
 # set timeout for specific commands
 FLOCK_TIMEOUT=$(eval echo \${${arg1}_timeout})
 FLOCK_TIMEOUT=${FLOCK_TIMEOUT:-60}
+#echo "timeout ${FLOCK_TIMEOUT}"
 
-(
-	if [ ${FORCE} -eq 0 ]; then
-		flock -w ${FLOCK_TIMEOUT} 9 || \
-			{ >&2 echo "Error: ${PROG} is busy, please wait a " \
-				"moment and try again." ; _exit 60; }
-	fi
-	case "$arg1" in
-		# private options
-		post_start)
-			_exec_op post_start
-			;;
-		# public options
-		# module info.
-		modules)
-			cell_interfaces
-			;;
-		slot)
-			cell_slot
-			;;
-		interface)
-			cell_interface $arg2
-			;;
-		module_info)
-			cell_module_info
-			;;
-		# module related
-		power_on)
-			cell_power_on
-			;;
-		power_off)
-			cell_power_off
-			;;
-		power_cycle)
-			cell_power_cycle
-			;;
-		switch_sim)
-			cell_switch_sim $arg2
-			;;
-		initialize)
-			cell_initialize $arg2
-			;;
-		check_carrier)
-			_exec_op check_carrier
-			;;
-		switch_carrier)
-			_exec_op switch_carrier $arg2
-			;;
-		# connection
-		start)
-			_exec_op start_network $arg2 $arg3 $arg4 $arg5
-			;;
-		stop)
-			_exec_op stop_network
-			;;
-		restart)
-			cell_restart
-			;;
-		sim_status)
-			cell_sim_status
-			;;
-		attach_status)
-			_exec_op attach_status
-			;;
-		status)
-			_exec_op status
-			;;
-		service)
-			_exec_op service
-			;;
-		signal)
-			_exec_op signal
-			;;
-		signal_adv)
-			_exec_op signal_adv
-			;;
-		pin_code_status)
-			cell_pin_code_status
-			;;
-		unlock_pin)
-			cell_unlock_pin $arg2
-			#_exec_op unlock_pin $arg2
-			;;
-		pin_retries)
-			_exec_op pin_retries
-			;;
-		pin_protection)
-			_exec_op pin_protection $arg2 $arg3 $arg4
-			;;
-		set_flight_mode)
-			_exec_op set_flight_mode $arg2
-			;;
-		get_profiles)
-			_exec_op get_profiles
-			;;
-		set_profile)
-			cell_set_profile $arg2 $arg3 $arg4
-			;;
-		set_apn)
-			cell_set_apn $arg2
-			;;
-		# others
-		at)
-			cell_at_cmd "$arg2" $arg3
-			;;
-		gps_on)
-			_exec_op gps_on
-			;;
-		gps_off)
-			_exec_op gps_off
-			;;
-		operator)
-			_exec_op operator
-			;;
-		number)
-			_exec_op number
-			;;
-		m_info)
-			cell_m_info
-			;;
-		module_ids)
-			_exec_op module_ids
-			;;
-		iccid)
-			_exec_op iccid
-			;;
-		location_info)
-			_exec_op location_info
-			;;
-		vzwauto)
-			cell_vzwauto
-			;;
-		version)
-			cell_version
-			;;
-		help)
-			cell_usage	
-			;;
-		*)
-			cell_usage
-			_exit 3
-			;;
-	esac
-	RET=$?
-	[ ${RET} -ne 0 ] && _exit ${RET}
+# get operation function and initial variables
+get_op_func $arg1 "${args}"
+#echo "func: ${OP_FUNC}"
+#echo "need initialize: ${NEED_INITIALIZE}"
+#echo "need global lock: ${NEED_LOCK}"
 
-	if [ ${FORCE} -eq 0 ]; then
-		flock -u 9
-	fi
-) 9> ${LOCK_FILE}
+if [ ${NEED_INITIALIZE} -eq 1 ]; then
+	init_timeout=$(eval echo \${initialize_timeout})
+	init_timeout=${init_timeout:-60}
+	exec_func "_cell_initialize ${INTERFACE}" "${init_timeout}"
+fi
+
+if [ ${NEED_LOCK} -eq 1 ]; then
+	wait_time=$(_wait_lock)
+
+	_lock ${LOCK_FD_GLOBAL} ${LOCK_FILE_GLOBAL} \
+		$(expr ${FLOCK_TIMEOUT} - ${wait_time})
+	eval "${OP_FUNC}"
+	_unlock ${LOCK_FD_GLOBAL}
+else
+	exec_func "${OP_FUNC}" "${FLOCK_TIMEOUT}"
+fi
