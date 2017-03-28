@@ -2012,6 +2012,7 @@ get_op_func $arg1 "${args}"
 #echo "need initialize: ${NEED_INITIALIZE}"
 #echo "need global lock: ${NEED_LOCK}"
 
+RET=0
 if [ ${NEED_INITIALIZE} -eq 1 ]; then
 	init_timeout=$(eval echo \${initialize_timeout})
 	init_timeout=${init_timeout:-60}
@@ -2024,7 +2025,10 @@ if [ ${NEED_LOCK} -eq 1 ]; then
 	_lock ${LOCK_FD_GLOBAL} ${LOCK_FILE_GLOBAL} \
 		$(expr ${FLOCK_TIMEOUT} - ${wait_time})
 	eval "${OP_FUNC}"
+	RET=$?
 	_unlock ${LOCK_FD_GLOBAL}
 else
 	exec_func "${OP_FUNC}" "${FLOCK_TIMEOUT}"
+	RET=$?
 fi
+_exit ${RET}
