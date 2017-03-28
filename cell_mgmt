@@ -1051,7 +1051,7 @@ at_start_network() {
 	echo "${wvdial_conf}" > ${wvdial_path}
 
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@wvdial_conf@|${wvdial_path}|g")
-	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@name@|${INTERFACE}|g")
+	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@name@|${SLOT}|g")
 
 	# ignore-dns-gw
 	local route=defaultroute
@@ -1066,7 +1066,7 @@ at_start_network() {
 	# nodns or ""
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@nodns@|${dns}|g")
 	# name
-	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@name@|${INTERFACE}|g")
+	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@name@|${SLOT}|g")
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@modem_port@|${modem_port}|g")
 	echo "${ppp_conf}" > ${ppp_path}
 
