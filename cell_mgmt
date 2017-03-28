@@ -347,9 +347,9 @@ _start_network_init() {
 		_exit 4
 	fi
 
-	card_status="$(_exec_op sim_status | grep "+CPIN")"
+	card_status="$(_exec_op sim_status | grep "^+CPIN")"
 	if [ "$(echo "${card_status}" | grep "SIM PIN")" ] && [ x"$PIN" == x"" ]; then
-		>&2 echo "Error: Please assign the PIN code to unlock SIM card"
+		>&2 echo "Error: Please assign the PIN code to unlock SIM card."
 		_cell_usage_cmd _cell_usage_start
 		_exit 4
 	fi
@@ -866,8 +866,9 @@ cell_at_cmd() {
 
 
 	if [ x"$cmd" == x"" ]; then
-		echo "command is null."
-		return
+		>&2 echo "Error: Please assign the AT command."
+		_cell_usage_cmd _cell_usage_at
+		_exit 4
 	fi
 
 	if [ x"${AT_PORT}" == x"NotSupport" ]; then
@@ -1400,7 +1401,7 @@ cell_vzwauto() {
 }
 
 cell_pin_code_status() {
-	local card_status="$(_exec_op sim_status | grep "+CPIN")"
+	local card_status="$(_exec_op sim_status | grep "^+CPIN")"
 
 
 	if [ "$(echo "${card_status}" | grep "READY")" ]; then
@@ -1423,7 +1424,7 @@ _cell_unlock_pin() {
 
 
 	# unlock PIN
-	card_status="$(_exec_op sim_status | grep "+CPIN")"
+	card_status="$(_exec_op sim_status | grep "^+CPIN")"
 	if [ "$(echo "${card_status}" | grep "READY")" ]; then
 		echo "PIN code: Disabled or verified"
 	elif [ "$(echo "${card_status}" | grep "PIN")" ]; then
@@ -1534,6 +1535,12 @@ _cell_usage_cmd() {
 	eval "$1"
 }
 
+_cell_usage_at() {
+	echo -e "	at <'AT_COMMAND'>"
+	echo -e "		Input AT Command."
+	echo -e "		Must use SINGLE QUOTATION to enclose AT Command."
+}
+
 _cell_usage_interface() {
 	echo -e "	interface [interface id]"
 	echo -e "		Switching and checking module interface(s)"
@@ -1633,9 +1640,7 @@ cell_usage() {
 	echo -e "	signal"
 	echo -e "		Get signal strength."
 	#at 
-	echo -e "	at <'AT_COMMAND'>"
-	echo -e "		Input AT Command."
-	echo -e "		Must use SINGLE QUOTATION to enclose AT Command."
+	_cell_usage_at
 	#sim_status
 	echo -e "	sim_status"
 	echo -e "		Query sim card status."
