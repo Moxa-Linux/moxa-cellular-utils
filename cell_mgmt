@@ -10,7 +10,7 @@
 #       cell_mgmt
 #               cellular management. It supports sierra MC9090 MC7304 MC7354.
 #
- 
+
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
@@ -324,8 +324,8 @@ _start_network_init() {
 
 
 	APN="$(eval echo \$APN$interface_num)"
-	PIN="$(eval echo \$PIN$interface_num)" 
-	Phone="$(eval echo \$Phone$interface_num)" 
+	PIN="$(eval echo \$PIN$interface_num)"
+	Phone="$(eval echo \$Phone$interface_num)"
 	Username="$(eval echo \$Username$interface_num)"
 	Password="$(eval echo \$Password$interface_num)"
 
@@ -376,7 +376,7 @@ _qmicli() {
 			>(qmi_std=$(cat); typeset -p qmi_std); \
 			qmi_ret=$?; typeset -p qmi_ret )"
 		# error 3 (internal) and 31 (invalid service type)
-		if ! (echo ${qmi_err} | grep "QMI protocol error (3)") && 
+		if ! (echo ${qmi_err} | grep "QMI protocol error (3)") &&
 			! (echo ${qmi_err} | grep "QMI protocol error (31)"); then
 			echo "${qmi_std}"
 			return 0
@@ -617,7 +617,7 @@ qmi_status() {
 
 #cellular signal strength in dbm
 qmi_signal() {
-	local signal 
+	local signal
 
 
 	#signal=`$QMICLI -d ${QMI_PORT} --nas-get-signal-strength $QMICLI_END | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
@@ -637,7 +637,7 @@ qmi_signal_adv() {
 	local csq
 	local rssi
 	local ecio
-	local signal 
+	local signal
 
 	signal=$(_qmicli --nas-get-signal-strength | \
 		 sed "s/'\|'://g;s/^[ \t]*Network //g")
@@ -665,7 +665,7 @@ qmi_start_network() {
 	_start_network_init $@
 
 	_qmi_start_network
-	# query IP from DHCP Server 
+	# query IP from DHCP Server
 	ip link set ${QMI_NODE} up
 	if [ x"${QMI_PROTOCOL}" == x"raw-ip" ]; then
 		cell_udhcpc ${QMI_NODE} $ignore_dns_gw
@@ -843,7 +843,7 @@ qmi_location_info() {
 
 #--------- at functions -----------
 
-# AT command 
+# AT command
 _at_cmd() {
 	local at_port=$1
 	local cmd="${2}"
@@ -897,10 +897,10 @@ cell_at_cmd() {
 }
 
 at_signal_csq() {
-	local signal
+	local signal="99"
 
 	signal=$(cell_at_cmd 'AT+CSQ')
-	if $(echo "${signal}" | grep -q "ERROR"); then
+	if [ $? -ne 0 ]; then
 		echo "99"
 		_exit 1
 	fi
@@ -940,15 +940,17 @@ at_set_flight_mode() {
 	else
 		mode=1
 	fi
-	if cell_at_cmd "AT+CFUN=${mode}" 1 | grep -q "OK"; then
-		return 0
-	fi
-	return 1
+	cell_at_cmd "AT+CFUN=${mode}" 1 1>/dev/null 2>&1
 }
 
 # get profile list
 at_get_profiles() {
-	cell_at_cmd 'AT+CGDCONT?' | grep "^+CGDCONT:" | cut -d' ' -s -f 2 | \
+	local output=""
+	local ret=0
+	
+	
+	output=$(cell_at_cmd 'AT+CGDCONT?') || return $?
+	echo "${output}" | grep "^+CGDCONT:" | cut -d' ' -s -f 2 | \
 		awk -F"," '{print $1","$3","$2}' | sed -e 's/\"//g'
 }
 
@@ -963,13 +965,19 @@ at_set_profile() {
 	else
 		data="${id},\"${type}\",\"${apn}\""
 	fi
-	cell_at_cmd 'AT+CGDCONT=${data}' 1 > /dev/null || return 1
+	cell_at_cmd 'AT+CGDCONT=${data}' 1>/dev/null
 }
 
 # +CNUM: "ABC","12345678901",129
 # OK
 at_number() {
-	number=$(cell_at_cmd 'AT+CNUM' | grep "^+CNUM:" | head -1 | sed 's/"//g')
+	local number=""
+	local ret=0
+
+
+	number=$(cell_at_cmd 'AT+CNUM') || return $?
+
+	number=$(echo "${number}" | grep "^+CNUM:" | head -1 | sed 's/"//g')
 	if [ ! -z "${number}" ]; then
 		echo $(echo "${number}" | cut -d ',' -f 2)
 	else
@@ -979,28 +987,36 @@ at_number() {
 
 # telecommunication operator
 at_operator() {
-	local result
-	result=$(cell_at_cmd 'AT+COPS?' | grep "^+COPS:" | \
+	local result=""
+	local ret=0
+
+
+	result=$(cell_at_cmd 'AT+COPS?') || return $?
+
+	result=$(echo "${result}" | grep "^+COPS:" | \
 		cut -d ' ' -f 2- | cut -s -d ',' -f 3 | sed 's/\"//g')
 	if [ ! -z "${result}" ]; then
-		echo $result
+		echo ${result}
 	else
 		echo "Unknown"
 	fi
 }
 
 at_location_info() {
-	local ret=
+	local ret=0
+	local output=""
 	local lac=""
 	local cellid=""
 
-	cell_at_cmd 'AT+CREG=2' > /dev/null
-	ret=$(cell_at_cmd 'AT+CREG?' | grep '^+CREG:' )
-	[ "${#ret}" -lt "11" ] && ret=""
+
+	cell_at_cmd 'AT+CREG=2' 1> /dev/null || return $?
+	output=$(cell_at_cmd 'AT+CREG?') || return $?
+	output=$(echo "${output}" | grep '^+CREG:')
+	[ "${#output}" -lt "11" ] && output=""
 	if [ x"$ret" != x"" ]; then
-		lac=${ret#*\"}
+		lac=${output#*\"}
 		lac=${lac%%\"*}
-		cellid=${ret%\"*}
+		cellid=${output%\"*}
 		cellid=${cellid##*\"}
 	fi
 
@@ -1013,7 +1029,12 @@ at_location_info() {
 }
 
 at_module_ids() {
-	local info="$(cell_at_cmd 'ATI')"
+	local info=""
+	local ret=0
+
+
+	info="$(cell_at_cmd 'ATI')" || return $?
+
 	local imei=$(echo "${info}" | grep "^IMEI:" | awk '{print $2}')
 	local esn=$(echo "${info}" | grep "^ESN:" | awk '{print $2}')
 
@@ -1093,16 +1114,14 @@ at_stop_network() {
 }
 
 at_attach_status() {
-	local info="$(cell_at_cmd "AT^SYSINFO")"
+	local info=""
 	local status="0"
 	local service="0"
 	local cs="detached"
 	local ps="detached"
 
 
-	if ! echo "${info}" | grep -q "OK"; then
-		return 1
-	fi
+	info=$(cell_at_cmd "AT^SYSINFO") || return $?
 	info=$(echo "${info}" | grep "^\^SYSINFO:" | awk '{print $2}')
 	status=$(echo "${info}" | cut -d ',' -f 1)
 	service=$(echo "${info}" | cut -d ',' -f 2)
@@ -1563,7 +1582,7 @@ _cell_usage_set_profile() {
 }
 
 _cell_usage_set_apn() {
-	#set_apn 
+	#set_apn
 	echo -e "	set_apn <APN>"
 	echo -e "		Set APN to configuration file."
 }
@@ -1615,10 +1634,10 @@ cell_usage() {
 	#power on
 	echo -e "	power_on"
 	echo -e "		Power ON."
-	#power off 
+	#power off
 	echo -e "	power_off"
 	echo -e "		Power OFF."
-	#power cycle 
+	#power cycle
 	echo -e "	power_cycle"
 	echo -e "		Power cycle the module slot."
 	#switch sim slot
@@ -1627,19 +1646,19 @@ cell_usage() {
 	#gps on
 	echo -e "	gps_on"
 	echo -e "		GPS ON."
-	#gps off 
+	#gps off
 	echo -e "	gps_off"
 	echo -e "		GPS OFF."
-	#attach_status 
+	#attach_status
 	echo -e "	attach_status"
 	echo -e "		Query network registration status."
-	#status 
+	#status
 	echo -e "	status"
 	echo -e "		Query network connection status."
-	#signal 
+	#signal
 	echo -e "	signal"
 	echo -e "		Get signal strength."
-	#at 
+	#at
 	_cell_usage_at
 	#sim_status
 	echo -e "	sim_status"
@@ -1663,15 +1682,15 @@ cell_usage() {
 	echo -e "			1,internet,IPV4V6"
 	#set_profile
 	_cell_usage_set_profile
-	#set_apn 
+	#set_apn
 	_cell_usage_set_apn
-	#number 
+	#number
 	echo -e "	number"
 	echo -e "		Get SIM number."
-	#check_carrier 
+	#check_carrier
 	echo -e "	check_carrier"
 	echo -e "		Check current carrier."
-	#switch_carrier 
+	#switch_carrier
 	echo -e "	switch_carrier <$CARRIER>"
 	echo -e "		Switching between US carrier frequency bands."
 	#m_info
