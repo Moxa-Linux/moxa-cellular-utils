@@ -1,3 +1,11 @@
+moxa-cellular-utils (1.17.7) unstable; urgency=low
+
+  * fix: Status in `at` mode should using "slot" id.
+  * fix: Empty row is appended for "Unknown" operator.
+  * fix: Wrong `PPPIFNAME` when connected.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Wed, 29 Mar 2017 14:20:05 +0800
+
 moxa-cellular-utils (1.17.6) unstable; urgency=low
 
   * fix: Use "dbm2csq` by default on QMI device.
