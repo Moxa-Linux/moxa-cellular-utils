@@ -44,10 +44,12 @@ NEED_INITIALIZE=0
 
 
 _exit() {
-	if [ ${FORCE} -eq 0 ]; then
-		flock -u 9 2>/dev/null
+	local ret=${1:-0}
+
+	if [ $ret -eq 60 ]; then
+		_module_crash_exit
 	fi
-	exit $1
+	exit $ret
 }
 
 _func_exist() {
@@ -232,6 +234,7 @@ _set_variables() {
 		INIT_FILE="${STATUS_DIR}/${SLOT}.init"
 		STATE_FILE="${STATUS_DIR}/${SLOT}.state"
 		STATUS_FILE="${STATUS_DIR}/${SLOT}.status"
+		AT_LOCKED_FILE="${STATUS_DIR}/${SLOT}.at.locked"
 	fi
 
 	# Initialize if never initialized before
@@ -885,7 +888,12 @@ cell_at_cmd() {
 		return 3
 	fi
 
+	# exit if module crashed
+	_double_check_module_crash_exit
+
+	cmd=$(echo "${cmd}" | sed 's/"/\\"/g')
 	at_cmd="_at_cmd \"${at_port}\" \"${cmd}\" ${timeout}"
+
 	_lock ${LOCK_FD} ${LOCK_FILE} ${FLOCK_TIMEOUT}
 	exec_func "${at_cmd}"
 	ret=$?
@@ -1923,6 +1931,66 @@ get_op_func() {
 	OP_FUNC="${op_func} ${args}"
 }
 
+# find pids of D stat processes related to AT port
+_find_d_stat_proc() {
+	local key=${1}
+	local pids=""
+	local d_pids=""
+
+	pids=$(ps wwax | grep "${key}" | grep -v grep | \
+			awk '{print $1}')
+	for pid in ${pids}; do
+		for stat in $(ps -h -o stat -p ${pid} --ppid ${pid}); do
+			if [ x"${stat}" == x"D" ]; then
+				d_pids+="${pid} "
+			fi
+		done
+	done
+	echo ${d_pids}
+}
+
+# double check if process realy locked
+_is_proc_locked() {
+	local key=${1}
+	local pids1=""
+	local pids2=""
+
+	pids1=$(_find_d_stat_proc "${key}")
+	if [ ! -z "${pids1}" ]; then
+		pids2=$(_find_d_stat_proc "${key}")
+
+		for pid2 in ${pids2}; do
+			for pid1 in ${pids1}; do
+				if [ x"${pid1}" == x"${pid2}" ]; then
+					echo 1
+					return 1
+				fi
+			done
+		done
+	fi
+	echo 0
+	return 0
+}
+
+_module_crash_exit() {
+	if ! _is_proc_locked "${AT_PORT}" 1>/dev/null 2>&1 || \
+		! _is_proc_locked "${PROG}" 1>/dev/null 2>&1 ; then
+		echo "1" > ${AT_LOCKED_FILE}
+		>&2 echo "Error: AT/Modem port (${AT_PORT}) crashed, " \
+			"please reboot to recovery."
+		exit 99
+	fi
+}
+
+_double_check_module_crash_exit() {
+	if [ -f "${AT_LOCKED_FILE}" ]; then
+		# exit if module locked by driver
+		_module_crash_exit
+
+		rm "${AT_LOCKED_FILE}"
+	fi
+}
+
 _lock() {
 	local fd=${1:-$LOCK_FD}
 	local lock_file=${2:-$LOCK_FILE}
@@ -1970,6 +2038,7 @@ exec_func() {
 	# check global lock
 	_wait_lock ${LOCK_FD_GLOBAL} ${LOCK_FILE_GLOBAL} ${timeout} \
 		1 > /dev/null 2>&1
+	[ $? -eq 99 ] && return 99
 
 	eval "${cmd}"
 	return $?
@@ -2052,7 +2121,8 @@ if [ ${NEED_INITIALIZE} -eq 1 ]; then
 fi
 
 if [ ${NEED_LOCK} -eq 1 ]; then
-	wait_time=$(_wait_lock)
+	$(_double_check_module_crash_exit 1>/dev/null 2>&1)
+	[ $? -ne 99 ] && wait_time=$(_wait_lock) || wait_time=0
 
 	_lock ${LOCK_FD_GLOBAL} ${LOCK_FILE_GLOBAL} \
 		$(expr ${FLOCK_TIMEOUT} - ${wait_time})
