@@ -1190,12 +1190,12 @@ at_status() {
 #--------- generic functions -----------
 
 _cell_initialize() {
-	module_id="${ALL_MODULE_ID[$1]}"
+	local module_id="${ALL_MODULE_ID[$1]}"
+	local ret=0
+
 	if _func_exist _module_${module_id}_initialize; then
-		_module_${module_id}_initialize
-		if [ $? -eq 0 ]; then
-			echo "_module_${module_id}_initialize" > ${INIT_FILE}
-		fi
+		_module_${module_id}_initialize || return $?
+		echo "_module_${module_id}_initialize" > ${INIT_FILE}
 	fi
 }
 
