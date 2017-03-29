@@ -1,3 +1,13 @@
+moxa-cellular-utils (1.18.0) unstable; urgency=low
+
+  * refactor: Adjust lock mechanism.
+  * fix: Correct return code.
+  * feat: Adjust `pin_protection` and add at version.
+  * fix: Check if AT port locked when timeout occurs.
+  * fix: Decrease waiting timeout to 10 seconds.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Wed, 29 Mar 2017 15:27:27 +0800
+
 moxa-cellular-utils (1.17.7) unstable; urgency=low
 
   * fix: Status in `at` mode should using "slot" id.
