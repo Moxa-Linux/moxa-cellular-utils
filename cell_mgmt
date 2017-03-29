@@ -732,22 +732,20 @@ qmi_pin_retries() {
 
 # sim card pin code protection
 qmi_pin_protection(){
-	local pin_num="$1"
-	local pin_enable="$2"
-	local pin_current="$3"
+	local pin_enable="$1"
+	local pin_current="$2"
 	local par_fail="0"		
 
 
 	# user does not give current pin
-	[ $# -ne 3 ] && par_fail="1"
-	[ x"$pin_num" != x"PIN1" ] && [ x$pin_num != x"PIN2" ] && par_fail="1"
+	[ $# -ne 2 ] && par_fail="1"
 	[ x"$pin_enable" != x"enable" ] && [ x"$pin_enable" != x"disable" ] && par_fail="1"
 
 	if [ x"$par_fail" == x"1" ]; then
 		_cell_usage_cmd _cell_usage_pin_protection
 		_exit 4
 	else
-		_qmicli --uim-set-pin-protection=$pin_num,$pin_enable,$pin_current
+		_qmicli --uim-set-pin-protection=PIN1,$pin_enable,$pin_current
 		_exit 0
 	fi
 
@@ -922,11 +920,45 @@ at_sim_status() {
 
 # unlock pin code
 at_unlock_pin() {
-	ret=$(cell_at_cmd "AT+CPIN=$1" 1 | grep 'ERROR')
-	if [ x"$ret" != x"" ]; then
+	local ret=""
+
+	ret=$(cell_at_cmd "AT+CPIN=$1" 1)
+	if [ $? -ne 0 ]; then
 		echo $ret
 		_exit 1
 	fi
+}
+
+at_pin_protection(){
+	local pin_enable="0"
+	local pin_code="$2"
+	local par_fail="0"		
+	local cmd="AT+CLCK=\"SC\",2"
+	local ret=""
+
+
+	ret=$(cell_at_cmd "${cmd}" 1) || return $?
+	ret=$(echo "${ret}" | grep "^+CLCK:" | awk '{print $2}')
+
+	if [ x"$1" == x"enable" ]; then
+		if [ x"${ret}" == x"1" ]; then
+			echo "PIN code of the SIM card already enabled."
+			return 0
+		fi
+		pin_enable=1
+	elif [ x"$1" == x"disable" ]; then
+		if [ x"${ret}" == x"0" ]; then
+			echo "PIN code of the SIM card already disabled."
+			return 0
+		fi
+		pin_enable=0
+	else
+		_cell_usage_cmd _cell_usage_pin_protection
+		return 4
+	fi
+
+	cmd="AT+CLCK=\"SC\",${pin_enable},\"${pin_code}\""
+	ret=$(cell_at_cmd "${cmd}" 1) || return $?
 }
 
 at_set_flight_mode() {
@@ -1571,7 +1603,7 @@ _cell_usage_unlock_pin() {
 }
 
 _cell_usage_pin_protection() {
-	echo -e "	pin_protection <PIN1|PIN2> <enable|disable> <current PIN>"
+	echo -e "	pin_protection <enable|disable> <current PIN>"
 	echo -e "		Set PIN protection in the UIM."
 }
 
