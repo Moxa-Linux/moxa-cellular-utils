@@ -2104,7 +2104,7 @@ args="$(echo ${args} | cut -s -d' ' -f2-)"
 
 # set timeout for specific commands
 FLOCK_TIMEOUT=$(eval echo \${${arg1}_timeout})
-FLOCK_TIMEOUT=${FLOCK_TIMEOUT:-60}
+FLOCK_TIMEOUT=${FLOCK_TIMEOUT:-10}
 #echo "timeout ${FLOCK_TIMEOUT}"
 
 # get operation function and initial variables
@@ -2116,7 +2116,7 @@ get_op_func $arg1 "${args}"
 RET=0
 if [ ${NEED_INITIALIZE} -eq 1 ]; then
 	init_timeout=$(eval echo \${initialize_timeout})
-	init_timeout=${init_timeout:-60}
+	init_timeout=${init_timeout:-10}
 	exec_func "_cell_initialize ${INTERFACE}" "${init_timeout}"
 fi
 
