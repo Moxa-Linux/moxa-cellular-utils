@@ -196,7 +196,7 @@ _set_variables() {
 	SLOT="${ALL_SLOT_NUM[$INTERFACE]}"
 	[ -z "${SLOT}" ] && SLOT=1
 	MODULE_ID="${ALL_MODULE_ID[$INTERFACE]}"
-	MODULE_NAME="${ALL_MODULE_NAME[$INTERFACE]}"	
+	MODULE_NAME="${ALL_MODULE_NAME[$INTERFACE]}"
 	QMI_PROTOCOL=${ALL_QMI_PROTOCOL[${INTERFACE}]}
 
 	QMI_NODE="${ALL_INTERFACE[$INTERFACE]}"
@@ -281,7 +281,7 @@ _signal_csq2dbm() {
 
 	signal=${signal##*AT}
 	signal=${signal%%,*}
-	
+
 	if [ x"$signal" != x"" ]; then
 		if [ "$signal" -le "30" 2>/dev/null ] && [ "$signal" -ge "2" 2>/dev/null ] ; then
 			let signal=signal-2
@@ -734,7 +734,7 @@ qmi_pin_retries() {
 qmi_pin_protection(){
 	local pin_enable="$1"
 	local pin_current="$2"
-	local par_fail="0"		
+	local par_fail="0"
 
 
 	# user does not give current pin
@@ -932,7 +932,7 @@ at_unlock_pin() {
 at_pin_protection(){
 	local pin_enable="0"
 	local pin_code="$2"
-	local par_fail="0"		
+	local par_fail="0"
 	local cmd="AT+CLCK=\"SC\",2"
 	local ret=""
 
@@ -979,8 +979,8 @@ at_set_flight_mode() {
 at_get_profiles() {
 	local output=""
 	local ret=0
-	
-	
+
+
 	output=$(cell_at_cmd 'AT+CGDCONT?') || return $?
 	echo "${output}" | grep "^+CGDCONT:" | cut -d' ' -s -f 2 | \
 		awk -F"," '{print $1","$3","$2}' | sed -e 's/\"//g'
@@ -1263,7 +1263,7 @@ cell_power_on() {
 cell_power_off() {
 	_exec_op_rtn stop_network 2> /dev/null
 	_qmi_kill_proxy
-	
+
 
 	power_off_funcs="$(echo "$POWER_OFF_FUN" | sed -e "s/\$SLOT/$SLOT/g")"
 
@@ -1398,7 +1398,7 @@ cell_module_info() {
 	echo Module: $MODULE_NAME
 	echo WWAN_node: $QMI_NODE
 	echo AT_port: $AT_PORT
-	echo GPS_port: $GPS_PORT	
+	echo GPS_port: $GPS_PORT
 	echo QMI_port: $QMI_PORT
 	echo Modem_port: $MODEM_PORT
 }
@@ -1427,7 +1427,7 @@ cell_m_info() {
 	echo Module=$MODULE_NAME
 	echo WWAN_node=$QMI_NODE
 	echo AT_port=$AT_PORT
-	echo GPS_port=$GPS_PORT	
+	echo GPS_port=$GPS_PORT
 	echo LAC=$lac
 	echo CellID=$cellid
 	echo ICC-ID=$iccid
@@ -1435,7 +1435,7 @@ cell_m_info() {
 	echo QMI_port=$QMI_PORT
 	echo LCID=$lcid
 	#echo slot=$SLOT
-	#echo SYS_USB=$SYS_USB	
+	#echo SYS_USB=$SYS_USB
 }
 
 # verizon auto dialup
@@ -1899,7 +1899,7 @@ get_op_func() {
 			exit 0
 			;;
 		help)
-			cell_usage	
+			cell_usage
 			exit 0
 			;;
 		sleep)
