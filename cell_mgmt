@@ -1910,13 +1910,6 @@ get_op_func() {
 			cell_usage
 			exit 0
 			;;
-		sleep)
-			op_func="$(_get_op_func $arg1)"
-			;;
-		test_sleep)
-			op_func=test_sleep
-			NEED_LOCK=1
-			;;
 		*)
 			cell_usage
 			exit 3
@@ -2044,25 +2037,6 @@ exec_func() {
 	return $?
 }
 
-
-### test
-qmi_sleep() {
-	echo "--- start $1 ---"
-	sleep $1
-	echo "--- end $1 ---"
-}
-at_sleep() {
-	_lock ${LOCK_FD} ${LOCK_FILE} ${FLOCK_TIMEOUT}
-	echo "--- start $1 ---"
-	sleep $1
-	echo "--- end $1 ---"
-	_unlock ${LOCK_FD}
-}
-test_sleep() {
-	echo "--- start $1 ---"
-	sleep $1
-	echo "--- end $1 ---"
-}
 
 #--------- Initialize Global variables start ---------
 
