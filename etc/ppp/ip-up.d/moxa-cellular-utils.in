@@ -11,8 +11,8 @@ for arg in $6; do
 	eval "${arg}"
 done
 
-export IFNAME="${name}"
 export PPPIFNAME="${IFNAME}"
+export IFNAME="${name}"
 export DEVICE="${DEVICE}"
 export IPLOCAL="${IPLOCAL}"
 export IPREMOTE="${IPREMOTE}"
