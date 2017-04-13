@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.18.0"
+VERSION="1.19.0"
 PID=$$
 STATUS_DIR=/var/run/${PKG}
 
@@ -790,6 +790,11 @@ qmi_iccid() {
 	echo ICC-ID: $iccid
 }
 
+qmi_imsi() {
+	local imsi=$(_qmicli_value "$(_qmicli --dms-uim-get-imsi)" "IMSI")
+	echo IMSI: $imsi
+}
+
 qmi_location_info() {
 	local info=""
 	local service=""
@@ -1040,6 +1045,17 @@ at_operator() {
 	else
 		echo "Unknown"
 	fi
+}
+
+at_imsi() {
+	local result=""
+	local ret=0
+
+
+	result=$(cell_at_cmd 'AT+CIMI') || return $?
+
+	result=$(echo "${result}" | grep '^[0-9]*.$')
+	echo IMSI: $result
 }
 
 at_location_info() {
@@ -1724,9 +1740,6 @@ cell_usage() {
 	_cell_usage_set_profile
 	#set_apn
 	_cell_usage_set_apn
-	#number
-	echo -e "	number"
-	echo -e "		Get SIM number."
 	#check_carrier
 	echo -e "	check_carrier"
 	echo -e "		Check current carrier."
@@ -1745,6 +1758,9 @@ cell_usage() {
 	#iccid
 	echo -e "	iccid"
 	echo -e "		Get SIM card ID"
+	#imsi
+	echo -e "	imsi"
+	echo -e "		Get IMSI (International Mobile Subscriber Identity)."
 	#location_info
 	echo -e "	location_info"
 	echo -e "		Get cell location information."
@@ -1884,9 +1900,6 @@ get_op_func() {
 		operator)
 			op_func="$(_get_op_func $arg1)"
 			;;
-		number)
-			op_func="$(_get_op_func $arg1)"
-			;;
 		m_info)
 			op_func=cell_m_info
 			;;
@@ -1894,6 +1907,9 @@ get_op_func() {
 			op_func="$(_get_op_func $arg1)"
 			;;
 		iccid)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		imsi)
 			op_func="$(_get_op_func $arg1)"
 			;;
 		location_info)

@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.19.0) unstable; urgency=low
+
+  * feat: Remove `cell_mgmt number`.
+  * feat: Add `imsi` support.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 13 Apr 2017 14:00:34 +0800
+
 moxa-cellular-utils (1.18.0) unstable; urgency=low
 
   * refactor: Adjust lock mechanism.
