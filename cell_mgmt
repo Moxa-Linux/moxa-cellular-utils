@@ -1724,9 +1724,6 @@ cell_usage() {
 	_cell_usage_set_profile
 	#set_apn
 	_cell_usage_set_apn
-	#number
-	echo -e "	number"
-	echo -e "		Get SIM number."
 	#check_carrier
 	echo -e "	check_carrier"
 	echo -e "		Check current carrier."
@@ -1882,9 +1879,6 @@ get_op_func() {
 			op_func="$(_get_op_func $arg1)"
 			;;
 		operator)
-			op_func="$(_get_op_func $arg1)"
-			;;
-		number)
 			op_func="$(_get_op_func $arg1)"
 			;;
 		m_info)
