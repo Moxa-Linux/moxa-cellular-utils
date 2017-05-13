@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.19.1) unstable; urgency=low
+
+  * fix: Modify model name of MC-1100 series.
+  * fix: Wrong slot number of WCUM-8500.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Sat, 13 May 2017 21:38:56 +0800
+
 moxa-cellular-utils (1.19.0) unstable; urgency=low
 
   * feat: Remove `cell_mgmt number`.
