@@ -1323,6 +1323,13 @@ cell_switch_sim() {
 		_exit 3
 	fi
 
+	if [ -z "$sim_slot" ] || \
+			[ "$sim_slot" != "1" ] && [ "$sim_slot" != "2" ]; then
+		>&2 echo "Error: Please specify a valid SIM slot id."
+		_cell_usage_cmd _cell_usage_switch_sim
+		_exit 4
+	fi
+
 	_exec_op_rtn stop_network &> /dev/null
 	_qmi_kill_proxy &> /dev/null
 
@@ -1610,6 +1617,11 @@ _cell_usage_cmd() {
 	eval "$1"
 }
 
+_cell_usage_switch_sim() {
+	echo -e "	switch_sim <1|2>"
+	echo -e "		Switch SIM slot."
+}
+
 _cell_usage_at() {
 	echo -e "	at <'AT_COMMAND'>"
 	echo -e "		Input AT Command."
@@ -1697,8 +1709,7 @@ cell_usage() {
 	echo -e "	power_cycle"
 	echo -e "		Power cycle the module slot."
 	#switch sim slot
-	echo -e "	switch_sim <1|2>"
-	echo -e "		Switch SIM slot."
+	_cell_usage_switch_sim
 	#gps on
 	echo -e "	gps_on"
 	echo -e "		GPS ON."
