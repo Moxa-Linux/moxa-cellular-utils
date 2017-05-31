@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.19.3) unstable; urgency=low
+
+  * fix: `switch_sim` shouldn't work for invalid id
+
+ -- Donald Hsu <donald.hsu@moxa.com>  Wed, 31 May 2017 11:32:10 +0800
+
 moxa-cellular-utils (1.19.2) unstable; urgency=low
 
   * feat: Support MRC-1002-T series platforms.
