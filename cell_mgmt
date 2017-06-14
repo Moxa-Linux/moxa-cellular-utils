@@ -2044,7 +2044,9 @@ _wait_lock() {
 
 
 	_lock ${fd} ${file} ${timeout}
-	_unlock ${fd}
+	if [ ${NEED_LOCK} -eq 0 ] && [ ${fd} != ${LOCK_FD_GLOBAL} ]; then
+		_unlock ${fd}
+	fi
 	echo $(expr `date +%s` - ${start_time})
 }
 
