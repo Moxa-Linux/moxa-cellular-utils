@@ -856,8 +856,7 @@ _at_cmd() {
 	local timeout=${3:-0.3}
 
 
-	echo -n -e "$cmd\r\n" > ${at_port}
-	ret=$(timeout $timeout cat ${at_port} | tr -d '\r')
+	ret=$(mxat -d "${at_port}" -c "${cmd}")
 	echo "${ret}"
 	if echo "${ret}" | grep -q "OK"; then
 		return 0
