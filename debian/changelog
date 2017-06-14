@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.19.4) unstable; urgency=low
+
+  * fix: deadlock occur when execute command that need global lock.
+  * fix: Use `mxat` to execute AT command.
+
+ -- GaryWL Hsu <garywl.hsu@moxa.com>  Wed, 14 Jun 2017 17:08:10 +0800
+
 moxa-cellular-utils (1.19.3) unstable; urgency=low
 
   * fix: `switch_sim` shouldn't work for invalid id

@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.19.3"
+VERSION="1.19.4"
 PID=$$
 STATUS_DIR=/var/run/${PKG}
 
@@ -856,8 +856,7 @@ _at_cmd() {
 	local timeout=${3:-0.3}
 
 
-	echo -n -e "$cmd\r\n" > ${at_port}
-	ret=$(timeout $timeout cat ${at_port} | tr -d '\r')
+	ret=$(mxat -d "${at_port}" -c "${cmd}")
 	echo "${ret}"
 	if echo "${ret}" | grep -q "OK"; then
 		return 0
@@ -2045,7 +2044,9 @@ _wait_lock() {
 
 
 	_lock ${fd} ${file} ${timeout}
-	_unlock ${fd}
+	if [ ${NEED_LOCK} -eq 0 ] && [ ${fd} != ${LOCK_FD_GLOBAL} ]; then
+		_unlock ${fd}
+	fi
 	echo $(expr `date +%s` - ${start_time})
 }
 

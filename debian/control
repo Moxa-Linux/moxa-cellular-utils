@@ -11,6 +11,7 @@ Homepage: http://www.moxa.com/
 Package: moxa-cellular-utils
 Architecture: all
 Depends: ${misc:Depends},
+         moxa-at-cmd,
          udhcpc,
          libqmi-utils (>= 1.16.2),
          libqmi-proxy (>= 1.16.2),
