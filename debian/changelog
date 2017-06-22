@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.19.6) unstable; urgency=low
+
+  * fix: no supported module on all slots then return error code 5
+  * fix: no supported module on specific slot then return error code 6
+
+ -- Donald Hsu <donald.hsu@moxa.com>  Thu, 22 Jun 2017 16:17:10 +0800
+
 moxa-cellular-utils (1.19.5) unstable; urgency=low
 
   * fix: some command dose not release global lock.
