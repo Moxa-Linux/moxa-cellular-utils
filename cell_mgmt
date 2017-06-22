@@ -157,6 +157,7 @@ _search_wwan_node() {
 	local product_id
 	local slot_num=0
 	local id=-1
+	local unsupport_num=0
 
 	for i in ${MODULE_PATH[@]}; do
 		let slot_num++
@@ -170,6 +171,7 @@ _search_wwan_node() {
 
 		if ! _func_exist _module_${vendor_id}_${product_id}; then
 			>&2 echo "Error: Module \"${module_name}\" not support."
+			let unsupport_num++
 			continue
 		fi
 
@@ -192,6 +194,11 @@ _search_wwan_node() {
 			continue
 		fi
 	done
+
+	if [ $unsupport_num -gt 0 ] && [ $id -lt 0 ]; then
+		>&2 echo "Error: only unsupport module on slot."
+		_exit 5
+	fi
 }
 
 _set_variables() {
