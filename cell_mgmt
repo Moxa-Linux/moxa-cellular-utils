@@ -1258,7 +1258,7 @@ _cell_wait_module_back() {
 			_init
 			INTERFACE=$(_cell_interface_by_slot ${slot})
 			[ -z "${INTERFACE}" ] && \
-				>&2 echo "Error: Module not found." && _exit 1
+				>&2 echo "Error: Module not found." && _exit 6
 			_set_variables
 
 			vendor_id=$(cat ${MODULE_PATH[$((SLOT-1))]}/idVendor \
