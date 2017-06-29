@@ -595,6 +595,11 @@ _qmi_card_status() {
 }
 
 #--------- qmi functions -----------
+qmi_fw_update() {
+		# arg1 is fw path. 
+		local cmd="-w $QMI_PORT --update $1"
+		qmi-firmware-update $cmd
+}
 
 qmi_attach_status() {
 	local info="$(_qmicli --nas-get-serving-system)"
@@ -1811,6 +1816,10 @@ get_op_func() {
 			op_func=cell_module_info
 			;;
 		# module related
+		fw_update)
+			op_func="$(_get_op_func ${arg1})"
+			NEED_LOCK=1
+			;;
 		power_on)
 			op_func=cell_power_on
 			NEED_LOCK=1
