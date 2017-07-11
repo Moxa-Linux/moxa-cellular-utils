@@ -1,3 +1,11 @@
+moxa-cellular-utils (1.19.7) unstable; urgency=low
+
+  * fix: fix signal led not turn off after module power off issue
+  * fix: set MAX_SLOT_NUM depends on product setting
+  * fix: use bash
+
+ -- Donald Hsu <donald.hsu@moxa.com>  Tue, 11 Jul 2017 16:41:37 +0800
+
 moxa-cellular-utils (1.19.6) unstable; urgency=low
 
   * fix: no supported module on all slots then return error code 5
