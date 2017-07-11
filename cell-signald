@@ -3,9 +3,34 @@
 INTERVAL=10
 CELL_MGMT=cell_mgmt
 LED_CTRL=mx_led_control
-MAX_SLOT_NUM=4
+MAX_SLOT_NUM=0
 USED_SLOT_NUM=0
 SIGNAL_FROM_SLOTS=()
+
+# profile
+CONF_DIR=/etc/moxa-cellular-utils
+PRODUCT_DIR=${CONF_DIR}/product.d
+
+KVERSION=$(which kversion)
+[ -z "${KVERSION}" ] && >&2 echo "Error: \`kversion\` not found." && exit 1
+
+PRODUCT="$(${KVERSION} 2> /dev/null | awk '{print $1}')"
+
+_calc_max_slot_num() {
+	for conf in $(ls ${PRODUCT_DIR}); do
+		if [ "${conf: -5}" == ".conf" ]; then
+			. ${PRODUCT_DIR}/$conf
+		fi
+	done
+
+	eval "_product_${PRODUCT}_profile" 2>/dev/null
+	if [ x"$?" != x"0" ]; then
+		>&2 echo "Error: \`kversion\` or profile not found."
+		_exit 1
+	fi
+
+	MAX_SLOT_NUM=${#MODULE_PATH[@]}
+}
 
 _init_signal_from_slots() {
 	for (( i=0; i<${MAX_SLOT_NUM}; i++ )); do
@@ -123,5 +148,6 @@ while getopts  "i:vh" flag; do
 	fi
 done
 
+_calc_max_slot_num
 _init_signal_from_slots
 _loop
