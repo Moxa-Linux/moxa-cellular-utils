@@ -3,6 +3,30 @@
 INTERVAL=10
 CELL_MGMT=cell_mgmt
 LED_CTRL=mx_led_control
+MAX_SLOT_NUM=4
+USED_SLOT_NUM=0
+SIGNAL_FROM_SLOTS=()
+
+_init_signal_from_slots() {
+	for (( i=0; i<${MAX_SLOT_NUM}; i++ )); do
+		# set to 999 for slot unused
+		SIGNAL_FROM_SLOTS[i]=999
+
+		# turn off all slots leds
+		_signal_led_flush $((i+1))
+	done
+	USED_SLOT_NUM=0
+}
+
+_calc_used_slot_num() {
+	count=0
+	for (( i=0; i<${MAX_SLOT_NUM}; i++ )); do
+		if [ ${SIGNAL_FROM_SLOTS[i]} -ne 999 ]; then
+			count=$((count+1))
+		fi
+	done
+	USED_SLOT_NUM=${count}
+}
 
 _signal_led_flush() {
 	slot=$1
@@ -47,11 +71,22 @@ _signal_led() {
 _loop() {
 	while [ 1 ]; do
 		modules=$(${CELL_MGMT} modules)
+
+		# when module uninstall from slot, turn off all leds,
+		# then turn on still installed modules' leds
+		_calc_used_slot_num
+		if [ ${modules} -lt ${USED_SLOT_NUM} ]; then
+			_init_signal_from_slots
+		fi
 		for i in $(seq 0 $((modules-1))); do
 			slot=$(${CELL_MGMT} -i $i slot)
 			signal=$(${CELL_MGMT} -i $i signal)
 			_signal_led ${slot} "${signal}"
+
+			# record signal in $SIGNAL_FROM_SLOTS
+			SIGNAL_FROM_SLOTS[$((slot-1))]=${signal}
 		done
+
 		sleep ${INTERVAL}
 	done
 }
@@ -88,4 +123,5 @@ while getopts  "i:vh" flag; do
 	fi
 done
 
+_init_signal_from_slots
 _loop
