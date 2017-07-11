@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 INTERVAL=10
 CELL_MGMT=cell_mgmt
