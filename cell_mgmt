@@ -331,10 +331,11 @@ _start_network_init() {
 	Phone="$(eval echo \$Phone$interface_num)"
 	Username="$(eval echo \$Username$interface_num)"
 	Password="$(eval echo \$Password$interface_num)"
+	Auth="$(eval echo \$Auth$interface_num)"
 
 	# modify APN Username Password PIN
 	for args in $@; do
-		for par in "APN" "Username" "Password" "PIN" "Phone"; do
+		for par in "APN" "Auth" "Username" "Password" "PIN" "Phone"; do
 			if [ $(echo $args | grep "$par=") ]; then
 				eval "$par=${args##*$par=}"
 				eval "sed -i s/$par$interface_num=.*/$par$interface_num=\$$par/ $PROFILE_FILE"
@@ -411,6 +412,7 @@ _qmicli_value() {
 _qmi_start_network() {
 	local is_raw_ip="N"
 	local raw_ip_file="/sys/class/net/${QMI_NODE}/qmi/raw_ip"
+	local auth_arg=""
 
 	if [ x"$CID" != x"" ]; then
 		USE_PREVIOUS_CID="--client-cid=$CID"
@@ -431,6 +433,17 @@ _qmi_start_network() {
 		is_raw_ip=N
 	fi
 
+	# initialize the authorization arg.
+	if [ x"$Auth" != x"" ]; then
+		auth_arg=",auth=$Auth"
+	fi
+	if [ x"$Username" != x"" ]; then
+		auth_arg="$auth_arg,username=$Username"
+	fi
+	if [ x"$Password" != x"" ]; then
+		auth_arg="$auth_arg,password=$Password"
+	fi
+
 	if [ -f "${raw_ip_file}" ]; then
 		echo ${is_raw_ip} > ${raw_ip_file} 2> /dev/null
 		_qmicli --set-expected-data-format=${QMI_PROTOCOL} || \
@@ -442,7 +455,7 @@ _qmi_start_network() {
 	fi
 
 	#START_NETWORK_CMD="$QMICLI -d $QMI_PORT --wds-start-network=$APN --client-no-release-cid --device-open-net=net-802-3|net-no-qos-header $QMICLI_END"
-	START_NETWORK_CMD="_qmicli --wds-start-network='apn=$APN,ip-type=4' --client-no-release-cid --device-open-net=net-${QMI_PROTOCOL}|net-no-qos-header"
+	START_NETWORK_CMD="_qmicli --wds-start-network='apn=$APN,ip-type=4$auth_arg' --client-no-release-cid --device-open-net=net-${QMI_PROTOCOL}|net-no-qos-header"
 	echo "Starting network with '$START_NETWORK_CMD'..."
 
 	if [ x"$QMIDEBUG" != x"" ]; then
