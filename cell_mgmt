@@ -1680,6 +1680,7 @@ _cell_usage_start() {
 	echo -e "		APN - Access point name"
 	echo -e "		PIN - PIN code"
 	echo -e "		Phone - Phone number (especially for AT based modules)"
+	echo -e "		Auth - Authentication type(CHAP|PAP|BOTH), default=NONE."
 	echo -e "		Username"
 	echo -e "		Password"
 	echo -e ""
