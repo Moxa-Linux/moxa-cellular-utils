@@ -455,7 +455,7 @@ _qmi_start_network() {
 	fi
 
 	#START_NETWORK_CMD="$QMICLI -d $QMI_PORT --wds-start-network=$APN --client-no-release-cid --device-open-net=net-802-3|net-no-qos-header $QMICLI_END"
-	START_NETWORK_CMD="_qmicli --wds-start-network='apn=$APN,ip-type=4$auth_arg' --client-no-release-cid --device-open-net=net-${QMI_PROTOCOL}|net-no-qos-header"
+	START_NETWORK_CMD="_qmicli --wds-start-network=apn=$APN,ip-type=4$auth_arg --client-no-release-cid --device-open-net=net-${QMI_PROTOCOL}|net-no-qos-header"
 	echo "Starting network with '$START_NETWORK_CMD'..."
 
 	if [ x"$QMIDEBUG" != x"" ]; then
