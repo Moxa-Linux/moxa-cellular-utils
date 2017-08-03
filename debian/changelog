@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.20.0) unstable; urgency=low
+
+  * fix: qmicli start network parameter can not be parsed by qmicli.
+  * Add authorization mechanism in qmi start network function.
+
+ -- GaryWL Hsu <garywl.hsu@moxa.com>  Thu, 03 Aug 2017 16:35:37 +0800
+ 
 moxa-cellular-utils (1.19.7) unstable; urgency=low
 
   * fix: fix signal led not turn off after module power off issue
