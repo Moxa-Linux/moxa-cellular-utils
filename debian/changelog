@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.20.1) unstable; urgency=low
+
+  * feat: Support UC-8112-ME-T-LX1 series platforms.
+
+ -- GaryWL Hsu <garywl.hsu@moxa.com>  Fri, 20 Oct 2017 15:47:56 +0800
+ 
 moxa-cellular-utils (1.20.0) unstable; urgency=low
 
   * fix: qmicli start network parameter can not be parsed by qmicli.
