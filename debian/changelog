@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.20.2) unstable; urgency=low
+
+  * feat: Support AC-4300 series platforms.
+
+ -- HarryYJ Jhou <harryyj.jhou@moxa.com>  Wed, 25 Oct 2017 14:51:50 +0800
+ 
 moxa-cellular-utils (1.20.1) unstable; urgency=low
 
   * feat: Support UC-8112-ME-T-LX1 series platforms.
