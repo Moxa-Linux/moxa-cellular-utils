@@ -901,7 +901,9 @@ cell_at_cmd() {
 		_exit 4
 	fi
 
-	if [ x"${AT_PORT}" == x"NotSupport" ]; then
+	if [ ! -z "$3" ]; then
+		at_port="$3"
+	elif [ x"${AT_PORT}" == x"NotSupport" ]; then
 		if [ x"${MODEM_PORT}" == x"NotSupport" ]; then
 			>&2 echo "Error: AT port and modem port not available."
 			return 3
