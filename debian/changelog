@@ -1,3 +1,13 @@
+moxa-cellular-utils (1.21.0) unstable; urgency=medium
+
+  * fix: missing timeout option.
+  * feat: support at port option for at command.
+  * fix: add return code for `status`.
+  * fix: show network information in status for QMI module.
+  * feat: support Gemalto ELS61.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Fri, 05 Jan 2018 17:41:59 +0800
+
 moxa-cellular-utils (1.20.3) unstable; urgency=low
 
   * feat: Support UC-5100 series.
