@@ -10,7 +10,9 @@ PROJECT_STAGING_DIR = $(STAGING_DIR)/$(DISTDIR)
 
 IN_FILES= \
 	etc/ppp/ip-up.d/${PROJECT}.in \
-	etc/ppp/ip-down.d/${PROJECT}.in
+	etc/ppp/ip-down.d/${PROJECT}.in \
+	etc/dhcp/dhclient-enter-hooks.d/${PROJECT}.in \
+	etc/dhcp/dhclient-exit-hooks.d/${PROJECT}.in
 OUT_FILES=$(IN_FILES:.in=)
 DIST_FILES = \
 	$(IN_FILES) \

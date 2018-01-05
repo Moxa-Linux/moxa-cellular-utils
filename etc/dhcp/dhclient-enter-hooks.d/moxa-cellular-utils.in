@@ -1,0 +1,20 @@
+
+PKG_CONF_DIR=@conf_dir@
+HOOK_DIR=${PKG_CONF_DIR}/ip-up.d
+
+
+case $reason in
+    BOUND|RENEW|REBIND|REBOOT)
+        export IFIDX="${SLOT}"
+        export IFNAME="${interface}"
+        export IPLOCAL="${new_ip_address}"
+        export SUBNETMASK="${new_subnet_mask}"
+        export GATEWAY="$new_routers"
+        export DNS_LIST="$new_domain_name_servers"
+        if [ x"${IGNORE_DNS_GW}" = x"1" ]; then
+                unset new_domain_name_servers
+                unset new_routers
+        fi
+        run-parts "${HOOK_DIR}"
+      ;;
+esac

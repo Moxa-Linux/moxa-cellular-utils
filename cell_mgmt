@@ -635,10 +635,15 @@ qmi_status() {
 	local con_status=$(_qmi_packet_service_status | grep "Status")
 
 
-	echo ${con_status}
 	if [ x"$(echo ${con_status}| awk '{print $2}')" == x"connected" ]; then
+		if [ -f "${STATUS_FILE}" ]; then
+			cat "${STATUS_FILE}"
+		else
+			echo ${con_status}
+		fi
 		_exit 0
 	else
+		echo "Status: disconnected"
 		_exit 1
 	fi
 }
@@ -1418,29 +1423,16 @@ cell_dhclient() {
 	local ignore_dns_gw="$2"
 
 
-	if [ x"$ignore_dns_gw" == x"1" ];   then
-cat << EOF > /etc/dhcp/dhclient-enter-hooks.d/no-default-route
-case \$reason in
-    BOUND|RENEW|REBIND|REBOOT)
-        echo "IP=\$new_ip_address"
-        echo "SubnetMask=\$new_subnet_mask"
-        echo "Gateway=\$new_routers"
-        echo "DNS=\$new_domain_name_servers"
-        unset new_domain_name_servers
-        unset new_routers
-      ;;
-esac
-EOF
-	fi
-
-	dhclient -pf /var/run/dhclient-${node}.pid $node
-	rm /etc/dhcp/dhclient-enter-hooks.d/no-default-route 2>/dev/null
+	dhclient -nw -pf /var/run/dhclient-${node}.pid \
+		-e SLOT=${SLOT} \
+		-e IGNORE_DNS_GW=${ignore_dns_gw} \
+		$node
 }
 
 cell_dhclient_kill() {
 	local node="$1"
 
-	dhclient -r -pf /var/run/dhclient-${node}.pid ${node}
+	dhclient -r -pf /var/run/dhclient-${node}.pid -e SLOT=${SLOT} ${node}
 }
 
 # udhcpc

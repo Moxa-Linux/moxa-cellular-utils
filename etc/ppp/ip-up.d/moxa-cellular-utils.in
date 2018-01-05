@@ -12,7 +12,7 @@ for arg in $6; do
 done
 
 export PPPIFNAME="${IFNAME}"
-export IFNAME="${name}"
+export IFIDX="${name}"
 export DEVICE="${DEVICE}"
 export IPLOCAL="${IPLOCAL}"
 export IPREMOTE="${IPREMOTE}"

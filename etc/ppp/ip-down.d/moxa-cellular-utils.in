@@ -11,6 +11,6 @@ for arg in $6; do
 	eval "${arg}"
 done
 
-export IFNAME="${name}"
+export IFIDX="${name}"
 
 run-parts "${HOOK_DIR}"

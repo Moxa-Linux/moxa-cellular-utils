@@ -2,7 +2,7 @@
 
 PKG=moxa-cellular-utils
 STATUS_DIR="/var/run/${PKG}"
-STATUS_FILE="${STATUS_DIR}/${IFNAME}.status"
+STATUS_FILE="${STATUS_DIR}/${IFIDX}.status"
 
 mkdir -p "${STATUS_DIR}"
 rm -rf "${STATUS_FILE}"
