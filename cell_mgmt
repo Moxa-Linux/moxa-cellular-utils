@@ -1223,8 +1223,10 @@ at_attach_status() {
 at_status() {
 	if [ -f "${STATUS_FILE}" ]; then
 		cat "${STATUS_FILE}"
+		_exit 0
 	else
 		echo "Status: disconnected"
+		_exit 1
 	fi
 }
 
