@@ -1147,10 +1147,10 @@ at_ppp_template_file() {
 at_start_network() {
 	local ignore_dns_gw=0
 
-	local isp_name=wvdial-${INTERFACE}
+	local isp_name=wvdial-${SLOT}
 	local wvdial_temp=$(_exec_op_rtn wvdial_template_file)
 	local wvdial_conf=$(cat ${wvdial_temp})
-	local wvdial_path=${CONF_DIR}/wvdial/wvdial-${INTERFACE}.conf
+	local wvdial_path=${CONF_DIR}/wvdial/wvdial-${SLOT}.conf
 	local ppp_temp=$(_exec_op_rtn ppp_template_file)
 	local ppp_conf=$(cat ${ppp_temp})
 	local ppp_path=/etc/ppp/peers/${isp_name}
