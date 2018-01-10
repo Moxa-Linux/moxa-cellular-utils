@@ -253,6 +253,13 @@ _set_variables() {
 	CID=""
 	PDH=""
 	_load_state
+
+	# Update WWAN interface
+	if [ -z "${QMI_NODE}" ]; then
+		local ifname="$(_exec_op status | grep "^PPPIFName: " | \
+			awk '{print $2}')"
+		QMI_NODE=${ifname}
+	fi
 }
 
 _init() {
