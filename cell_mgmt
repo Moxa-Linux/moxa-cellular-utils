@@ -1894,6 +1894,12 @@ get_op_func() {
 		stop)
 			op_func="$(_get_op_func ${arg1}_network)"
 			;;
+		ppp_start)
+			op_func="$(_get_op_func ${arg1}_network)"
+			;;
+		ppp_stop)
+			op_func="$(_get_op_func ${arg1}_network)"
+			;;
 		restart)
 			op_func=cell_restart
 			;;
