@@ -1013,16 +1013,21 @@ at_pin_protection(){
 
 at_set_flight_mode() {
 	local flight=${1:-1}
-	local mode=""
+	local reset=${2}
+	local mode=
 
 	# flight mode (persistent-low-power)
 	# online mode (online)
-	if [ ${flight} -eq 1 ]; then
-		mode=4
+	if [ x"${flight}" == x"1" ]; then
+		[ x"${reset}" == x"1" ] && mode="4,1" || mode=4
 	else
-		mode=1
+		[ x"${reset}" == x"1" ] && mode="1,1" || mode=1
 	fi
-	cell_at_cmd "AT+CFUN=${mode}" 1 1>/dev/null 2>&1
+	if cell_at_cmd "AT+CFUN=${mode}" 2 | grep -q "OK"; then
+		[ "${reset}" == "1" ] && sleep 5 && _cell_wait_module_back
+		return 0
+	fi
+	return 1
 }
 
 # get profile list
