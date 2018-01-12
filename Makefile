@@ -63,6 +63,7 @@ $(PROJECT_STAGING_DIR)/%: %
 
 clean:
 	rm -rf $(DISTDIR)* $(STAGING_DIR)
+	rm -rf $(IN_FILES:.in=)
 
 distclean: clean
 
