@@ -1,4 +1,14 @@
-moxa-cellular-utils (1.21.0) unstable; urgency=medium
+moxa-cellular-utils (1.22.0) unstable; urgency=low
+
+  * fix: update wwan node for PPP interface.
+  * feat: support Telit LE910C1.
+  * feat: support "reset" for `set_flight_mode`.
+  * fix: adjust dialing procedure for Gemalto ELS61.
+  * feat: add `ppp_start/stop` for Gemalto ELS61.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Fri, 12 Jan 2018 22:26:12 +0800
+
+moxa-cellular-utils (1.21.0) unstable; urgency=low
 
   * fix: missing timeout option.
   * feat: support at port option for at command.
