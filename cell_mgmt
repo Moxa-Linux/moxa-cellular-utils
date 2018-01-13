@@ -1683,13 +1683,14 @@ _cell_usage_pin_protection() {
 _cell_usage_set_profile() {
 	#set_profile
 	echo -e "	set_profile <id> [APN [PDP Type]]"
-	echo -e "		Update PDP profile."
+	echo -e "		Update PDP profile. Profile will be deleted if APN and"
+	echo -e "		PDP Type doesn't given. PDP Type default to \"IPV4V6\"."
 }
 
 _cell_usage_set_apn() {
 	#set_apn
 	echo -e "	set_apn <APN>"
-	echo -e "		Set APN to configuration file."
+	echo -e "		Set APN to configuration file and PDP profile index 1."
 }
 
 _cell_usage_start() {
@@ -1796,7 +1797,7 @@ cell_usage() {
 	echo -e "	switch_carrier <$CARRIER>"
 	echo -e "		Switching between US carrier frequency bands."
 	#m_info
-	echo -e "	m_info"
+	echo -e "	m_info (deprecated)"
 	echo -e "		Module/SIM information."
 	#module_info
 	echo -e "	module_info"
