@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.22.1) unstable; urgency=medium
+
+  * docs: Update usage description.
+  * fix: wrong deactive command for Gemalto ELS61.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Mon, 22 Jan 2018 15:06:17 +0800
+
 moxa-cellular-utils (1.22.0) unstable; urgency=low
 
   * fix: update wwan node for PPP interface.
