@@ -623,7 +623,7 @@ _qmi_card_status() {
 
 #--------- qmi functions -----------
 qmi_fw_update() {
-		# arg1 is fw path. 
+		# arg1 is fw path.
 		local cmd="-w $QMI_PORT --update $1"
 		qmi-firmware-update $cmd
 }

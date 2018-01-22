@@ -23,26 +23,26 @@ moxa-cellular-utils (1.20.3) unstable; urgency=low
   * feat: Support UC-5100 series.
 
  -- GaryWL Hsu <garywl.hsu@moxa.com>  Thu, 16 Nov 2017 10:58:52 +0800
- 
+
 moxa-cellular-utils (1.20.2) unstable; urgency=low
 
   * feat: Support AC-4300 series platforms.
 
  -- HarryYJ Jhou <harryyj.jhou@moxa.com>  Wed, 25 Oct 2017 14:51:50 +0800
- 
+
 moxa-cellular-utils (1.20.1) unstable; urgency=low
 
   * feat: Support UC-8112-ME-T-LX1 series platforms.
 
  -- GaryWL Hsu <garywl.hsu@moxa.com>  Fri, 20 Oct 2017 15:47:56 +0800
- 
+
 moxa-cellular-utils (1.20.0) unstable; urgency=low
 
   * fix: qmicli start network parameter can not be parsed by qmicli.
   * Add authorization mechanism in qmi start network function.
 
  -- GaryWL Hsu <garywl.hsu@moxa.com>  Thu, 03 Aug 2017 16:35:37 +0800
- 
+
 moxa-cellular-utils (1.19.7) unstable; urgency=low
 
   * fix: fix signal led not turn off after module power off issue
@@ -266,7 +266,7 @@ moxa-cellular-utils (1.10.1) unstable; urgency=low
 
 moxa-cellular-utils (1.10.0) unstable; urgency=low
 
-  * Fix: Avoid AT command separated by space. 
+  * Fix: Avoid AT command separated by space.
   * Feat: support PIN retries remains.
 
  -- Aeluin Chen <aeluin.chen@moxa.com>  Wed, 11 Jan 2017 17:01:12 +0800
@@ -299,7 +299,7 @@ moxa-cellular-utils (1.9.8) unstable; urgency=low
 
 moxa-cellular-utils (1.9.7) unstable; urgency=medium
 
-  * Support MXcore01, VCG-1021-T, UC-8112-ME-T-LX C1D2 platforms. 
+  * Support MXcore01, VCG-1021-T, UC-8112-ME-T-LX C1D2 platforms.
 
  -- Wes Huang <wes.huang@moxa.com>  Fri, 04 Nov 2016 11:50:01 +0800
 
