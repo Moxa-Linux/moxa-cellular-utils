@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.23.0) unstable; urgency=low
+
+  * feat: provide cell_<op> to be customized.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Tue, 23 Jan 2018 15:45:14 +0800
+
 moxa-cellular-utils (1.22.1) unstable; urgency=medium
 
   * docs: Update usage description.
