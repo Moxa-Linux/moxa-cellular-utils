@@ -59,7 +59,8 @@ _func_exist() {
 	return 1
 }
 
-_get_op_func() {
+# nested is not recommended, recursive calling may occurred
+__get_op_func() {
 	local op="$1"
 
 	if _func_exist _module_${MODULE_ID}_${op}; then
@@ -73,8 +74,21 @@ _get_op_func() {
 	fi
 }
 
+_get_op_func() {
+	local op="$1"
+
+	# cell_${op} or _xxx_cell_${op}: top most functions, nested is allowed
+	if _func_exist _module_${MODULE_ID}_cell_${op}; then
+		echo _module_${MODULE_ID}_cell_${op}
+	elif _func_exist cell_${op}; then
+		echo cell_${op}
+	else
+		__get_op_func "${op}"
+	fi
+}
+
 _exec_op_rtn() {
-	local func="$(_get_op_func $1)"
+	local func="$(__get_op_func $1)"
 
 	if [ x"${func}" != x"" ]; then
 		#echo "eval ${func} ${@:2}"
@@ -86,7 +100,7 @@ _exec_op_rtn() {
 }
 
 _exec_op() {
-	local func="$(_get_op_func $1)"
+	local func="$(__get_op_func $1)"
 
 	if [ x"${func}" == x"" ]; then
 		>&2 echo "Error: Operation not support."
@@ -1425,7 +1439,7 @@ cell_set_apn() {
 	fi
 	APN=${apn}
 
-	cell_set_profile 1 "${APN}" "IPV4V6" || _exit 1
+	_exec_op_rtn set_profile 1 "${APN}" "IPV4V6" || _exit 1
 	_exit 0
 }
 
@@ -1942,7 +1956,7 @@ get_op_func() {
 			op_func="$(_get_op_func $arg1)"
 			;;
 		set_profile)
-			op_func="cell_set_profile"
+			op_func="$(_get_op_func $arg1)"
 			;;
 		set_apn)
 			op_func="cell_set_apn"
