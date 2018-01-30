@@ -1,7 +1,8 @@
 #!/bin/sh
 
+[ "${PKG}" != "@pkg@" ] && exit 0
+
 PKG_CONF_DIR=@conf_dir@
-#PKG_CONF_DIR=/home/moxa/moxa-cellular-utils/etc/moxa-cellular-utils
 HOOK_DIR=${PKG_CONF_DIR}/ip-down.d
 
 for arg in $6; do

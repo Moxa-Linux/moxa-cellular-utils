@@ -1,4 +1,6 @@
 
+[ "${PKG}" != "@pkg@" ] && exit 0
+
 PKG_CONF_DIR=@conf_dir@
 HOOK_DIR=${PKG_CONF_DIR}/ip-up.d
 

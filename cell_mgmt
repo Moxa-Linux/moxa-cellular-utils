@@ -1450,6 +1450,7 @@ cell_dhclient() {
 
 
 	dhclient -nw -pf /var/run/dhclient-${node}.pid \
+		-e PKG=${PKG} \
 		-e SLOT=${SLOT} \
 		-e IGNORE_DNS_GW=${ignore_dns_gw} \
 		$node
@@ -1458,7 +1459,10 @@ cell_dhclient() {
 cell_dhclient_kill() {
 	local node="$1"
 
-	dhclient -r -pf /var/run/dhclient-${node}.pid -e SLOT=${SLOT} ${node}
+	dhclient -r -pf /var/run/dhclient-${node}.pid \
+		-e PKG=${PKG} \
+		-e SLOT=${SLOT} \
+		${node}
 }
 
 # udhcpc

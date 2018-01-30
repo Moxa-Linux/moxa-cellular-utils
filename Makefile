@@ -39,7 +39,7 @@ DIST_FILES = \
 STAGING_FILES=$(addprefix $(PROJECT_STAGING_DIR)/,$(DIST_FILES))
 BUILD_DATE:=$(shell date +%Y%m%d-%H%M%S)
 
-replace = sed -e 's|@conf_dir@|$(PROJECT_CONF_DIR)|g'
+replace = sed -e 's|@pkg@|$(PROJECT)|g;s|@conf_dir@|$(PROJECT_CONF_DIR)|g'
 
 
 all: $(OUT_FILES)
