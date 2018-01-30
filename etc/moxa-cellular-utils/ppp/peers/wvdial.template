@@ -1,5 +1,5 @@
 noauth
-name wvdial.@name@
+name wvdial.@slot@
 connect "wvdial -C @wvdial_conf@ --chat connectlite"
 usepeerdns
 @modem_port@
@@ -11,4 +11,4 @@ noipdefault
 idle 0
 logfd 6
 @defaultroute@
-ipparam "name=@name@ @nodns@"
+ipparam "SLOT=@slot@ @nodns@"
