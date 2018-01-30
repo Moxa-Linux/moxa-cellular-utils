@@ -1,3 +1,11 @@
+moxa-cellular-utils (1.24.0) unstable; urgency=medium
+
+  * fix: adjust `set_profile` for Telit LE910C1.
+  * feat: support YUGA CLM920 NC5.
+  * feat: support carrier functions for Sierra MC7430.
+
+ -- Moxa <moxa@aeluin.chen-PC>  Tue, 30 Jan 2018 11:35:16 +0800
+
 moxa-cellular-utils (1.23.1) unstable; urgency=medium
 
   * Gemalto ELS61
