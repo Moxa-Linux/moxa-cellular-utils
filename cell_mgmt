@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.20.3"
+VERSION="1.24.1"
 PID=$$
 STATUS_DIR=/var/run/${PKG}
 
@@ -59,7 +59,8 @@ _func_exist() {
 	return 1
 }
 
-_get_op_func() {
+# nested is not recommended, recursive calling may occurred
+__get_op_func() {
 	local op="$1"
 
 	if _func_exist _module_${MODULE_ID}_${op}; then
@@ -73,8 +74,21 @@ _get_op_func() {
 	fi
 }
 
+_get_op_func() {
+	local op="$1"
+
+	# cell_${op} or _xxx_cell_${op}: top most functions, nested is allowed
+	if _func_exist _module_${MODULE_ID}_cell_${op}; then
+		echo _module_${MODULE_ID}_cell_${op}
+	elif _func_exist cell_${op}; then
+		echo cell_${op}
+	else
+		__get_op_func "${op}"
+	fi
+}
+
 _exec_op_rtn() {
-	local func="$(_get_op_func $1)"
+	local func="$(__get_op_func $1)"
 
 	if [ x"${func}" != x"" ]; then
 		#echo "eval ${func} ${@:2}"
@@ -86,7 +100,7 @@ _exec_op_rtn() {
 }
 
 _exec_op() {
-	local func="$(_get_op_func $1)"
+	local func="$(__get_op_func $1)"
 
 	if [ x"${func}" == x"" ]; then
 		>&2 echo "Error: Operation not support."
@@ -253,6 +267,13 @@ _set_variables() {
 	CID=""
 	PDH=""
 	_load_state
+
+	# Update WWAN interface
+	if [ -z "${QMI_NODE}" ]; then
+		local ifname="$(_exec_op status | grep "^PPPIFName: " | \
+			awk '{print $2}')"
+		QMI_NODE=${ifname}
+	fi
 }
 
 _init() {
@@ -616,7 +637,7 @@ _qmi_card_status() {
 
 #--------- qmi functions -----------
 qmi_fw_update() {
-		# arg1 is fw path. 
+		# arg1 is fw path.
 		local cmd="-w $QMI_PORT --update $1"
 		qmi-firmware-update $cmd
 }
@@ -635,10 +656,15 @@ qmi_status() {
 	local con_status=$(_qmi_packet_service_status | grep "Status")
 
 
-	echo ${con_status}
 	if [ x"$(echo ${con_status}| awk '{print $2}')" == x"connected" ]; then
+		if [ -f "${STATUS_FILE}" ]; then
+			cat "${STATUS_FILE}"
+		else
+			echo ${con_status}
+		fi
 		_exit 0
 	else
+		echo "Status: disconnected"
 		_exit 1
 	fi
 }
@@ -712,8 +738,7 @@ qmi_stop_network() {
 			cat /var/run/udhcpc-${QMI_NODE}.pid 2> /dev/null| \
 				xargs --no-run-if-empty kill
 		else
-			dhclient -r -pf /var/run/dhclient-${QMI_NODE}.pid \
-				${QMI_NODE}
+			cell_dhclient_kill "${QMI_NODE}"
 		fi
 	fi
 	# cellular stop by qmi-network
@@ -881,7 +906,7 @@ _at_cmd() {
 	local timeout=${3:-0.3}
 
 
-	ret=$(mxat -d "${at_port}" -c "${cmd}")
+	ret=$(mxat -d "${at_port}" -c "${cmd}" -t ${timeout})
 	echo "${ret}"
 	if echo "${ret}" | grep -q "OK"; then
 		return 0
@@ -901,7 +926,9 @@ cell_at_cmd() {
 		_exit 4
 	fi
 
-	if [ x"${AT_PORT}" == x"NotSupport" ]; then
+	if [ ! -z "$3" ]; then
+		at_port="$3"
+	elif [ x"${AT_PORT}" == x"NotSupport" ]; then
 		if [ x"${MODEM_PORT}" == x"NotSupport" ]; then
 			>&2 echo "Error: AT port and modem port not available."
 			return 3
@@ -1000,16 +1027,21 @@ at_pin_protection(){
 
 at_set_flight_mode() {
 	local flight=${1:-1}
-	local mode=""
+	local reset=${2}
+	local mode=
 
 	# flight mode (persistent-low-power)
 	# online mode (online)
-	if [ ${flight} -eq 1 ]; then
-		mode=4
+	if [ x"${flight}" == x"1" ]; then
+		[ x"${reset}" == x"1" ] && mode="4,1" || mode=4
 	else
-		mode=1
+		[ x"${reset}" == x"1" ] && mode="1,1" || mode=1
 	fi
-	cell_at_cmd "AT+CFUN=${mode}" 1 1>/dev/null 2>&1
+	if cell_at_cmd "AT+CFUN=${mode}" 2 | grep -q "OK"; then
+		[ "${reset}" == "1" ] && sleep 5 && _cell_wait_module_back
+		return 0
+	fi
+	return 1
 }
 
 # get profile list
@@ -1134,10 +1166,10 @@ at_ppp_template_file() {
 at_start_network() {
 	local ignore_dns_gw=0
 
-	local isp_name=wvdial-${INTERFACE}
+	local isp_name=wvdial-${SLOT}
 	local wvdial_temp=$(_exec_op_rtn wvdial_template_file)
 	local wvdial_conf=$(cat ${wvdial_temp})
-	local wvdial_path=${CONF_DIR}/wvdial/wvdial-${INTERFACE}.conf
+	local wvdial_path=${CONF_DIR}/wvdial/wvdial-${SLOT}.conf
 	local ppp_temp=$(_exec_op_rtn ppp_template_file)
 	local ppp_conf=$(cat ${ppp_temp})
 	local ppp_path=/etc/ppp/peers/${isp_name}
@@ -1164,7 +1196,7 @@ at_start_network() {
 	echo "${wvdial_conf}" > ${wvdial_path}
 
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@wvdial_conf@|${wvdial_path}|g")
-	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@name@|${SLOT}|g")
+	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@slot@|${SLOT}|g")
 
 	# ignore-dns-gw
 	local route=defaultroute
@@ -1179,7 +1211,7 @@ at_start_network() {
 	# nodns or ""
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@nodns@|${dns}|g")
 	# name
-	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@name@|${SLOT}|g")
+	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@slot@|${SLOT}|g")
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@modem_port@|${modem_port}|g")
 	echo "${ppp_conf}" > ${ppp_path}
 
@@ -1222,8 +1254,10 @@ at_attach_status() {
 at_status() {
 	if [ -f "${STATUS_FILE}" ]; then
 		cat "${STATUS_FILE}"
+		_exit 0
 	else
 		echo "Status: disconnected"
+		_exit 1
 	fi
 }
 
@@ -1405,7 +1439,7 @@ cell_set_apn() {
 	fi
 	APN=${apn}
 
-	cell_set_profile 1 "${APN}" "IPV4V6" || _exit 1
+	_exec_op_rtn set_profile 1 "${APN}" "IPV4V6" || _exit 1
 	_exit 0
 }
 
@@ -1415,23 +1449,20 @@ cell_dhclient() {
 	local ignore_dns_gw="$2"
 
 
-	if [ x"$ignore_dns_gw" == x"1" ];   then
-cat << EOF > /etc/dhcp/dhclient-enter-hooks.d/no-default-route
-case \$reason in
-    BOUND|RENEW|REBIND|REBOOT)
-        echo "IP=\$new_ip_address"
-        echo "SubnetMask=\$new_subnet_mask"
-        echo "Gateway=\$new_routers"
-        echo "DNS=\$new_domain_name_servers"
-        unset new_domain_name_servers
-        unset new_routers
-      ;;
-esac
-EOF
-	fi
+	dhclient -nw -pf /var/run/dhclient-${node}.pid \
+		-e PKG=${PKG} \
+		-e SLOT=${SLOT} \
+		-e IGNORE_DNS_GW=${ignore_dns_gw} \
+		$node
+}
 
-	dhclient -pf /var/run/dhclient-${node}.pid $node
-	rm /etc/dhcp/dhclient-enter-hooks.d/no-default-route 2>/dev/null
+cell_dhclient_kill() {
+	local node="$1"
+
+	dhclient -r -pf /var/run/dhclient-${node}.pid \
+		-e PKG=${PKG} \
+		-e SLOT=${SLOT} \
+		${node}
 }
 
 # udhcpc
@@ -1670,13 +1701,14 @@ _cell_usage_pin_protection() {
 _cell_usage_set_profile() {
 	#set_profile
 	echo -e "	set_profile <id> [APN [PDP Type]]"
-	echo -e "		Update PDP profile."
+	echo -e "		Update PDP profile. Profile will be deleted if APN and"
+	echo -e "		PDP Type doesn't given. PDP Type default to \"IPV4V6\"."
 }
 
 _cell_usage_set_apn() {
 	#set_apn
 	echo -e "	set_apn <APN>"
-	echo -e "		Set APN to configuration file."
+	echo -e "		Set APN to configuration file and PDP profile index 1."
 }
 
 _cell_usage_start() {
@@ -1783,7 +1815,7 @@ cell_usage() {
 	echo -e "	switch_carrier <$CARRIER>"
 	echo -e "		Switching between US carrier frequency bands."
 	#m_info
-	echo -e "	m_info"
+	echo -e "	m_info (deprecated)"
 	echo -e "		Module/SIM information."
 	#module_info
 	echo -e "	module_info"
@@ -1881,6 +1913,12 @@ get_op_func() {
 		stop)
 			op_func="$(_get_op_func ${arg1}_network)"
 			;;
+		ppp_start)
+			op_func="$(_get_op_func ${arg1}_network)"
+			;;
+		ppp_stop)
+			op_func="$(_get_op_func ${arg1}_network)"
+			;;
 		restart)
 			op_func=cell_restart
 			;;
@@ -1922,7 +1960,7 @@ get_op_func() {
 			op_func="$(_get_op_func $arg1)"
 			;;
 		set_profile)
-			op_func="cell_set_profile"
+			op_func="$(_get_op_func $arg1)"
 			;;
 		set_apn)
 			op_func="cell_set_apn"

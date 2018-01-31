@@ -10,7 +10,9 @@ PROJECT_STAGING_DIR = $(STAGING_DIR)/$(DISTDIR)
 
 IN_FILES= \
 	etc/ppp/ip-up.d/${PROJECT}.in \
-	etc/ppp/ip-down.d/${PROJECT}.in
+	etc/ppp/ip-down.d/${PROJECT}.in \
+	etc/dhcp/dhclient-enter-hooks.d/${PROJECT}.in \
+	etc/dhcp/dhclient-exit-hooks.d/${PROJECT}.in
 OUT_FILES=$(IN_FILES:.in=)
 DIST_FILES = \
 	$(IN_FILES) \
@@ -37,7 +39,7 @@ DIST_FILES = \
 STAGING_FILES=$(addprefix $(PROJECT_STAGING_DIR)/,$(DIST_FILES))
 BUILD_DATE:=$(shell date +%Y%m%d-%H%M%S)
 
-replace = sed -e 's|@conf_dir@|$(PROJECT_CONF_DIR)|g'
+replace = sed -e 's|@pkg@|$(PROJECT)|g;s|@conf_dir@|$(PROJECT_CONF_DIR)|g'
 
 
 all: $(OUT_FILES)
@@ -61,6 +63,7 @@ $(PROJECT_STAGING_DIR)/%: %
 
 clean:
 	rm -rf $(DISTDIR)* $(STAGING_DIR)
+	rm -rf $(IN_FILES:.in=)
 
 distclean: clean
 

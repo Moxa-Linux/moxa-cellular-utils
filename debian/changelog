@@ -1,28 +1,86 @@
+moxa-cellular-utils (1.24.1) unstable; urgency=medium
+
+  * fix: do not run hooks if not triggerred by `this`.
+  * fix: initialize the module after update fw.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Wed, 31 Jan 2018 17:44:32 +0800
+
+moxa-cellular-utils (1.24.0) unstable; urgency=medium
+
+  * fix: adjust `set_profile` for Telit LE910C1.
+  * feat: support YUGA CLM920 NC5.
+  * feat: support carrier functions for Sierra MC7430.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Tue, 30 Jan 2018 11:35:16 +0800
+
+moxa-cellular-utils (1.23.1) unstable; urgency=medium
+
+  * Gemalto ELS61
+    - fix: wrong return value.
+    - fix: reattach before connection.
+    - fix: stop while start failed.
+  * fix: 2-cut HW design changed for UC5100 series.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 25 Jan 2018 16:34:09 +0800
+
+moxa-cellular-utils (1.23.0) unstable; urgency=low
+
+  * feat: provide cell_<op> to be customized.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Tue, 23 Jan 2018 15:45:14 +0800
+
+moxa-cellular-utils (1.22.1) unstable; urgency=medium
+
+  * docs: Update usage description.
+  * fix: wrong deactive command for Gemalto ELS61.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Mon, 22 Jan 2018 15:06:17 +0800
+
+moxa-cellular-utils (1.22.0) unstable; urgency=low
+
+  * fix: update wwan node for PPP interface.
+  * feat: support Telit LE910C1.
+  * feat: support "reset" for `set_flight_mode`.
+  * fix: adjust dialing procedure for Gemalto ELS61.
+  * feat: add `ppp_start/stop` for Gemalto ELS61.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Fri, 12 Jan 2018 22:26:12 +0800
+
+moxa-cellular-utils (1.21.0) unstable; urgency=low
+
+  * fix: missing timeout option.
+  * feat: support at port option for at command.
+  * fix: add return code for `status`.
+  * fix: show network information in status for QMI module.
+  * feat: support Gemalto ELS61.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Fri, 05 Jan 2018 17:41:59 +0800
+
 moxa-cellular-utils (1.20.3) unstable; urgency=low
 
   * feat: Support UC-5100 series.
 
  -- GaryWL Hsu <garywl.hsu@moxa.com>  Thu, 16 Nov 2017 10:58:52 +0800
- 
+
 moxa-cellular-utils (1.20.2) unstable; urgency=low
 
   * feat: Support AC-4300 series platforms.
 
  -- HarryYJ Jhou <harryyj.jhou@moxa.com>  Wed, 25 Oct 2017 14:51:50 +0800
- 
+
 moxa-cellular-utils (1.20.1) unstable; urgency=low
 
   * feat: Support UC-8112-ME-T-LX1 series platforms.
 
  -- GaryWL Hsu <garywl.hsu@moxa.com>  Fri, 20 Oct 2017 15:47:56 +0800
- 
+
 moxa-cellular-utils (1.20.0) unstable; urgency=low
 
   * fix: qmicli start network parameter can not be parsed by qmicli.
   * Add authorization mechanism in qmi start network function.
 
  -- GaryWL Hsu <garywl.hsu@moxa.com>  Thu, 03 Aug 2017 16:35:37 +0800
- 
+
 moxa-cellular-utils (1.19.7) unstable; urgency=low
 
   * fix: fix signal led not turn off after module power off issue
@@ -246,7 +304,7 @@ moxa-cellular-utils (1.10.1) unstable; urgency=low
 
 moxa-cellular-utils (1.10.0) unstable; urgency=low
 
-  * Fix: Avoid AT command separated by space. 
+  * Fix: Avoid AT command separated by space.
   * Feat: support PIN retries remains.
 
  -- Aeluin Chen <aeluin.chen@moxa.com>  Wed, 11 Jan 2017 17:01:12 +0800
@@ -279,7 +337,7 @@ moxa-cellular-utils (1.9.8) unstable; urgency=low
 
 moxa-cellular-utils (1.9.7) unstable; urgency=medium
 
-  * Support MXcore01, VCG-1021-T, UC-8112-ME-T-LX C1D2 platforms. 
+  * Support MXcore01, VCG-1021-T, UC-8112-ME-T-LX C1D2 platforms.
 
  -- Wes Huang <wes.huang@moxa.com>  Fri, 04 Nov 2016 11:50:01 +0800
 

@@ -3,7 +3,7 @@
 PKG=moxa-cellular-utils
 PROG=cell_mgmt
 STATUS_DIR="/var/run/${PKG}"
-STATUS_FILE="${STATUS_DIR}/${IFNAME}.status"
+STATUS_FILE="${STATUS_DIR}/${IFIDX}.status"
 
 mkdir -p "${STATUS_DIR}"
 rm -rf "${STATUS_FILE}"
@@ -16,10 +16,12 @@ echo2status() {
 
 echo2status "Status" "connected"
 echo2status "PPPIFName" "${PPPIFNAME}"
+echo2status "IFName" "${IFNAME}"
 echo2status "IP" "${IPLOCAL}"
 echo2status "IPRemote" "${IPREMOTE}"
 echo2status "SubnetMask" "${SUBNETMASK}"
 echo2status "Gateway" "${GATEWAY}"
 echo2status "DNS" "${DNS_LIST}"
 
-${PROG} -i ${IFNAME} post_start
+${PROG} -s ${IFIDX} post_start > /dev/null 2>&1
+exit 0

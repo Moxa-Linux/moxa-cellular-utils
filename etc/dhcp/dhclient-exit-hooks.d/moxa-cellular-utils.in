@@ -1,0 +1,13 @@
+
+[ "${PKG}" != "@pkg@" ] && exit 0
+
+PKG_CONF_DIR=@conf_dir@
+HOOK_DIR=${PKG_CONF_DIR}/ip-down.d
+
+
+case $reason in
+    EXPIRE|FAIL|RELEASE|STOP|TIMEOUT|EXPIRE6|RELEASE6|STOP6)
+        export IFIDX="${SLOT}"
+        run-parts "${HOOK_DIR}"
+      ;;
+esac
