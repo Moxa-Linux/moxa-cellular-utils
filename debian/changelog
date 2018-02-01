@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.24.2) unstable; urgency=medium
+
+  * fix: wrong condition operator.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 01 Feb 2018 13:15:03 +0800
+
 moxa-cellular-utils (1.24.1) unstable; urgency=medium
 
   * fix: do not run hooks if not triggerred by `this`.
