@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.24.2"
+VERSION="1.25.0"
 PID=$$
 STATUS_DIR=/var/run/${PKG}
 
