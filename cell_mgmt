@@ -904,9 +904,11 @@ _at_cmd() {
 	local at_port=$1
 	local cmd="${2}"
 	local timeout=${3:-0.3}
+	local force_timeout=$((${timeout%.*} + 1))
 
 
-	ret=$(mxat -d "${at_port}" -c "${cmd}" -t ${timeout})
+	ret=$(timeout ${force_timeout} \
+		mxat -d "${at_port}" -c "${cmd}" -t ${timeout})
 	echo "${ret}"
 	if echo "${ret}" | grep -q "OK"; then
 		return 0
