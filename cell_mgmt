@@ -1271,8 +1271,14 @@ _cell_initialize() {
 
 	if _func_exist _module_${module_id}_initialize; then
 		_module_${module_id}_initialize || return $?
-		echo "_module_${module_id}_initialize" > ${INIT_FILE}
+	else
+	        for i in {1..10}; do
+			cell_at_cmd "ATE0" 1> /dev/null 2>&1 && break
+			[ $i -eq 10 ] && return 1 || sleep 1
+		done
+		stty -F ${AT_PORT} -echo raw || return $?
 	fi
+	echo "_module_${module_id}_initialize" > ${INIT_FILE}
 }
 
 cell_initialize() {
@@ -1314,15 +1320,7 @@ _cell_wait_module_back() {
 			[ -z "${INTERFACE}" ] && \
 				>&2 echo "Error: Module not found." && _exit 6
 			_set_variables
-
-			vendor_id=$(cat ${MODULE_PATH[$((SLOT-1))]}/idVendor \
-				2> /dev/null)
-
-			# initialize after power_on
-			module_id=${vendor_id}_${product_id}
-			if _func_exist _module_${module_id}_initialize; then
-				_module_${module_id}_initialize
-			fi
+			_cell_initialize ${INTERFACE}
 			break
 		fi
 
