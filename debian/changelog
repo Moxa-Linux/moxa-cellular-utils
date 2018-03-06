@@ -1,3 +1,12 @@
+moxa-cellular-utils (1.25.0) unstable; urgency=medium
+
+  * fix: add timeout to prevent open() blocked issue.
+  * feat: `set_apn` is able to customized.
+  * feat: support ELS31-V for Verizon.
+  * feat: add SWITCH_SIM_FUNC to uc5100.conf.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Fri, 02 Mar 2018 11:30:18 +0800
+
 moxa-cellular-utils (1.24.2) unstable; urgency=medium
 
   * fix: wrong condition operator.

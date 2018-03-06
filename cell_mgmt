@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.24.2"
+VERSION="1.25.0"
 PID=$$
 STATUS_DIR=/var/run/${PKG}
 
@@ -904,9 +904,11 @@ _at_cmd() {
 	local at_port=$1
 	local cmd="${2}"
 	local timeout=${3:-0.3}
+	local force_timeout=$((${timeout%.*} + 1))
 
 
-	ret=$(mxat -d "${at_port}" -c "${cmd}" -t ${timeout})
+	ret=$(timeout ${force_timeout} \
+		mxat -d "${at_port}" -c "${cmd}" -t ${timeout})
 	echo "${ret}"
 	if echo "${ret}" | grep -q "OK"; then
 		return 0
@@ -1067,6 +1069,10 @@ at_set_profile() {
 		data="${id},\"${type}\",\"${apn}\""
 	fi
 	cell_at_cmd 'AT+CGDCONT=${data}' 1>/dev/null
+}
+
+at_set_apn() {
+	_exec_op_rtn set_profile 1 "${APN}" "IPV4V6"
 }
 
 # +CNUM: "ABC","12345678901",129
@@ -1269,8 +1275,14 @@ _cell_initialize() {
 
 	if _func_exist _module_${module_id}_initialize; then
 		_module_${module_id}_initialize || return $?
-		echo "_module_${module_id}_initialize" > ${INIT_FILE}
+	else
+	        for i in {1..10}; do
+			cell_at_cmd "ATE0" 1> /dev/null 2>&1 && break
+			[ $i -eq 10 ] && return 1 || sleep 1
+		done
+		stty -F ${AT_PORT} -echo raw || return $?
 	fi
+	echo "_module_${module_id}_initialize" > ${INIT_FILE}
 }
 
 cell_initialize() {
@@ -1312,15 +1324,7 @@ _cell_wait_module_back() {
 			[ -z "${INTERFACE}" ] && \
 				>&2 echo "Error: Module not found." && _exit 6
 			_set_variables
-
-			vendor_id=$(cat ${MODULE_PATH[$((SLOT-1))]}/idVendor \
-				2> /dev/null)
-
-			# initialize after power_on
-			module_id=${vendor_id}_${product_id}
-			if _func_exist _module_${module_id}_initialize; then
-				_module_${module_id}_initialize
-			fi
+			_cell_initialize ${INTERFACE}
 			break
 		fi
 
@@ -1439,7 +1443,7 @@ cell_set_apn() {
 	fi
 	APN=${apn}
 
-	_exec_op_rtn set_profile 1 "${APN}" "IPV4V6" || _exit 1
+	_exec_op_rtn set_apn "${APN}" || _exit 1
 	_exit 0
 }
 
