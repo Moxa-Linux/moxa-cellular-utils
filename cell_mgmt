@@ -199,6 +199,7 @@ _search_wwan_node() {
 		ALL_AT_PORT[${id}]="NotSupport"
 		ALL_GPS_PORT[${id}]="NotSupport"
 		ALL_MODEM_PORT[${id}]="NotSupport"
+		ALL_AT_PORT_RESV[${id}]="NotSupport"
 		ALL_AT_TIMEOUT[${id}]="0.3"
 
 		eval "_module_${vendor_id}_${product_id} \
@@ -232,6 +233,12 @@ _set_variables() {
 		AT_PORT="NotSupport"
 	else
 		AT_PORT="/dev/${ALL_AT_PORT[$INTERFACE]}"
+	fi
+	if [ x"${ALL_AT_PORT_RESV[$INTERFACE]}" == x"NotSupport" ]; then
+		AT_PORT_RESV="NotSupport"
+	else
+		AT_PORT_RESV=$(echo ${ALL_AT_PORT_RESV[$INTERFACE]} | \
+			awk '{for(i=1;i<=NF;++i) {sub(/^/,"/dev/",$i)};print}')
 	fi
 	if [ x"${ALL_GPS_PORT[$INTERFACE]}" == x"NotSupport" ]; then
 		GPS_PORT="NotSupport"
@@ -1491,6 +1498,7 @@ cell_module_info() {
 	echo GPS_port: $GPS_PORT
 	echo QMI_port: $QMI_PORT
 	echo Modem_port: $MODEM_PORT
+	echo "AT_port (resvered): ${AT_PORT_RESV}"
 }
 
 # module info (fully)
