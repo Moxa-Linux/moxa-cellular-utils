@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.25.1) unstable; urgency=medium
+
+  * feat: provide reserved AT port list.
+  * fix: `dhclient` no function.
+
+ -- Moxa <moxa@aeluin.chen-PC>  Tue, 13 Mar 2018 16:26:10 +0800
+
 moxa-cellular-utils (1.25.0) unstable; urgency=medium
 
   * fix: add timeout to prevent open() blocked issue.
