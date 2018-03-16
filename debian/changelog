@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.26.0) unstable; urgency=low
+
+  * feat: support UC-8540
+
+ -- Donald Hsu <donald.hsu@moxa.com>  Tue, 13 Mar 2018 17:40:15 +0800
+
 moxa-cellular-utils (1.25.1) unstable; urgency=medium
 
   * feat: provide reserved AT port list.
