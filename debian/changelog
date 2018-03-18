@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.27.0) unstable; urgency=low
+
+  * feat: support u-blox LARA-R280 module
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Sun, 18 Mar 2018 15:02:24 +0800
+
 moxa-cellular-utils (1.26.0) unstable; urgency=low
 
   * feat: support UC-8540
