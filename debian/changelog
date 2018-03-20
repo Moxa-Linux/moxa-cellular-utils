@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.27.1) unstable; urgency=medium
+
+  * fix: driver need time to initialize.
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Mon, 19 Mar 2018 17:59:46 +0800
+
 moxa-cellular-utils (1.27.0) unstable; urgency=low
 
   * feat: support u-blox LARA-R280 module
