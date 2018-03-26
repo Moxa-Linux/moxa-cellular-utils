@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.27.2"
+VERSION="1.27.3"
 PID=$$
 STATUS_DIR=/var/run/${PKG}
 
@@ -142,6 +142,7 @@ _load_state() {
 _clear_state() {
 	echo "Clearing state..."
 	rm -f $STATE_FILE
+	rm -f $STATUS_FILE
 }
 
 

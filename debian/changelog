@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.27.3) unstable; urgency=low
+
+  * fix: also remove STATUS_FILE when clearing state
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Mon, 26 Mar 2018 16:50:29 +0800
+
 moxa-cellular-utils (1.27.2) unstable; urgency=low
 
   * fix: unlock PIN with double quote for u-blox module
