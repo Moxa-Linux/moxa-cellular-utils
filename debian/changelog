@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.27.4) unstable; urgency=low
+
+  * feat: support L3150 series
+
+ -- Taiyi Wu <TaiyiTY.Wu@moxa.com>  Mon, 26 Mar 2018 18:15:28 +0800
+
 moxa-cellular-utils (1.27.3) unstable; urgency=low
 
   * fix: also remove STATUS_FILE when clearing state
