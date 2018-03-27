@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.27.5) unstable; urgency=low
+
+  * fix: fix `status` command output message for ppp
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Tue, 27 Mar 2018 18:06:27 +0800
+
 moxa-cellular-utils (1.27.4) unstable; urgency=low
 
   * feat: support L3150 series
