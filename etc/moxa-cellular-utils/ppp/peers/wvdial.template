@@ -11,4 +11,4 @@ noipdefault
 idle 0
 logfd 6
 @defaultroute@
-ipparam "SLOT=@slot@ @nodns@"
+ipparam "SLOT=@slot@ PKG=@pkg@ @nodns@"
