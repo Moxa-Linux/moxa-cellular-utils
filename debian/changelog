@@ -1,3 +1,11 @@
+moxa-cellular-utils (1.27.6) unstable; urgency=low
+
+  * fix: wait until successfully extract GPS, AT port for ublox module
+  * fix: don't return on AT command error in `attach_status` command
+  * fix: fix error message
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Wed, 28 Mar 2018 13:52:00 +0800
+
 moxa-cellular-utils (1.27.5) unstable; urgency=low
 
   * fix: fix `status` command output message for ppp
