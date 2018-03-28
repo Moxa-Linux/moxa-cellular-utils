@@ -206,7 +206,7 @@ _search_wwan_node() {
 		eval "_module_${vendor_id}_${product_id} \
 			$i ${id} \"${module_name}\"" 2>/dev/null
 		if [ $? -ne 0 ]; then
-			>&2 echo "Error: Initialize module \"${module_name}\" failed."
+			>&2 echo "Error: Initialize module \"${ALL_MODULE_NAME[$id]}\" failed."
 			continue
 		fi
 	done
