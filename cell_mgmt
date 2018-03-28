@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.27.3"
+VERSION="1.27.5"
 PID=$$
 STATUS_DIR=/var/run/${PKG}
 
@@ -1226,6 +1226,7 @@ at_start_network() {
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@nodns@|${dns}|g")
 	# name
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@slot@|${SLOT}|g")
+	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@pkg@|${PKG}|g")
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@modem_port@|${modem_port}|g")
 	echo "${ppp_conf}" > ${ppp_path}
 
