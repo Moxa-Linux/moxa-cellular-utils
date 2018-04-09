@@ -2,7 +2,6 @@
 
 INTERVAL=10
 CELL_MGMT=cell_mgmt
-LED_CTRL=mx_led_control
 MAX_SLOT_NUM=0
 USED_SLOT_NUM=0
 SIGNAL_FROM_SLOTS=()
@@ -56,10 +55,7 @@ _calc_used_slot_num() {
 _signal_led_flush() {
 	slot=$1
 	if [ -z "$SIGNAL_LED_FLUSH" ]; then
-		# Operation not support. Use default signal led flush.
-		${LED_CTRL} signal off ${slot} 1 &> /dev/null
-		${LED_CTRL} signal off ${slot} 2 &> /dev/null
-		${LED_CTRL} signal off ${slot} 3 &> /dev/null
+		# Operation not support. Return.
 		return
 	fi
 
@@ -87,34 +83,32 @@ _signal_led() {
 	if [ $signal -ge -70 ]; then
 		#echo "Excellent"
 		if [ -n "$SIGNAL_LED_EXCELLENT" ]; then
-			# Operation not support. Use product config signal led.
+			# Use product config to signal led.
 			signal_led_funcs="$(echo "$SIGNAL_LED_EXCELLENT" | \
 					sed -e "s/\$SLOT/$slot/g")"
 		else
-			# Use default signal led
-			${LED_CTRL} signal on ${slot} 1 &> /dev/null
-			${LED_CTRL} signal on ${slot} 2 &> /dev/null
-			${LED_CTRL} signal on ${slot} 3 &> /dev/null
+			# Operation not support. Return.
+			return
 		fi
 	elif [ $signal -ge -100 ]; then
 		#echo "Fair"
 		if [ -n "$SIGNAL_LED_FAIR" ]; then
+			# Use product config to signal led.
 			signal_led_funcs="$(echo "$SIGNAL_LED_FAIR" | \
 					sed -e "s/\$SLOT/$slot/g")"
 		else
-			${LED_CTRL} signal on ${slot} 1 &> /dev/null
-			${LED_CTRL} signal on ${slot} 2 &> /dev/null
-			${LED_CTRL} signal off ${slot} 3 &> /dev/null
+			# Operation not support. Return.
+			return
 		fi
 	elif [ $signal -ge -110 ]; then
 		#echo "Poor"
 		if [ -n "$SIGNAL_LED_POOR" ]; then
+			# Use product config to signal led.
 			signal_led_funcs="$(echo "$SIGNAL_LED_POOR" | \
 					sed -e "s/\$SLOT/$slot/g")"
 		else
-			${LED_CTRL} signal on ${slot} 1 &> /dev/null
-			${LED_CTRL} signal off ${slot} 2 &> /dev/null
-			${LED_CTRL} signal off ${slot} 3 &> /dev/null
+			# Operation not support. Return.
+			return
 		fi
 	else
 		#echo "No signal"
