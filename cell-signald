@@ -2,7 +2,6 @@
 
 INTERVAL=10
 CELL_MGMT=cell_mgmt
-LED_CTRL=mx_led_control
 MAX_SLOT_NUM=0
 USED_SLOT_NUM=0
 SIGNAL_FROM_SLOTS=()
@@ -55,9 +54,18 @@ _calc_used_slot_num() {
 
 _signal_led_flush() {
 	slot=$1
-	${LED_CTRL} signal off ${slot} 1 &> /dev/null
-	${LED_CTRL} signal off ${slot} 2 &> /dev/null
-	${LED_CTRL} signal off ${slot} 3 &> /dev/null
+	if [ -z "$SIGNAL_LED_FLUSH" ]; then
+		# Operation not support. Return.
+		return
+	fi
+
+	# Use product config signal led flush
+	signal_led_flush_funcs="$(echo "$SIGNAL_LED_FLUSH" | \
+				sed -e "s/\$SLOT/$slot/g")"
+	IFS=$'\n'
+	for i in $signal_led_flush_funcs; do
+		eval "$i"
+	done
 }
 
 _signal_led() {
@@ -67,30 +75,51 @@ _signal_led() {
 	#echo slot: $slot
 	#echo signal: $signal
 	if [ "$signal" == "signal out of range" ]; then
-		_signal_led_flush
+		_signal_led_flush ${slot}
 		return
 	fi
-
 	signal=$(echo "$signal" | awk 'END {print $(NF-1)}')
+
 	if [ $signal -ge -70 ]; then
 		#echo "Excellent"
-		${LED_CTRL} signal on ${slot} 1 &> /dev/null
-		${LED_CTRL} signal on ${slot} 2 &> /dev/null
-		${LED_CTRL} signal on ${slot} 3 &> /dev/null
+		if [ -n "$SIGNAL_LED_EXCELLENT" ]; then
+			# Use product config to signal led.
+			signal_led_funcs="$(echo "$SIGNAL_LED_EXCELLENT" | \
+					sed -e "s/\$SLOT/$slot/g")"
+		else
+			# Operation not support. Return.
+			return
+		fi
 	elif [ $signal -ge -100 ]; then
 		#echo "Fair"
-		${LED_CTRL} signal on ${slot} 1 &> /dev/null
-		${LED_CTRL} signal on ${slot} 2 &> /dev/null
-		${LED_CTRL} signal off ${slot} 3 &> /dev/null
+		if [ -n "$SIGNAL_LED_FAIR" ]; then
+			# Use product config to signal led.
+			signal_led_funcs="$(echo "$SIGNAL_LED_FAIR" | \
+					sed -e "s/\$SLOT/$slot/g")"
+		else
+			# Operation not support. Return.
+			return
+		fi
 	elif [ $signal -ge -110 ]; then
 		#echo "Poor"
-		${LED_CTRL} signal on ${slot} 1 &> /dev/null
-		${LED_CTRL} signal off ${slot} 2 &> /dev/null
-		${LED_CTRL} signal off ${slot} 3 &> /dev/null
+		if [ -n "$SIGNAL_LED_POOR" ]; then
+			# Use product config to signal led.
+			signal_led_funcs="$(echo "$SIGNAL_LED_POOR" | \
+					sed -e "s/\$SLOT/$slot/g")"
+		else
+			# Operation not support. Return.
+			return
+		fi
 	else
 		#echo "No signal"
 		_signal_led_flush ${slot}
+		return
 	fi
+
+	IFS=$'\n'
+	for i in $signal_led_funcs; do
+		eval "$i"
+	done
 }
 
 _loop() {

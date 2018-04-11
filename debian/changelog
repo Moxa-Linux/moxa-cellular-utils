@@ -1,3 +1,12 @@
+moxa-cellular-utils (1.28.0) unstable; urgency=medium
+
+  * fix: cell-signald support read product config to signal led
+  * feat: update uc5100.conf for signal led functions
+  * feat: support uc3100 series signal
+  * fix: cell-signald shall return when operation is not support
+
+ -- Elvis Yao (姚家瑋) <ElvisCW.Yao@moxa.com>  Tue, 03 Apr 2018 17:36:42 +0800
+
 moxa-cellular-utils (1.27.8) unstable; urgency=medium
 
   * fix: ublox module connect to 4G signal
