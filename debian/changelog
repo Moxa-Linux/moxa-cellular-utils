@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.28.1) unstable; urgency=medium
+
+  * fix: fix if-down hook for ppp
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Wed, 11 Apr 2018 19:17:18 +0800
+
 moxa-cellular-utils (1.28.0) unstable; urgency=medium
 
   * fix: cell-signald support read product config to signal led
