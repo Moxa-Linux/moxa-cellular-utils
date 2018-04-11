@@ -1,7 +1,5 @@
 #!/bin/sh
 
-[ "${PKG}" != "@pkg@" ] && exit 0
-
 PKG_CONF_DIR=@conf_dir@
 HOOK_DIR=${PKG_CONF_DIR}/ip-down.d
 
@@ -11,6 +9,8 @@ for arg in $6; do
 	fi
 	eval "${arg}"
 done
+
+[ "${PKG}" != "@pkg@" ] && exit 0
 
 export IFIDX="${SLOT}"
 
