@@ -1350,7 +1350,7 @@ at_start_network() {
 }
 
 at_stop_network() {
-	poff ${PPP_ISP_NAME}
+	[ ! -z "${PPP_ISP_NAME}" ] && poff ${PPP_ISP_NAME}
 	_clear_state
 }
 
