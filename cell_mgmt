@@ -1344,8 +1344,8 @@ at_start_network() {
 		echo "password ${Password}" >> ${ppp_path}
         fi
 
-	pon ${isp_name}
 	echo "Status: connecting" > "${STATUS_FILE}"
+	pon ${isp_name} linkname ${SLOT}
 	_save_state "PPP_ISP_NAME" ${isp_name}
 }
 
@@ -1381,6 +1381,10 @@ at_attach_status() {
 }
 
 at_status() {
+	[ ! -z "${PPP_ISP_NAME}" ] && \
+		[ ! -f "/var/run/ppp-${SLOT}.pid" ] && \
+		_clear_state &> /dev/null
+
 	if [ -f "${STATUS_FILE}" ]; then
 		cat "${STATUS_FILE}"
 		_exit 0
