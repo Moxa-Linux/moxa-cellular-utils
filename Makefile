@@ -29,6 +29,7 @@ DIST_FILES = \
 	etc/${PROJECT}/ppp/peers/wvdial.template \
 	etc/${PROJECT}/ppp/peers/wvdial-huawei.example \
 	etc/${PROJECT}/wvdial/wvdial.conf.template \
+	etc/${PROJECT}/wvdial/ublox-toby-l2.conf.template \
 	etc/${PROJECT}/wvdial/mc73xx.conf.example \
 	etc/${PROJECT}/wvdial/huawei.conf.example \
 	cell_mgmt \
