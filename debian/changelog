@@ -1,3 +1,11 @@
+moxa-cellular-utils (1.29.0) unstable; urgency=medium
+
+  * feat: support uc8100me series signald
+  * feat: support uc8100 series signald
+  * feat: support l3150 series signald
+
+ -- Taiyi Wu <TaiyiTY.Wu@moxa.com>  Thu, 12 Apr 2018 09:42:19 +0800
+
 moxa-cellular-utils (1.28.1) unstable; urgency=medium
 
   * fix: fix if-down hook for ppp
