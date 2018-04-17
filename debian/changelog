@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.29.1) unstable; urgency=medium
+
+  * fix: `service` no response for Gemalto ELS61
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Tue, 17 Apr 2018 12:25:42 +0800
+
 moxa-cellular-utils (1.29.0) unstable; urgency=medium
 
   * feat: support uc8100me series signald
