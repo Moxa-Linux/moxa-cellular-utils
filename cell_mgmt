@@ -204,9 +204,10 @@ _search_wwan_node() {
 		ALL_AT_TIMEOUT[${id}]="0.3"
 
 		eval "_module_${vendor_id}_${product_id} \
-			$i ${id} \"${module_name}\"" 2>/dev/null
+			$i ${id} \"${module_name}\""
 		if [ $? -ne 0 ]; then
-			>&2 echo "Error: Initialize module \"${ALL_MODULE_NAME[$id]}\" failed."
+			>&2 echo "Error: Initialize module"\
+				"\"${ALL_MODULE_NAME[$id]}\" failed."
 			continue
 		fi
 	done
