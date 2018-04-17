@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.29.2) unstable; urgency=medium
+
+  * fix: IP type for Gemalto modules (ELS31/61)
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Tue, 17 Apr 2018 14:45:21 +0800
+
 moxa-cellular-utils (1.29.1) unstable; urgency=medium
 
   * fix: `service` no response for Gemalto ELS61
