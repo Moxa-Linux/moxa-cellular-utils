@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.31.0) unstable; urgency=low
+
+  * feat: Support UC-8410A-LX version 3.0
+
+ -- Harry YJ Jhou <HarryYJ.Jhou@moxa.com>  Tue, 24 Apr 2018 14:04:08 +0800
+
 moxa-cellular-utils (1.30.0) unstable; urgency=low
 
   * feat: Support ublox TOBY-L201/210
