@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.31.1) unstable; urgency=medium
+
+  * fix: adjust for ublox LARA-R2 series
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Thu, 26 Apr 2018 17:28:19 +0800
+
 moxa-cellular-utils (1.31.0) unstable; urgency=low
 
   * feat: Support UC-8410A-LX version 3.0
