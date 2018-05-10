@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.31.2) unstable; urgency=medium
+
+  * fix: disable thermal shutdown for Gemalto ELS61
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 10 May 2018 14:40:38 +0800
+
 moxa-cellular-utils (1.31.1) unstable; urgency=medium
 
   * fix: adjust for ublox LARA-R2 series
