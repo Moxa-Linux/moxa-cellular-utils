@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.31.3) stretch; urgency=medium
+
+  * feat: add uc2100 series signald configuration 
+
+ -- Wes Huang <Wes.Huang@moxa.com>  Mon, 14 May 2018 17:46:54 +0800
+
 moxa-cellular-utils (1.31.2) unstable; urgency=medium
 
   * fix: disable thermal shutdown for Gemalto ELS61
