@@ -744,8 +744,7 @@ qmi_stop_network() {
 	# release IP by dhclient -r
 	if [ x"${QMI_NODE}" != x"" ]; then
 		if [ x"${QMI_PROTOCOL}" == x"raw-ip" ]; then
-			cat /var/run/udhcpc-${QMI_NODE}.pid 2> /dev/null| \
-				xargs --no-run-if-empty kill
+			cell_udhcpc_kill "${QMI_NODE}"
 		else
 			cell_dhclient_kill "${QMI_NODE}"
 		fi
@@ -1484,12 +1483,31 @@ cell_udhcpc() {
 	local node="$1"
 	local ignore_dns_gw="$2"
 	local udhcpc_opt=""
+	local udhcpc_conf=""
+	local udhcpc_script_path="${STATUS_DIR}/${SLOT}-udhcpc.script"
 
+	# setup udhcpc script
 	if [ x"$ignore_dns_gw" == x"1" ];   then
-		udhcpc_opt="-s /etc/udhcpc/ignore-gw-dns.script"
+		udhcpc_conf="${CONF_DIR}/udhcpc/ignore-gw-dns.script.tmpl"
+	else
+		udhcpc_conf="${CONF_DIR}/udhcpc/default.script.tmpl"
 	fi
+	udhcpc_conf=$(cat "${udhcpc_conf}" | sed -e "s|@slot@|${SLOT}|g")
+	udhcpc_conf=$(echo "${udhcpc_conf}" | sed -e "s|@conf_dir@|${CONF_DIR}|g")
+	echo "${udhcpc_conf}" > ${udhcpc_script_path}
+	chmod a+x ${udhcpc_script_path}
+
+	udhcpc_opt="-s ${udhcpc_script_path}"
+
 	#udhcpc -q -f ${udhcpc_opt} -i $node
 	udhcpc -b -R ${udhcpc_opt} -i $node -p /var/run/udhcpc-${node}.pid
+}
+
+cell_udhcpc_kill() {
+	local node="$1"
+
+	cat /var/run/udhcpc-${node}.pid 2> /dev/null| \
+		xargs --no-run-if-empty kill
 }
 
 # module info

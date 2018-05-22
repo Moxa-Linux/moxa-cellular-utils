@@ -19,7 +19,6 @@ DIST_FILES = \
 	etc/ppp/ip-up.d/0000usepeerdns \
 	etc/ppp/ip-down.d/0000usepeerdns \
 	etc/udhcpc/default.script \
-	etc/udhcpc/ignore-gw-dns.script \
 	etc/${PROJECT}/${PROJECT}.conf \
 	etc/${PROJECT}/product.d \
 	etc/${PROJECT}/module.d \
@@ -32,6 +31,8 @@ DIST_FILES = \
 	etc/${PROJECT}/wvdial/ublox-toby-l2.conf.template \
 	etc/${PROJECT}/wvdial/mc73xx.conf.example \
 	etc/${PROJECT}/wvdial/huawei.conf.example \
+	etc/${PROJECT}/udhcpc/default.script.tmpl \
+	etc/${PROJECT}/udhcpc/ignore-gw-dns.script.tmpl \
 	cell_mgmt \
 	cell-signald \
 	debian \
