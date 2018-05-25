@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.31.4) unstable; urgency=medium
+
+  * fix: module cannot be power on when status is off
+  * fix: no status info. when connect with `udhcpc`
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Tue, 22 May 2018 14:20:13 +0800
+
 moxa-cellular-utils (1.31.3) stretch; urgency=medium
 
   * feat: add uc2100 series signald configuration 
