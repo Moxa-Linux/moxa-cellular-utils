@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.32.0) stretch; urgency=medium
+
+  * feat: support uc3100 series T models.
+
+ -- Wes Huang <Wes.Huang@moxa.com>  Mon, 11 Jun 2018 10:47:00 +0800
+
 moxa-cellular-utils (1.31.4) unstable; urgency=medium
 
   * fix: module cannot be power on when status is off
