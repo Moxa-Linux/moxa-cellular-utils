@@ -1,8 +1,14 @@
+moxa-cellular-utils (1.34.0) stretch; urgency=medium
+
+  * feat: support models UC2114 and UC2116
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Fri, 22 Jun 2018 20:17:14 +0800
+
 moxa-cellular-utils (1.33.0) stretch; urgency=medium
 
   * feat: support uc8100 series all models.
 
- -- Ken CJ Chou <KenCJ.Chou@moxa.com> Fri, 22 Jun 2018 17:19:29 +0800
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Fri, 22 Jun 2018 17:19:29 +0800
 
 moxa-cellular-utils (1.32.0) stretch; urgency=medium
 
