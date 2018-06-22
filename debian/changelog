@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.33.0) stretch; urgency=medium
+
+  * feat: support uc8100 series all models.
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com> Fri, 22 Jun 2018 17:19:29 +0800
+
 moxa-cellular-utils (1.32.0) stretch; urgency=medium
 
   * feat: support uc3100 series T models.
