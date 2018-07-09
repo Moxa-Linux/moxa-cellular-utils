@@ -1,3 +1,12 @@
+moxa-cellular-utils (1.36.1) unstable; urgency=medium
+
+  * fix: always show "Error: Couldn't get packet service status." when no
+    module exist
+  * fix: `power_cycle` fail when no module exist
+  * fix: block forever when power with empty slot
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Mon, 09 Jul 2018 17:15:43 +0800
+
 moxa-cellular-utils (1.36.0) unstable; urgency=low
 
   * feat: support module Sierra Wireless WP7504
