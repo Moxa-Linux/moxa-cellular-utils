@@ -1331,6 +1331,8 @@ _cell_wait_module_back() {
 	local vendor_id=""
 	local product_id=""
 	local module_id=""
+	local timeout=${1:-120}
+	local _times=0
 
 
 	while ((1))
@@ -1346,6 +1348,9 @@ _cell_wait_module_back() {
 			_cell_initialize ${INTERFACE}
 			break
 		fi
+		_times=$((_times+1))
+		[ ${_times} -ge ${timeout} ] && \
+			>&2 echo "Error: Module not found." && _exit 6
 
 		sleep 1
 	done
