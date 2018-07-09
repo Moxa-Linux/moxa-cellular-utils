@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.36.0"
+VERSION="1.36.1"
 PID=$$
 STATUS_DIR=/var/run/${PKG}
 
@@ -218,6 +218,19 @@ _search_wwan_node() {
 	fi
 }
 
+_set_state_file() {
+	local slot=$1
+	mkdir -p "${STATUS_DIR}"
+	LOCK_FD=$((slot+119))
+	LOCK_FD_GLOBAL=$((slot+129))
+	LOCK_FILE="${STATUS_DIR}/${slot}.lock"
+	LOCK_FILE_GLOBAL="${STATUS_DIR}/${slot}.global.lock"
+	INIT_FILE="${STATUS_DIR}/${slot}.init"
+	STATE_FILE="${STATUS_DIR}/${slot}.state"
+	STATUS_FILE="${STATUS_DIR}/${slot}.status"
+	AT_LOCKED_FILE="${STATUS_DIR}/${slot}.at.locked"
+}
+
 _set_variables() {
 	SLOT="${ALL_SLOT_NUM[$INTERFACE]}"
 	[ -z "${SLOT}" ] && SLOT=1
@@ -256,15 +269,7 @@ _set_variables() {
 
 	# state file for different interface
 	if [ x"$INTERFACE" != x"" ]; then
-		mkdir -p "${STATUS_DIR}"
-		LOCK_FD=$((SLOT+119))
-		LOCK_FD_GLOBAL=$((SLOT+129))
-		LOCK_FILE="${STATUS_DIR}/${SLOT}.lock"
-		LOCK_FILE_GLOBAL="${STATUS_DIR}/${SLOT}.global.lock"
-		INIT_FILE="${STATUS_DIR}/${SLOT}.init"
-		STATE_FILE="${STATUS_DIR}/${SLOT}.state"
-		STATUS_FILE="${STATUS_DIR}/${SLOT}.status"
-		AT_LOCKED_FILE="${STATUS_DIR}/${SLOT}.at.locked"
+		_set_state_file ${SLOT}
 	fi
 
 	# Initialize if never initialized before
@@ -298,6 +303,11 @@ _init() {
 	unset ALL_AT_TIMEOUT
 
 	_search_wwan_node
+	if [ ${#ALL_INTERFACE[@]} -eq 0 ]; then
+		INTERFACE=
+		return
+	fi
+
 	if [ x"${INTERFACE}" == x"" ] || \
 		[ ${INTERFACE} -ge ${#ALL_INTERFACE[@]} ]; then
 		INTERFACE=0
@@ -1321,6 +1331,8 @@ _cell_wait_module_back() {
 	local vendor_id=""
 	local product_id=""
 	local module_id=""
+	local timeout=${1:-120}
+	local _times=0
 
 
 	while ((1))
@@ -1336,6 +1348,9 @@ _cell_wait_module_back() {
 			_cell_initialize ${INTERFACE}
 			break
 		fi
+		_times=$((_times+1))
+		[ ${_times} -ge ${timeout} ] && \
+			>&2 echo "Error: Module not found." && _exit 6
 
 		sleep 1
 	done
@@ -2188,7 +2203,8 @@ while getopts  "i:s:" flag; do
 	elif [ "${flag}" == "s" ]; then
 		SLOT=$OPTARG
 		INTERFACE=$(_cell_interface_by_slot ${SLOT})
-		[ ! -z "${INTERFACE}" ] && _set_variables
+		[ ! -z "${INTERFACE}" ] && _set_variables || \
+			_set_state_file ${SLOT}
 	fi
 done
 
