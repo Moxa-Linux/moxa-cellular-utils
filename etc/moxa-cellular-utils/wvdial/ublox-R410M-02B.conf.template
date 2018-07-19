@@ -1,0 +1,14 @@
+[Dialer Defaults]
+Dial Command = ATD
+Init1 = ATZQ0 V1 E1 &S0 S0=0
+Init2 = AT+CGDCONT=1,"IP","@apn@"
+Username = ''
+Password = ''
+Baud = 460800
+ISDN = 0
+New PPPD = yes
+Modem = @modem_port@
+Modem Type = Analog Modem
+Phone = @phone@
+Stupid Mode = 1
+
