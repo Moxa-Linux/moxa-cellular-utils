@@ -94,7 +94,7 @@ _exec_op_rtn() {
 		#echo "eval ${func} ${@:2}"
 		eval ${func} ${@:2}
 	else
-		>&2 echo "Error: Operation not support."
+		>&2 echo "Error: Operation not supported."
 		return 3
 	fi
 }
@@ -103,7 +103,7 @@ _exec_op() {
 	local func="$(__get_op_func $1)"
 
 	if [ x"${func}" == x"" ]; then
-		>&2 echo "Error: Operation not support."
+		>&2 echo "Error: Operation not supported."
 		_exit 3
 	fi
 
@@ -185,7 +185,7 @@ _search_wwan_node() {
 		module_name=$(cat $i/product 2> /dev/null)
 
 		if ! _func_exist _module_${vendor_id}_${product_id}; then
-			>&2 echo "Error: Module \"${module_name}\" not support."
+			>&2 echo "Error: Module \"${module_name}\" not supported."
 			let unsupport_num++
 			continue
 		fi
@@ -1405,7 +1405,7 @@ cell_switch_sim() {
 
 
 	if [ -z "$SWITCH_SIM_FUNC" ]; then
-		>&2 echo "Error: Operation not support."
+		>&2 echo "Error: Operation not supported."
 		_exit 3
 	fi
 
@@ -2065,7 +2065,7 @@ get_op_func() {
 	esac
 
 	if [ x"${op_func}" == x"" ]; then
-		>&2 echo "Error: Operation not support."
+		>&2 echo "Error: Operation not supported."
 		exit 3
 	fi
 
