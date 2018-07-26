@@ -284,9 +284,8 @@ _set_variables() {
 
 	# Update WWAN interface
 	if [ -z "${QMI_NODE}" ]; then
-		local ifname="$(_exec_op status | grep "^PPPIFName: " | \
+		QMI_NODE="$(_exec_op status | grep "^PPPIFName: " | \
 			awk '{print $2}')"
-		QMI_NODE=${ifname}
 	fi
 }
 
@@ -522,7 +521,7 @@ _qmi_start_network() {
         CID: '80'"
 		fi
 	else
-		START_NETWORK_OUT=`$START_NETWORK_CMD`
+		START_NETWORK_OUT=$($START_NETWORK_CMD)
 	fi
 
 	# Save the new CID if we didn't use any before
@@ -537,7 +536,7 @@ _qmi_start_network() {
 		fi
 	fi
 
-	PDH=`echo "$START_NETWORK_OUT" | sed -n "s/.*handle.*'\(.*\)'.*/\1/p"`
+	PDH=$(echo "$START_NETWORK_OUT" | sed -n "s/.*handle.*'\(.*\)'.*/\1/p")
 	if [ x"$PDH" == x"" ]; then
 		>&2 echo "Error: Network start failed, no packet data handle."
 		_connect_error_note
@@ -595,7 +594,9 @@ _qmi_packet_service_status() {
 	if [ x"$QMIDEBUG" != x"" ]; then
 		CONN="disconnected"
 	else
-		CONN="$(_qmicli_value "$(${STATUS_CMD})" "Connection status")"
+		local info
+		info=$(${STATUS_CMD}) || return $?
+		CONN="$(_qmicli_value "${info}" "Connection status")"
 	fi
 
 	if [ x"$CONN" == x"" ]; then
@@ -610,7 +611,7 @@ _qmi_packet_service_status() {
 }
 
 _qmi_kill_proxy() {
-	local proxy_pid=`ps wwax | grep -v "grep" | grep "qmi-proxy" | awk '{print $1}'`
+	local proxy_pid=$(ps wwax | grep -v "grep" | grep "qmi-proxy" | awk '{print $1}')
 	if [ ! -z "${proxy_pid}" ]; then
 		kill ${proxy_pid}
 	fi
@@ -637,9 +638,12 @@ _qmi_card_app_state() {
 }
 
 _qmi_card_status() {
-	local card_info="$(_qmicli --uim-get-card-status)"
-	local card_state="$(_qmicli_value "${card_info}" "Card state")"
+	local card_info=
+	local card_state=
 
+	card_info="$(_qmicli --uim-get-card-status)" || \
+		{ >&2 echo "Error: Unknown error."; _exit 1; }
+	card_state="$(_qmicli_value "${card_info}" "Card state")"
 	case "${card_state}" in
 		"absent")
 			echo "+CME ERROR: SIM not inserted"
@@ -662,12 +666,13 @@ qmi_fw_update() {
 }
 
 qmi_attach_status() {
-	local info="$(_qmicli --nas-get-serving-system)"
-	local cs=$(_qmicli_value "${info}" "CS")
-	local ps=$(_qmicli_value "${info}" "PS")
+	local info=
 
-	echo "CS: ${cs}"
-	echo "PS: ${ps}"
+	info="$(_qmicli --nas-get-serving-system)" || \
+		{>&2 echo "Error: Unknown error.";  exit 1;}
+
+	echo "CS: $(_qmicli_value "${info}" "CS")"
+	echo "PS: $(_qmicli_value "${info}" "PS")"
 }
 
 #check cellular status
@@ -694,7 +699,9 @@ qmi_signal() {
 
 
 	#signal=`$QMICLI -d ${QMI_PORT} --nas-get-signal-strength $QMICLI_END | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
-	signal=`_qmicli --nas-get-signal-strength | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
+	signal=$(_qmicli --nas-get-signal-strength | tr "'" " " | \
+		grep "Network" | head -1 | awk '{print $2 " " $4}') || \
+		{>&2 echo "Error: Unknown error."; exit 1;}
 	signal_dbm="$(echo $signal | awk '{print $2}')"
 	if [ "$signal_dbm" -le "-1" 2>/dev/null ]; then
 		echo "${signal} dbm"
@@ -713,7 +720,8 @@ qmi_signal_adv() {
 	local signal
 
 	signal=$(_qmicli --nas-get-signal-strength | \
-		 sed "s/'\|'://g;s/^[ \t]*Network //g")
+		sed "s/'\|'://g;s/^[ \t]*Network //g") || \
+		{>&2 echo "Error: Unknown error."; exit 1;}
 	rssi=$(echo "${signal}" | awk '/Current:/{getline; print}')
 	ecio=$(echo "${signal}" | awk '/ECIO:/{getline; print}')
 
@@ -769,7 +777,10 @@ qmi_sim_status() {
 
 # unlock pin code
 qmi_unlock_pin() {
-	ret=$(_qmicli --uim-verify-pin=PIN1,$1)
+	local ret=
+
+	ret=$(_qmicli --uim-verify-pin=PIN1,$1) || \
+		{>&2 echo "Error: Unknown error."; exit 1;}
 	if ! echo "${ret}" | grep -q 'PIN verified successfully'; then
 		echo $ret
 		_exit 1
@@ -787,9 +798,14 @@ qmi_pin_retries() {
 	#	Verify: 0
 	#	Unblock: 10
 
-	local pin_info="$(_qmicli --dms-uim-get-pin-status)"
-	local pin_status="$(_qmicli_value "${pin_info}" "Status" 1)"
-	local pin_retries="$(_qmicli_value "${pin_info}" "Verify" 1)"
+	local pin_info
+	local pin_status
+	local pin_retries
+
+	pin_info="$(_qmicli --dms-uim-get-pin-status)" || \
+		{>&2 echo "Error: Unknown error."; exit 1;}
+	pin_status="$(_qmicli_value "${pin_info}" "Status" 1)"
+	pin_retries="$(_qmicli_value "${pin_info}" "Verify" 1)"
 
 	case "${pin_status}" in
 		"enabled-verified"|"enabled-not-verified")
@@ -845,22 +861,28 @@ qmi_get_profiles() {
 }
 
 qmi_module_ids() {
-	local info="$(_qmicli --dms-get-ids)"
-	local imei=$(_qmicli_value "${info}" "IMEI")
-	local esn=$(_qmicli_value "${info}" "ESN")
+	local info=
 
-	echo IMEI: $imei
-	echo ESN: $esn
+	info="$(_qmicli --dms-get-ids)" || \
+		{>&2 echo "Error: Unknown error."; exit 1;}
+	echo IMEI: $(_qmicli_value "${info}" "IMEI")
+	echo ESN: $(_qmicli_value "${info}" "ESN")
 }
 
 qmi_iccid() {
-	local iccid=$(_qmicli_value "$(_qmicli --dms-uim-get-iccid)" "ICCID")
-	echo ICC-ID: $iccid
+	local info=
+
+	info="$(_qmicli --dms-uim-get-iccid)" || \
+		{>&2 echo "Error: Unknown error."; exit 1;}
+	echo ICC-ID: $(_qmicli_value "${info}" "ICCID")
 }
 
 qmi_imsi() {
-	local imsi=$(_qmicli_value "$(_qmicli --dms-uim-get-imsi)" "IMSI")
-	echo IMSI: $imsi
+	local info=
+
+	info=$(_qmicli --dms-uim-get-imsi) || \
+		{>&2 echo "Error: Unknown error."; exit 1;}
+	echo IMSI: $(_qmicli_value "${info}" "IMSI")
 }
 
 qmi_location_info() {
@@ -874,7 +896,8 @@ qmi_location_info() {
 	local lcid=""
 
 
-	info="$(_qmicli --nas-get-cell-location-info)"
+	info="$(_qmicli --nas-get-cell-location-info)" || \
+		{>&2 echo "Error: Unknown error."; exit 1;}
 	service="$(echo "${info}" | sed -n 2p | sed 's/[\t ]Info//g')"
 	if [[ ${service} == CDMA* ]]; then
 		bid=$(_qmicli_value "${info}" "Base Station ID")
