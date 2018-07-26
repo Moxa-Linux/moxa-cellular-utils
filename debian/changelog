@@ -1,3 +1,11 @@
+moxa-cellular-utils (1.36.2) unstable; urgency=medium
+
+  * fix: fix typo, "preffered" => "preferred"
+  * feat: provide supported carriers
+  * docs: fix typo, "not support" => "not supported"
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 26 Jul 2018 18:39:16 +0800
+
 moxa-cellular-utils (1.36.1) unstable; urgency=medium
 
   * fix: always show "Error: Couldn't get packet service status." when no
