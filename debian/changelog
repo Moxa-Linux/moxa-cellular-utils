@@ -1,3 +1,15 @@
+moxa-cellular-utils (1.37.0) stretch; urgency=medium
+
+  * feat: support products UC2114 and UC2116
+  * feat: support module Ublox SARA R4 R410M 02B
+  * fix: correct the description of uc2100-lx.conf
+  * fix: remove the redundant part in uc2100-lx.conf
+  * feat: add SWITCH_SIM_FUNC in uc2100-lx.conf for model uc2114/16
+  * fix: kill the gsmmuxd before the power off for better operation of the MUX mode
+  * fix: use the symbolic node mux0 and mux1 as AT command port instead of pts/0 and pts/1 which may change due to other pts node
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Mon, 30 Jul 2018 19:15:54 +0800
+
 moxa-cellular-utils (1.36.3) unstable; urgency=medium
 
   * fix: some command return wrong status when error occurred
