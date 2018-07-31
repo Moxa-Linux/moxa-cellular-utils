@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.37.1) stretch; urgency=medium
+
+  * fix: check the existence of gsmMuxd
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Wed, 01 Aug 2018 07:54:39 +0800
+
 moxa-cellular-utils (1.37.0) stretch; urgency=medium
 
   * feat: support products UC2114 and UC2116
