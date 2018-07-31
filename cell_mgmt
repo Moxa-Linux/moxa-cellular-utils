@@ -2278,6 +2278,8 @@ done
 args="$(echo ${args} | cut -s -d' ' -f2-)"
 #echo "args: ${args}"
 
+[ -z "${SLOT}" ] && SLOT=1 && _set_state_file ${SLOT}
+
 # set timeout for specific commands
 FLOCK_TIMEOUT=$(eval echo \${${arg1}_timeout})
 FLOCK_TIMEOUT=${FLOCK_TIMEOUT:-10}
