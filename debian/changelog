@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.36.3) unstable; urgency=medium
+
+  * fix: some command return wrong status when error occurred
+  * fix: cannot `power-cycle` while no module exist
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Tue, 31 Jul 2018 16:22:38 +0800
+
 moxa-cellular-utils (1.36.2) unstable; urgency=medium
 
   * fix: fix typo, "preffered" => "preferred"
