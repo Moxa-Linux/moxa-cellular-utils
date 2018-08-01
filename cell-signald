@@ -55,7 +55,7 @@ _calc_used_slot_num() {
 _signal_led_flush() {
 	slot=$1
 	if [ -z "$SIGNAL_LED_FLUSH" ]; then
-		# Operation not support. Return.
+		# Operation not supported. Return.
 		return
 	fi
 
@@ -87,7 +87,7 @@ _signal_led() {
 			signal_led_funcs="$(echo "$SIGNAL_LED_EXCELLENT" | \
 					sed -e "s/\$SLOT/$slot/g")"
 		else
-			# Operation not support. Return.
+			# Operation not supported. Return.
 			return
 		fi
 	elif [ $signal -ge -100 ]; then
@@ -97,7 +97,7 @@ _signal_led() {
 			signal_led_funcs="$(echo "$SIGNAL_LED_FAIR" | \
 					sed -e "s/\$SLOT/$slot/g")"
 		else
-			# Operation not support. Return.
+			# Operation not supported. Return.
 			return
 		fi
 	elif [ $signal -ge -110 ]; then
@@ -107,7 +107,7 @@ _signal_led() {
 			signal_led_funcs="$(echo "$SIGNAL_LED_POOR" | \
 					sed -e "s/\$SLOT/$slot/g")"
 		else
-			# Operation not support. Return.
+			# Operation not supported. Return.
 			return
 		fi
 	else

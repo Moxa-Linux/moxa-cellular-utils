@@ -14,7 +14,9 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.36.1"
+VERSION="1.36.3"
+
+PROG=$0
 PID=$$
 STATUS_DIR=/var/run/${PKG}
 
@@ -50,6 +52,40 @@ _exit() {
 		_module_crash_exit
 	fi
 	exit $ret
+}
+
+_error() {
+	local code=${1:-0}
+	if [ ${code} -eq 0 ]; then
+		>&2 echo "$2"
+	else
+		case ${code} in
+			1)
+				>&2 echo "Error: Unknown error"
+				;;
+			2)
+				>&2 echo "Error: \"${PROFILE_FILE}\" does not exist."
+				;;
+			3)
+				>&2 echo "Error: Operation not supported."
+				;;
+			4)
+				>&2 echo "Error: Invalid input."
+				;;
+			5)
+				>&2 echo "Error: Module not supported."
+				;;
+			6)
+				>&2 echo "Error: Module not found."
+				;;
+			60)
+				>&2 echo "Error: ${PROG} is busy, please " \
+					"wait a moment and try again."
+				;;
+			*)
+				;;
+		esac
+	fi
 }
 
 _func_exist() {
@@ -94,7 +130,7 @@ _exec_op_rtn() {
 		#echo "eval ${func} ${@:2}"
 		eval ${func} ${@:2}
 	else
-		>&2 echo "Error: Operation not support."
+		_error 3
 		return 3
 	fi
 }
@@ -103,7 +139,7 @@ _exec_op() {
 	local func="$(__get_op_func $1)"
 
 	if [ x"${func}" == x"" ]; then
-		>&2 echo "Error: Operation not support."
+		_error 3
 		_exit 3
 	fi
 
@@ -161,7 +197,7 @@ _load_profile() {
 
 	eval "_product_${PRODUCT}_profile" 2>/dev/null
 	if [ x"$?" != x"0" ]; then
-		>&2 echo "Error: \`kversion\` or profile not found."
+		_error 0 "Error: \`kversion\` or profile not found."
 		_exit 1
 	fi
 }
@@ -185,7 +221,7 @@ _search_wwan_node() {
 		module_name=$(cat $i/product 2> /dev/null)
 
 		if ! _func_exist _module_${vendor_id}_${product_id}; then
-			>&2 echo "Error: Module \"${module_name}\" not support."
+			_error 0 "Error: Module \"${module_name}\" not supported."
 			let unsupport_num++
 			continue
 		fi
@@ -206,14 +242,14 @@ _search_wwan_node() {
 		eval "_module_${vendor_id}_${product_id} \
 			$i ${id} \"${module_name}\""
 		if [ $? -ne 0 ]; then
-			>&2 echo "Error: Initialize module"\
+			_error 0 "Error: Initialize module"\
 				"\"${ALL_MODULE_NAME[$id]}\" failed."
 			continue
 		fi
 	done
 
 	if [ $unsupport_num -gt 0 ] && [ $id -lt 0 ]; then
-		>&2 echo "Error: only unsupport module on slot."
+		_error 5
 		_exit 5
 	fi
 }
@@ -284,9 +320,8 @@ _set_variables() {
 
 	# Update WWAN interface
 	if [ -z "${QMI_NODE}" ]; then
-		local ifname="$(_exec_op status | grep "^PPPIFName: " | \
+		QMI_NODE="$(_exec_op status | grep "^PPPIFName: " | \
 			awk '{print $2}')"
-		QMI_NODE=${ifname}
 	fi
 }
 
@@ -320,8 +355,8 @@ init() {
 		_load_profile
 		_init
 	else
-		>&2 echo "Error: "${PROFILE_FILE}" does not exist." && \
-			_exit 2
+		_error 2
+		_exit 2
 	fi
 }
 
@@ -393,14 +428,14 @@ _start_network_init() {
 
 	# check APN
 	if [ x"$APN" == x"" ]; then
-		>&2 echo "Error: Please assign a valid APN."
+		_error 0 "Error: Please assign a valid APN."
 		_cell_usage_cmd _cell_usage_start
 		_exit 4
 	fi
 
 	card_status="$(_exec_op sim_status | grep "^+CPIN")"
 	if [ "$(echo "${card_status}" | grep "SIM PIN")" ] && [ x"$PIN" == x"" ]; then
-		>&2 echo "Error: Please assign the PIN code to unlock SIM card."
+		_error 0 "Error: Please assign the PIN code to unlock SIM card."
 		_cell_usage_cmd _cell_usage_start
 		_exit 4
 	fi
@@ -435,7 +470,7 @@ _qmicli() {
 	done
 
 	# reset qmi service
-	>&2 echo "Error: Internal error, please reset module and try again."
+	_error 0 "Error: Internal error, please reset module and try again."
 	_exit 1
 }
 
@@ -466,7 +501,7 @@ _qmi_start_network() {
 	fi
 
 	if [ x"$PDH" != x"" ]; then
-		>&2 echo "Error: Cannot re-start network, PDH already exists."
+		_error 0 "Error: Cannot re-start network, PDH already exists."
 		_exit 1
 	fi
 
@@ -494,10 +529,10 @@ _qmi_start_network() {
 	if [ -f "${raw_ip_file}" ]; then
 		echo ${is_raw_ip} > ${raw_ip_file} 2> /dev/null
 		_qmicli --set-expected-data-format=${QMI_PROTOCOL} || \
-			(>&2 echo "Error: Cannot update data format." && \
-			 _exit 1)
+			{ _error 0 "Error: Cannot update data format."; \
+			 _exit 1; }
 	elif [ x"${QMI_PROTOCOL}" == x"raw-ip" ]; then
-		>&2 echo "Error: \"raw-ip\" not supported."
+		_error 0 "Error: \"raw-ip\" not supported."
 		_exit 1
 	fi
 
@@ -522,14 +557,14 @@ _qmi_start_network() {
         CID: '80'"
 		fi
 	else
-		START_NETWORK_OUT=`$START_NETWORK_CMD`
+		START_NETWORK_OUT=$($START_NETWORK_CMD)
 	fi
 
 	# Save the new CID if we didn't use any before
 	if [ x"$CID" == x"" ]; then
 		CID=`echo "$START_NETWORK_OUT" | sed -n "s/.*CID.*'\(.*\)'.*/\1/p"`
 		if [ x"$CID" == x"" ]; then
-			>&2 echo "Error: Network start failed, client not allocated."
+			_error 0 "Error: Network start failed, client not allocated."
 			_connect_error_note
 			_exit 1
 		else
@@ -537,9 +572,9 @@ _qmi_start_network() {
 		fi
 	fi
 
-	PDH=`echo "$START_NETWORK_OUT" | sed -n "s/.*handle.*'\(.*\)'.*/\1/p"`
+	PDH=$(echo "$START_NETWORK_OUT" | sed -n "s/.*handle.*'\(.*\)'.*/\1/p")
 	if [ x"$PDH" == x"" ]; then
-		>&2 echo "Error: Network start failed, no packet data handle."
+		_error 0 "Error: Network start failed, no packet data handle."
 		_connect_error_note
 		# Cleanup the client
 		#$QMICLI -d "$QMI_PORT" --wds-noop --client-cid="$CID" $QMICLI_END
@@ -595,11 +630,13 @@ _qmi_packet_service_status() {
 	if [ x"$QMIDEBUG" != x"" ]; then
 		CONN="disconnected"
 	else
-		CONN="$(_qmicli_value "$(${STATUS_CMD})" "Connection status")"
+		local info
+		info=$(${STATUS_CMD}) || return $?
+		CONN="$(_qmicli_value "${info}" "Connection status")"
 	fi
 
 	if [ x"$CONN" == x"" ]; then
-		>&2 echo "Error: Couldn't get packet service status."
+		_error 0 "Error: Couldn't get packet service status."
 		_exit 1
 	else
 		echo "Status: $CONN"
@@ -610,7 +647,7 @@ _qmi_packet_service_status() {
 }
 
 _qmi_kill_proxy() {
-	local proxy_pid=`ps wwax | grep -v "grep" | grep "qmi-proxy" | awk '{print $1}'`
+	local proxy_pid=$(ps wwax | grep -v "grep" | grep "qmi-proxy" | awk '{print $1}')
 	if [ ! -z "${proxy_pid}" ]; then
 		kill ${proxy_pid}
 	fi
@@ -637,9 +674,12 @@ _qmi_card_app_state() {
 }
 
 _qmi_card_status() {
-	local card_info="$(_qmicli --uim-get-card-status)"
-	local card_state="$(_qmicli_value "${card_info}" "Card state")"
+	local card_info=
+	local card_state=
 
+	card_info="$(_qmicli --uim-get-card-status)" || \
+		{ _error 1; _exit 1; }
+	card_state="$(_qmicli_value "${card_info}" "Card state")"
 	case "${card_state}" in
 		"absent")
 			echo "+CME ERROR: SIM not inserted"
@@ -662,12 +702,13 @@ qmi_fw_update() {
 }
 
 qmi_attach_status() {
-	local info="$(_qmicli --nas-get-serving-system)"
-	local cs=$(_qmicli_value "${info}" "CS")
-	local ps=$(_qmicli_value "${info}" "PS")
+	local info=
 
-	echo "CS: ${cs}"
-	echo "PS: ${ps}"
+	info="$(_qmicli --nas-get-serving-system)" || \
+		{ _error 1; _exit 1; }
+
+	echo "CS: $(_qmicli_value "${info}" "CS")"
+	echo "PS: $(_qmicli_value "${info}" "PS")"
 }
 
 #check cellular status
@@ -694,7 +735,9 @@ qmi_signal() {
 
 
 	#signal=`$QMICLI -d ${QMI_PORT} --nas-get-signal-strength $QMICLI_END | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
-	signal=`_qmicli --nas-get-signal-strength | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
+	signal=$(_qmicli --nas-get-signal-strength | tr "'" " " | \
+		grep "Network" | head -1 | awk '{print $2 " " $4}') || \
+		{ _error 1;  exit 1; }
 	signal_dbm="$(echo $signal | awk '{print $2}')"
 	if [ "$signal_dbm" -le "-1" 2>/dev/null ]; then
 		echo "${signal} dbm"
@@ -713,7 +756,8 @@ qmi_signal_adv() {
 	local signal
 
 	signal=$(_qmicli --nas-get-signal-strength | \
-		 sed "s/'\|'://g;s/^[ \t]*Network //g")
+		sed "s/'\|'://g;s/^[ \t]*Network //g") || \
+		{ _error 1;  exit 1; }
 	rssi=$(echo "${signal}" | awk '/Current:/{getline; print}')
 	ecio=$(echo "${signal}" | awk '/ECIO:/{getline; print}')
 
@@ -769,7 +813,10 @@ qmi_sim_status() {
 
 # unlock pin code
 qmi_unlock_pin() {
-	ret=$(_qmicli --uim-verify-pin=PIN1,$1)
+	local ret=
+
+	ret=$(_qmicli --uim-verify-pin=PIN1,$1) || \
+		{ _error 1;  exit 1; }
 	if ! echo "${ret}" | grep -q 'PIN verified successfully'; then
 		echo $ret
 		_exit 1
@@ -787,9 +834,14 @@ qmi_pin_retries() {
 	#	Verify: 0
 	#	Unblock: 10
 
-	local pin_info="$(_qmicli --dms-uim-get-pin-status)"
-	local pin_status="$(_qmicli_value "${pin_info}" "Status" 1)"
-	local pin_retries="$(_qmicli_value "${pin_info}" "Verify" 1)"
+	local pin_info
+	local pin_status
+	local pin_retries
+
+	pin_info="$(_qmicli --dms-uim-get-pin-status)" || \
+		{ _error 1;  exit 1; }
+	pin_status="$(_qmicli_value "${pin_info}" "Status" 1)"
+	pin_retries="$(_qmicli_value "${pin_info}" "Verify" 1)"
 
 	case "${pin_status}" in
 		"enabled-verified"|"enabled-not-verified")
@@ -845,22 +897,28 @@ qmi_get_profiles() {
 }
 
 qmi_module_ids() {
-	local info="$(_qmicli --dms-get-ids)"
-	local imei=$(_qmicli_value "${info}" "IMEI")
-	local esn=$(_qmicli_value "${info}" "ESN")
+	local info=
 
-	echo IMEI: $imei
-	echo ESN: $esn
+	info="$(_qmicli --dms-get-ids)" || \
+		{ _error 1;  exit 1; }
+	echo IMEI: $(_qmicli_value "${info}" "IMEI")
+	echo ESN: $(_qmicli_value "${info}" "ESN")
 }
 
 qmi_iccid() {
-	local iccid=$(_qmicli_value "$(_qmicli --dms-uim-get-iccid)" "ICCID")
-	echo ICC-ID: $iccid
+	local info=
+
+	info="$(_qmicli --dms-uim-get-iccid)" || \
+		{ _error 1;  exit 1; }
+	echo ICC-ID: $(_qmicli_value "${info}" "ICCID")
 }
 
 qmi_imsi() {
-	local imsi=$(_qmicli_value "$(_qmicli --dms-uim-get-imsi)" "IMSI")
-	echo IMSI: $imsi
+	local info=
+
+	info=$(_qmicli --dms-uim-get-imsi) || \
+		{ _error 1;  exit 1; }
+	echo IMSI: $(_qmicli_value "${info}" "IMSI")
 }
 
 qmi_location_info() {
@@ -874,7 +932,8 @@ qmi_location_info() {
 	local lcid=""
 
 
-	info="$(_qmicli --nas-get-cell-location-info)"
+	info="$(_qmicli --nas-get-cell-location-info)" || \
+		{ _error 1;  exit 1; }
 	service="$(echo "${info}" | sed -n 2p | sed 's/[\t ]Info//g')"
 	if [[ ${service} == CDMA* ]]; then
 		bid=$(_qmicli_value "${info}" "Base Station ID")
@@ -941,7 +1000,7 @@ cell_at_cmd() {
 
 
 	if [ x"$cmd" == x"" ]; then
-		>&2 echo "Error: Please assign the AT command."
+		_error 0 "Error: Please assign the AT command."
 		_cell_usage_cmd _cell_usage_at
 		_exit 4
 	fi
@@ -950,7 +1009,7 @@ cell_at_cmd() {
 		at_port="$3"
 	elif [ x"${AT_PORT}" == x"NotSupport" ]; then
 		if [ x"${MODEM_PORT}" == x"NotSupport" ]; then
-			>&2 echo "Error: AT port and modem port not available."
+			_error 0 "Error: AT port and modem port not available."
 			return 3
 		fi
 		at_port=${MODEM_PORT}
@@ -960,8 +1019,8 @@ cell_at_cmd() {
 
 	ls -l ${at_port} &> /dev/null
 	if [ $? -ne 0 ]; then
-		>&2 echo "Error: AT/Modem port (${at_port}) not ready."
-		return 3
+		_error 0 "Error: AT/Modem port (${at_port}) not ready."
+		return 1
 	fi
 
 	# exit if module crashed
@@ -1205,7 +1264,7 @@ at_start_network() {
 	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@apn@|${APN}|g")
 	if [ x"${MODEM_PORT}" == x"NotSupport" ]; then
 		if [ x"${AT_PORT}" == x"NotSupport" ]; then
-			>&2 echo "Error: AT port and modem port not available."
+			_error 0 "Error: AT port and modem port not available."
 			return 3
 		fi
 		modem_port=${AT_PORT}
@@ -1343,14 +1402,14 @@ _cell_wait_module_back() {
 			_init
 			INTERFACE=$(_cell_interface_by_slot ${slot})
 			[ -z "${INTERFACE}" ] && \
-				>&2 echo "Error: Module not found." && _exit 6
+				_error 6 && _exit 6
 			_set_variables
 			_cell_initialize ${INTERFACE}
 			break
 		fi
 		_times=$((_times+1))
 		[ ${_times} -ge ${timeout} ] && \
-			>&2 echo "Error: Module not found." && _exit 6
+			_error 6 && _exit 6
 
 		sleep 1
 	done
@@ -1405,13 +1464,13 @@ cell_switch_sim() {
 
 
 	if [ -z "$SWITCH_SIM_FUNC" ]; then
-		>&2 echo "Error: Operation not support."
+		_error 3
 		_exit 3
 	fi
 
 	if [ -z "$sim_slot" ] || \
 			[ "$sim_slot" != "1" ] && [ "$sim_slot" != "2" ]; then
-		>&2 echo "Error: Please specify a valid SIM slot id."
+		_error 0 "Error: Please specify a valid SIM slot id."
 		_cell_usage_cmd _cell_usage_switch_sim
 		_exit 4
 	fi
@@ -1578,7 +1637,7 @@ cell_vzwauto() {
 
 
 	[ -z "${profile}" ] && \
-		>&2 echo "Error: PDP context 3 doesn't exist." && _exit 1
+		_error 0 "Error: PDP context 3 doesn't exist." && _exit 4
 	APN=$(echo "${profile}" | cut -d ',' -f 2)
 	_exec_op start_network
 	#echo -e "\n\n APN=${APN} is in used\n\n"
@@ -1597,7 +1656,7 @@ cell_pin_code_status() {
 		echo "PIN code: Blocked"
 		_exit 1
 	else
-		>&2 echo "Error: SIM card not available, please check."
+		_error 0 "Error: SIM card not available, please check."
 		_exit 1
 	fi
 }
@@ -1615,7 +1674,7 @@ _cell_unlock_pin() {
 	elif [ "$(echo "${card_status}" | grep "PIN")" ]; then
 		echo "PIN code: Not Verified"
 		if [ -z "$pin_code" ]; then
-			>&2 echo "Error: Please assign the PIN code."
+			_error 0 "Error: Please assign the PIN code."
 			if [ -z "${usage_func}" ]; then
 				_cell_usage_cmd "_cell_usage_unlock_pin"
 			else
@@ -1669,7 +1728,7 @@ cell_sim_status() {
 	if [ x"$ret" != x"" ]; then
 		echo "$ret"
 	else
-		>&2 echo "Error: Please insert the sim card and reboot."
+		_error 0 "Error: Please insert the sim card and reboot."
 		_exit 1
 	fi
 }
@@ -1679,7 +1738,7 @@ cell_interface() {
 	case $1 in
 		"0" | "1" | "2" | "3")
 			[ $1 -ge ${#ALL_INTERFACE[@]} ] && \
-				>&2 echo "Error: Interface out of range." && \
+				_error 0 "Error: Interface out of range." && \
 				_exit 4
 			sed -i "s/INTERFACE=.*/INTERFACE=$1/" $PROFILE_FILE
 			echo "set interface=$1"
@@ -1694,7 +1753,7 @@ cell_interface() {
 			done
 			;;
 		*)
-			>&2 echo "Error: Invalid interface."
+			_error 0 "Error: Invalid interface."
 			_cell_usage_cmd _cell_usage_interface
 			_exit 4
 			;;
@@ -1901,7 +1960,7 @@ get_op_func() {
 		[ "${arg1}" != "power_on" ] && \
 		[ "${arg1}" != "power_off" ] && \
 		[ "${arg1}" != "power_cycle" ] && \
-			>&2 echo "Error: Module not found." && exit 1
+			_error 6 && exit 1
 
 	case "$arg1" in
 		# private options
@@ -2065,7 +2124,7 @@ get_op_func() {
 	esac
 
 	if [ x"${op_func}" == x"" ]; then
-		>&2 echo "Error: Operation not support."
+		_error 3
 		exit 3
 	fi
 
@@ -2117,7 +2176,7 @@ _module_crash_exit() {
 	if ! _is_proc_locked "${AT_PORT}" 1>/dev/null 2>&1 || \
 		! _is_proc_locked "${PROG}" 1>/dev/null 2>&1 ; then
 		echo "1" > ${AT_LOCKED_FILE}
-		>&2 echo "Error: AT/Modem port (${AT_PORT}) crashed, " \
+		_error 0 "Error: AT/Modem port (${AT_PORT}) crashed, " \
 			"please reboot to recovery."
 		exit 99
 	fi
@@ -2148,9 +2207,7 @@ _lock() {
 		flock -w ${wait_timeout} $fd
 	fi
 	[ $? -eq 0 ] || \
-		 { >&2 echo "Error: ${PROG} is busy, please " \
-			"wait a moment and try again."; \
-			_exit 60; }
+		 { _error 60; _exit 60; }
 	return 0
 }
 
@@ -2192,8 +2249,6 @@ init
 
 #--------- Initialize Global variables end ---------
 
-PROG=$0
-
 while getopts  "i:s:" flag; do
 	if [ "${flag}" == "i" ]; then
 		if [ "${INTERFACE}" != "$OPTARG" ]; then
@@ -2222,6 +2277,8 @@ done
 
 args="$(echo ${args} | cut -s -d' ' -f2-)"
 #echo "args: ${args}"
+
+[ -z "${SLOT}" ] && SLOT=1 && _set_state_file ${SLOT}
 
 # set timeout for specific commands
 FLOCK_TIMEOUT=$(eval echo \${${arg1}_timeout})
