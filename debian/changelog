@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.37.3) unstable; urgency=medium
+
+  * fix: run for `all` should not return fail code
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Tue, 07 Aug 2018 16:57:05 +0800
+
 moxa-cellular-utils (1.37.2) stretch; urgency=medium
 
   * fix: kill the gsm tool if its pid existing
