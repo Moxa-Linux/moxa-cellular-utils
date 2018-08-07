@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.38.0) stretch; urgency=medium
+
+  * feat: support ELS31-V module to disable thermal shutdown feature 
+
+ -- Wes Huang <Wes.Huang@moxa.com>  Tue, 07 Aug 2018 18:42:50 +0800
+
 moxa-cellular-utils (1.37.3) unstable; urgency=medium
 
   * fix: run for `all` should not return fail code
