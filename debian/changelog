@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.38.1) stretch; urgency=medium
+
+  * fix: set the correct behavior of cellular LTE ON pin 
+
+ -- Wes Huang <Wes.Huang@moxa.com>  Wed, 08 Aug 2018 10:14:22 +0800
+
 moxa-cellular-utils (1.38.0) stretch; urgency=medium
 
   * feat: support ELS31-V module to disable thermal shutdown feature 
