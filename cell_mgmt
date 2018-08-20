@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.38.1"
+VERSION="1.38.2"
 
 PROG=$0
 PID=$$
@@ -1960,12 +1960,14 @@ get_op_func() {
 	if [ -z "${INTERFACE}" ]; then
 		if [ "${arg1}" != "power_on" ] && \
 			[ "${arg1}" != "power_off" ] && \
-			[ "${arg1}" != "power_cycle" ] && \
-			[ "${arg1}" == "initialize" ]; then
+			[ "${arg1}" != "power_cycle" ]; then
 			for arg in ${2}; do
 				[ "${arg}" == "'all'" ] && all=1
 			done
-			[ "${all}" != "1" ] && \
+			[ "${arg1}" != "initialize" ] && \
+				_error 6 && exit 6
+			[ "${arg1}" == "initialize" ] && \
+				[ "${all}" != "1" ] && \
 				_error 6 && exit 6
 		fi
 	fi

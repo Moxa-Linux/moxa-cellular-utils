@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.38.2) unstable; urgency=medium
+
+  * fix: return "0" when no module exist
+
+ -- Moxa <moxa@aeluin.chen-PC>  Mon, 20 Aug 2018 15:30:54 +0800
+
 moxa-cellular-utils (1.38.1) stretch; urgency=medium
 
   * fix: set the correct behavior of cellular LTE ON pin 
