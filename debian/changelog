@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.38.3) unstable; urgency=medium
+
+  * fix: update sim slot for uc8540
+
+ -- Donald Hsu <donald.hsu@moxa.com>  Fri, 31 Aug 2018 09:35:49 +0800
+
 moxa-cellular-utils (1.38.2) unstable; urgency=medium
 
   * fix: return "0" when no module exist
