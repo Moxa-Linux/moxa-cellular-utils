@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.39.0) unstable; urgency=low
+
+  * feat: add uc8540 signald configuration
+  * fix: fix variable be covered issue
+
+ -- Donald Hsu <donald.hsu@moxa.com>  Thu, 06 Sep 2018 07:55:27 +0800
+
 moxa-cellular-utils (1.38.4) unstable; urgency=medium
 
   * fix: support original carrier name
