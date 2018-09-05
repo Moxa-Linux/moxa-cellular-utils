@@ -54,6 +54,7 @@ _calc_used_slot_num() {
 
 _signal_led_flush() {
 	slot=$1
+	local i=""
 	if [ -z "$SIGNAL_LED_FLUSH" ]; then
 		# Operation not supported. Return.
 		return
