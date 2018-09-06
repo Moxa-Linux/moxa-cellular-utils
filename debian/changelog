@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.39.1) stretch; urgency=medium
+
+  * fix: adjust the wvdial setting for ublox-R410M-02B
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Thu, 06 Sep 2018 11:29:44 +0800
+
 moxa-cellular-utils (1.39.0) unstable; urgency=low
 
   * feat: add uc8540 signald configuration
