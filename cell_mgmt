@@ -1382,6 +1382,9 @@ _cell_initialize() {
 		done
 		stty -F ${AT_PORT} -echo raw || return $?
 	fi
+	if _func_exist _module_${module_id}_init_profile; then
+		_module_${module_id}_init_profile || return $?
+	fi
 	echo "_module_${module_id}_initialize" > ${INIT_FILE}
 }
 
