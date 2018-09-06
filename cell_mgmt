@@ -401,26 +401,39 @@ _connect_error_note() {
 	>&2 echo "  4. Remember to set_apn before start LTE connection"
 }
 
+_update_profile() {
+	local key="$1"
+	local value="$2"
+	local _id="$INTERFACE"
+	[ x"${_id}" == x"0" ] && _id=""
+
+	if grep -q "${key}${_id}=" ${PROFILE_FILE}; then
+		eval "sed -i s/${key}${_id}=.*/${key}${_id}=${value}/ $PROFILE_FILE"
+	else
+		echo "${key}${_id}=${value}" >> ${PROFILE_FILE}
+	fi
+}
+
 _start_network_init() {
 	ignore_dns_gw=0
 	local card_status=""
-	local interface_num="$INTERFACE"
-	[ x"$interface_num" == x"0" ] && interface_num=""
+	local _id="$INTERFACE"
+	[ x"${_id}" == x"0" ] && _id=""
 
 
-	APN="$(eval echo \$APN$interface_num)"
-	PIN="$(eval echo \$PIN$interface_num)"
-	Phone="$(eval echo \$Phone$interface_num)"
-	Username="$(eval echo \$Username$interface_num)"
-	Password="$(eval echo \$Password$interface_num)"
-	Auth="$(eval echo \$Auth$interface_num)"
+	APN="$(eval echo \$APN${_id})"
+	PIN="$(eval echo \$PIN${_id})"
+	Phone="$(eval echo \$Phone${_id})"
+	Username="$(eval echo \$Username${_id})"
+	Password="$(eval echo \$Password${_id})"
+	Auth="$(eval echo \$Auth${_id})"
 
 	# modify APN Username Password PIN
 	for args in $@; do
 		for par in "APN" "Auth" "Username" "Password" "PIN" "Phone"; do
 			if [ $(echo $args | grep "$par=") ]; then
 				eval "$par=${args##*$par=}"
-				eval "sed -i s/$par$interface_num=.*/$par$interface_num=\$$par/ $PROFILE_FILE"
+				_update_profile ${par}${_id} ${!par}
 			fi
 		done
 		[ x"$args" == x"ignore-dns-gw" ] && ignore_dns_gw=1
