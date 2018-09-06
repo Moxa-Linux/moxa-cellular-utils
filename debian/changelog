@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.39.2) unstable; urgency=medium
+
+  * fix: GPS off after `power_cycle`
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Thu, 06 Sep 2018 16:54:42 +0800
+
 moxa-cellular-utils (1.39.1) stretch; urgency=medium
 
   * fix: adjust the wvdial setting for ublox-R410M-02B
