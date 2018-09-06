@@ -401,6 +401,15 @@ _connect_error_note() {
 	>&2 echo "  4. Remember to set_apn before start LTE connection"
 }
 
+_get_profile() {
+	local key="$1"
+	local _id="$INTERFACE"
+	[ x"${_id}" == x"0" ] && _id=""
+
+	key=${key}${_id}
+	echo ${!key}
+}
+
 _update_profile() {
 	local key="$1"
 	local value="$2"
