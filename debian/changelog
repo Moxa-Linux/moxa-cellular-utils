@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.39.3) unstable; urgency=medium
+
+  * fix: adjust the hub init flow of ublox module
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Fri, 07 Sep 2018 14:12:38 +0800
+
 moxa-cellular-utils (1.39.2) unstable; urgency=medium
 
   * fix: GPS off after `power_cycle`
