@@ -371,7 +371,7 @@ _signal_csq2dbm() {
 		if [ "$signal" -le "31" 2>/dev/null ] && [ "$signal" -ge "2" 2>/dev/null ] ; then
 			let signal=signal-2
 			let signal=signal*2-109
-			echo "${service} $signal dbm"
+			echo "${service} $signal dBm"
 		else
 			echo "signal out of range"
 		fi
