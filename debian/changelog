@@ -1,3 +1,13 @@
+moxa-cellular-utils (1.40.3) unstable; urgency=medium
+
+  * Gemalto ELS61
+    * fix: connection failed
+    * feat: support `signal_adv`
+    * fix: authentication
+  * fix: typo (dbm => dBm)
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Fri, 21 Sep 2018 18:58:23 +0800
+
 moxa-cellular-utils (1.40.2) unstable; urgency=medium
 
   * fix: check the existence of the gsmMuxd before peroforming the
