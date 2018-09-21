@@ -1298,6 +1298,10 @@ at_start_network() {
 		Phone="*99#"
 	fi
 	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@phone@|${Phone}|g")
+	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@username@|${Username}|g")
+	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@password@|${Password}|g")
+	_auth_command=$(_exec_op at_auth_command 2>/dev/null)
+	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@auth_command@|${_auth_command}|g")
 	echo "${wvdial_conf}" > ${wvdial_path}
 
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@wvdial_conf@|${wvdial_path}|g")
@@ -1320,6 +1324,10 @@ at_start_network() {
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@pkg@|${PKG}|g")
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@modem_port@|${modem_port}|g")
 	echo "${ppp_conf}" > ${ppp_path}
+	if [ ! -z "${Auth}" ] && [ x"${Auth}" != x"NONE" ]; then
+		echo "user ${Username}" >> ${ppp_path}
+		echo "password ${Password}" >> ${ppp_path}
+        fi
 
 	pon ${isp_name}
 	echo "Status: connecting" > "${STATUS_FILE}"
