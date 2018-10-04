@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.40.0) unstable; urgency=medium
+
+  * feat: support module Telit LE910-V2
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Thu, 27 Sep 2018 18:32:11 +0800
+
 moxa-cellular-utils (1.39.3) unstable; urgency=medium
 
   * fix: adjust the hub init flow of ublox module
