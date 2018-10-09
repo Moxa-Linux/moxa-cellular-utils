@@ -368,7 +368,7 @@ _signal_csq2dbm() {
 	signal=${signal%%,*}
 
 	if [ x"$signal" != x"" ]; then
-		if [ "$signal" -le "30" 2>/dev/null ] && [ "$signal" -ge "2" 2>/dev/null ] ; then
+		if [ "$signal" -le "31" 2>/dev/null ] && [ "$signal" -ge "2" 2>/dev/null ] ; then
 			let signal=signal-2
 			let signal=signal*2-109
 			echo "${service} $signal dbm"
