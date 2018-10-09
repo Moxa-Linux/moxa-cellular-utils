@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.40.1) unstable; urgency=medium
+
+  * fix: change signal strength from 30 to 31
+  * fix: force to kill gsmMuxd if it is hanging
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Tue, 09 Oct 2018 16:58:23 +0800
+
 moxa-cellular-utils (1.40.0) unstable; urgency=medium
 
   * feat: support module Telit LE910-V2
