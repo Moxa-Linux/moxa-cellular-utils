@@ -1,3 +1,11 @@
+moxa-cellular-utils (1.40.2) unstable; urgency=medium
+
+  * fix: check the existence of the gsmMuxd before peroforming the
+    retry mechanism
+  * fix: reattach to the base station to make the PPP connection more stable
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Mon, 22 Oct 2018 10:31:27 +0800
+
 moxa-cellular-utils (1.40.1) unstable; urgency=medium
 
   * fix: change signal strength from 30 to 31
