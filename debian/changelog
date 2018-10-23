@@ -1,3 +1,12 @@
+moxa-cellular-utils (1.41.0) unstable; urgency=medium
+
+  * Gemalto ELS61
+    * fix: fail to set username & password
+    * feat: support `find_operators` and `set_operator`
+  * fix: parameter with space was truncated
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Tue, 23 Oct 2018 11:49:40 +0800
+
 moxa-cellular-utils (1.40.3) unstable; urgency=medium
 
   * Gemalto ELS61
