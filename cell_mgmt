@@ -423,29 +423,36 @@ _update_profile() {
 	fi
 }
 
+_contains() {
+	[[ $1 =~ (^|[[:space:]])$2($|[[:space:]]) ]] && return 0 || return 1
+}
+
 _start_network_init() {
 	ignore_dns_gw=0
 	local card_status=""
+
+	local VAL_OPTS="APN Auth Username Password PIN Phone"
+	local BOOL_OPTS="ignore-dns-gw"
 	local _id="$INTERFACE"
 	[ x"${_id}" == x"0" ] && _id=""
 
 
-	APN="$(eval echo \$APN${_id})"
-	PIN="$(eval echo \$PIN${_id})"
-	Phone="$(eval echo \$Phone${_id})"
-	Username="$(eval echo \$Username${_id})"
-	Password="$(eval echo \$Password${_id})"
-	Auth="$(eval echo \$Auth${_id})"
+	# get value from configuration
+	for opt in ${VAL_OPTS}; do
+		eval "${opt}=\$${opt}${_id}"
+	done
 
 	# modify APN Username Password PIN
-	for args in $@; do
-		for par in "APN" "Auth" "Username" "Password" "PIN" "Phone"; do
-			if [ $(echo $args | grep "$par=") ]; then
-				eval "$par=${args##*$par=}"
-				_update_profile ${par}${_id} ${!par}
-			fi
-		done
-		[ x"$args" == x"ignore-dns-gw" ] && ignore_dns_gw=1
+	for i in $(seq 1 $#); do
+		eval "arg=\$$i"
+		param=$(echo "$arg" | cut -d'=' -f1)
+		if _contains "${VAL_OPTS}" ${param}; then
+			eval "${param}=\"$(echo "$arg" | cut -d'=' -f2-)\""
+			_update_profile ${param}${_id} ${!param}
+		elif _contains "${BOOL_OPTS}" ${param}; then
+			param=$(echo "${param}" | tr "-" "_")
+			eval "${param}=1"
+		fi
 	done
 
 	# check APN
@@ -2069,9 +2076,11 @@ get_op_func() {
 		stop)
 			op_func="$(_get_op_func ${arg1}_network)"
 			;;
+		## internal use
 		ppp_start)
 			op_func="$(_get_op_func ${arg1}_network)"
 			;;
+		## internal use
 		ppp_stop)
 			op_func="$(_get_op_func ${arg1}_network)"
 			;;
