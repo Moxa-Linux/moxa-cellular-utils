@@ -431,7 +431,7 @@ _start_network_init() {
 	ignore_dns_gw=0
 	local card_status=""
 
-	local VAL_OPTS="APN Auth Username Password PIN Phone"
+	local VAL_OPTS="APN Auth Username Password PIN Phone OpCode OpRadioType"
 	local BOOL_OPTS="ignore-dns-gw"
 	local _id="$INTERFACE"
 	[ x"${_id}" == x"0" ] && _id=""
@@ -1308,7 +1308,9 @@ at_start_network() {
 	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@username@|${Username}|g")
 	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@password@|${Password}|g")
 	_auth_command=$(_exec_op at_auth_command 2>/dev/null)
+	_operator_command=$(_exec_op at_operator_command 2>/dev/null)
 	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@auth_command@|${_auth_command}|g")
+	wvdial_conf=$(echo "${wvdial_conf}" | sed -e "s|@operator_command@|${_operator_command}|g")
 	echo "${wvdial_conf}" > ${wvdial_path}
 
 	ppp_conf=$(echo "${ppp_conf}" | sed -e "s|@wvdial_conf@|${wvdial_path}|g")
@@ -2068,6 +2070,12 @@ get_op_func() {
 		switch_carrier)
 			op_func="$(_get_op_func $arg1)"
 			NEED_LOCK=1
+			;;
+		find_operators)
+			op_func="$(_get_op_func $arg1)"
+			;;
+		set_operator)
+			op_func="$(_get_op_func $arg1)"
 			;;
 		# connection
 		start)
