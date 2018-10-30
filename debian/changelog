@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.42.0) unstable; urgency=medium
+
+  * Gemalto ELS61
+    * feat: support `OpPreferredRadioType`
+
+ -- Moxa <moxa@aeluin.chen-PC>  Mon, 29 Oct 2018 17:54:38 +0800
+
 moxa-cellular-utils (1.41.0) unstable; urgency=medium
 
   * Gemalto ELS61
