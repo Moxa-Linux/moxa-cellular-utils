@@ -5,7 +5,8 @@ Init3 = AT+CFUN=4
 Init4 = AT+CGDCONT=1,"IPV4V6","@apn@"
 Init5 = @auth_command@
 Init6 = AT+CFUN=1
-Init7 = @operator_command@
+Init7 = @radio_access_command@
+Init8 = @operator_command@
 Username = @username@
 Password = @password@
 Dial Command = ATDT
