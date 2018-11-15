@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.43.0) unstable; urgency=medium
+
+  * feat: support module Telit LE910C1-NS/NF
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Thu, 15 Nov 2018 11:58:42 +0800
+
 moxa-cellular-utils (1.42.1) unstable; urgency=medium
 
   * fix: use "mx-led-ctl" instead of hardcode
