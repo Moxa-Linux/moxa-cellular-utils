@@ -1,3 +1,16 @@
+moxa-cellular-utils (1.44.0) unstable; urgency=medium
+
+  * fix: update the LED control in UC8100A-ME
+  * fix: use silent reboot for carrier switching rather than power_cycle
+  * fix: make proper initialization for the USB HUB in ublox module
+  * fix: add power_cycle after switching carrier for TOBY L2 L201
+  * feat: support check carrier for TOBY L2 L201
+  * feat: support to switch carrier for TOBY L2 L201
+  * fix: add status function for ublox hub
+  * feat: add product uc8100a-me
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Mon, 19 Nov 2018 17:49:59 +0800
+
 moxa-cellular-utils (1.43.1) unstable; urgency=medium
 
   * fix: don't use variable name starts with "Op" in set_operator function
