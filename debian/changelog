@@ -1,3 +1,11 @@
+moxa-cellular-utils (1.43.1) unstable; urgency=medium
+
+  * fix: don't use variable name starts with "Op" in set_operator function
+  * fix: modify the code to a more straight-foward style
+  * fix: fix bug when the value of variable "Auto" is empty
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Mon, 19 Nov 2018 10:18:33 +0800
+
 moxa-cellular-utils (1.43.0) unstable; urgency=medium
 
   * feat: support module Telit LE910C1-NS/NF
