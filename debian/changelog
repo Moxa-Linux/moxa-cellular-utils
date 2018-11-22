@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.44.1) unstable; urgency=medium
+
+  * fix: add usage info when carrier switch failed in ublox.conf
+  * fix: update model name in uc8100a-me config due to the SRS change
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Thu, 22 Nov 2018 17:37:35 +0800
+
 moxa-cellular-utils (1.44.0) unstable; urgency=medium
 
   * fix: update the LED control in UC8100A-ME
