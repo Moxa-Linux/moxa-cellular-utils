@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.44.2) unstable; urgency=medium
+
+  * feat: use mx-module-ctl for UC-5100 series
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Fri, 30 Nov 2018 10:50:15 +0800
+
 moxa-cellular-utils (1.44.1) unstable; urgency=medium
 
   * fix: add usage info when carrier switch failed in ublox.conf
