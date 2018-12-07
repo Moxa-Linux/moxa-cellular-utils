@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.44.3) unstable; urgency=medium
+
+  * fix: fix bug for Gemalto ELS61 wvdial template
+  * fix: use IP instead of IPV4V6 for ppp
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Fri, 7 Dec 2018 18:52:34 +0800
+
 moxa-cellular-utils (1.44.2) unstable; urgency=medium
 
   * feat: use mx-module-ctl for UC-5100 series
