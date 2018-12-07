@@ -7,8 +7,8 @@ Init5 = @auth_command@
 Init6 = AT+CFUN=1
 Init7 = @radio_access_command@
 Init8 = @operator_command@
-Username = @username@
-Password = @password@
+Username = '@username@'
+Password = '@password@'
 Dial Command = ATDT
 Baud = 460800
 ISDN = 0
