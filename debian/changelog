@@ -1,3 +1,11 @@
+moxa-cellular-utils (1.44.4) unstable; urgency=medium
+
+  * fix: ignore failure message in R410M
+  * fix: add gps port detection in module R410M
+  * fix: correct the pattern to detect the attach status for R410M
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Tue, 11 Dec 2018 18:45:22 +0800
+
 moxa-cellular-utils (1.44.3) unstable; urgency=medium
 
   * fix: fix bug for Gemalto ELS61 wvdial template
