@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.45.0) unstable; urgency=medium
+
+  * feat: add product uc8200
+
+ -- Harry YJ Jhou <HarryYJ.Jhou@moxa.com>  Thu, 13 Dec 2018 15:57:40 +0800
+
 moxa-cellular-utils (1.44.4) unstable; urgency=medium
 
   * fix: ignore failure message in R410M
