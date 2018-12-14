@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.45.1) unstable; urgency=medium
+
+  * fix: unexpected reset on Sierra Wireless MC74xx
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Fri, 14 Dec 2018 11:42:34 +0800
+
 moxa-cellular-utils (1.45.0) unstable; urgency=medium
 
   * feat: add product uc8200
