@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.46.0) unstable; urgency=medium
+
+  * feat: use mx-module-ctl instead of mx-mod-ctl on UC-3100 series
+
+ -- Wes Huang <Wes.Huang@moxa.com>  Thu, 17 Jan 2019 16:57:02 +0800
+
 moxa-cellular-utils (1.45.1) unstable; urgency=medium
 
   * fix: unexpected reset on Sierra Wireless MC74xx
