@@ -1,3 +1,14 @@
+moxa-cellular-utils (1.47.0) unstable; urgency=medium
+
+  * fix: adjsut the output of check_carrier for R410M
+  * fix: modify the APN setting flow for R410M
+  * feat: support set_profile for R410M
+  * refactor: extract gsmMuxd from initialization of R410M
+  * feat: support carrier switch for R410M 02B
+  * Merge branch 'develop' into 'develop'
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Mon, 28 Jan 2019 16:14:43 +0800
+
 moxa-cellular-utils (1.46.0) unstable; urgency=medium
 
   * feat: use mx-module-ctl instead of mx-mod-ctl on UC-3100 series
