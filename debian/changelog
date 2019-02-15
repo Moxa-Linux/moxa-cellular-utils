@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.48.0) unstable; urgency=medium
+
+  * fix: reset pin typo error
+  * feat: use mx-module-ctl instead of mx-mod-ctl on UC-8200 & UC-5100 series
+
+ -- Harry YJ Jhou <HarryYJ.Jhou@moxa.com>  Fri, 15 Feb 2019 16:28:33 +0800
+
 moxa-cellular-utils (1.47.0) unstable; urgency=medium
 
   * fix: adjsut the output of check_carrier for R410M
