@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.49.0"
+VERSION="1.50.0"
 
 PROG=$0
 PID=$$
@@ -1344,13 +1344,13 @@ at_start_network() {
 		echo "password ${Password}" >> ${ppp_path}
         fi
 
-	pon ${isp_name}
 	echo "Status: connecting" > "${STATUS_FILE}"
+	pon ${isp_name} linkname ${SLOT}
 	_save_state "PPP_ISP_NAME" ${isp_name}
 }
 
 at_stop_network() {
-	poff ${PPP_ISP_NAME}
+	[ ! -z "${PPP_ISP_NAME}" ] && poff ${PPP_ISP_NAME}
 	_clear_state
 }
 
@@ -1381,6 +1381,10 @@ at_attach_status() {
 }
 
 at_status() {
+	[ ! -z "${PPP_ISP_NAME}" ] && \
+		[ ! -f "/var/run/ppp-${SLOT}.pid" ] && \
+		_clear_state &> /dev/null
+
 	if [ -f "${STATUS_FILE}" ]; then
 		cat "${STATUS_FILE}"
 		_exit 0

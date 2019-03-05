@@ -1,3 +1,12 @@
+moxa-cellular-utils (1.50.0) unstable; urgency=medium
+
+  * fix(huawei): syntax error
+  * feat: add product mpc-2121
+  * fix: `poff` only if started by `ppp`
+  * fix: double check status by pid file
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Tue, 26 Feb 2019 12:38:00 +0800
+
 moxa-cellular-utils (1.49.0) unstable; urgency=medium
 
   * feat: add uc8200 series config
