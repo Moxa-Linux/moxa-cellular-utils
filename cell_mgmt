@@ -1610,7 +1610,7 @@ cell_udhcpc() {
 	local ignore_dns_gw="$2"
 	local udhcpc_opt=""
 	local udhcpc_conf=""
-	local udhcpc_script_path="${STATUS_DIR}/${SLOT}-udhcpc.script"
+	local udhcpc_script_path="${CONF_DIR}/udhcpc/${SLOT}-udhcpc.script"
 
 	# setup udhcpc script
 	if [ x"$ignore_dns_gw" == x"1" ];   then
