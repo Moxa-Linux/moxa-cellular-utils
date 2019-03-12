@@ -22,6 +22,8 @@ DIST_FILES = \
 	etc/${PROJECT}/${PROJECT}.conf \
 	etc/${PROJECT}/product.d \
 	etc/${PROJECT}/module.d \
+	etc/${PROJECT}/module-on.d \
+	etc/${PROJECT}/module-off.d \
 	etc/${PROJECT}/qmicli-profile-scan.awk \
 	etc/${PROJECT}/ip-up.d/connected \
 	etc/${PROJECT}/ip-down.d/disconnected \

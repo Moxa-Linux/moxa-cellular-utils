@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Following variables may useful
+# SLOT: module slot
+# WWAN_NODE: network interface such as wwan0
+# QMI_PORT
+# AT_PORT
+# AT_PORT_RESV: reserved AT port
+# GPS_PORT
+# MODEM_PORT
