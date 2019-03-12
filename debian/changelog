@@ -1,3 +1,11 @@
+moxa-cellular-utils (1.51.0) unstable; urgency=medium
+
+  * fix: at command with `$` failed
+  * fix(telit): GPS setting reset after module power-cycle
+  * feat: support module power-cycle hook
+
+ -- Aeluin Chen <aeluin.chen@aeluin.chen-PC>  Tue, 12 Mar 2019 16:46:18 +0800
+
 moxa-cellular-utils (1.50.1) unstable; urgency=medium
 
   * fix: move udhcpc script from /var/run to /etc/moxa-cellular-utils/udhcpc
