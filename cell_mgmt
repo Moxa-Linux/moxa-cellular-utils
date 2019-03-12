@@ -1056,8 +1056,7 @@ cell_at_cmd() {
 	# exit if module crashed
 	_double_check_module_crash_exit
 
-	cmd=$(echo "${cmd}" | sed 's/"/\\"/g')
-	at_cmd="_at_cmd \"${at_port}\" \"${cmd}\" ${timeout}"
+	at_cmd="_at_cmd \"${at_port}\" '"${cmd}"' ${timeout}"
 
 	_lock ${LOCK_FD} ${LOCK_FILE} ${FLOCK_TIMEOUT}
 	exec_func "${at_cmd}"
