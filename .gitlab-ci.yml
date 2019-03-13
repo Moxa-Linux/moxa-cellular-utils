@@ -1,0 +1,54 @@
+image: dockerhub.syssw.moxa.com:5000/debian-dev:amd64-jessie
+
+stages:
+- dist
+- build-deb
+- upload-deb
+
+dist:
+    stage: dist
+    artifacts:
+        name: "$CI_PROJECT_NAME"
+        paths:
+        - ./*.tar.gz
+    script:
+    - make dist
+
+build-deb:
+    stage: build-deb
+    dependencies:
+    - dist
+    artifacts:
+        name: "${CI_PROJECT_NAME}"
+        paths:
+        - ./*.deb
+        - ./*.changes
+        - ./*.dsc
+    script:
+    - git-buildpackage --git-ignore-branch -uc -us --git-export-dir=.
+
+upload-deb:
+    stage: upload-deb
+    only:
+      refs:
+        - tags
+        - master
+        - develop
+        - /^release\/.*$/
+    dependencies:
+    - build-deb
+    before_script:
+      - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+      - eval $(ssh-agent -s)
+      - echo "${DEB_REPO_SSH_PRIVATE_KEY}" | tr -d '\r' | ssh-add - > /dev/null
+      - mkdir -p ~/.ssh
+      - chmod 0700 ~/.ssh
+      - echo "${DEB_REPO_SSH_KNOWN_HOSTS}" > ~/.ssh/known_hosts
+      - chmod 0644 ~/.ssh/known_hosts
+    script:
+      - export DEB_REPO_NAMESPACE=utility
+      - ssh "${DEB_REPO_USERNAME}@${DEB_REPO_URL}" "mkdir -p ${DEB_REPO_ROOT_PATH}/data/incoming/${DEB_REPO_NAMESPACE}/${CI_COMMIT_REF_NAME}/"
+      - scp *.deb "${DEB_REPO_USERNAME}@${DEB_REPO_URL}:${DEB_REPO_ROOT_PATH}/data/incoming/${DEB_REPO_NAMESPACE}/${CI_COMMIT_REF_NAME}/"
+      - scp *.changes "${DEB_REPO_USERNAME}@${DEB_REPO_URL}:${DEB_REPO_ROOT_PATH}/data/incoming/${DEB_REPO_NAMESPACE}/${CI_COMMIT_REF_NAME}/"
+      - scp *.dsc "${DEB_REPO_USERNAME}@${DEB_REPO_URL}:${DEB_REPO_ROOT_PATH}/data/incoming/${DEB_REPO_NAMESPACE}/${CI_COMMIT_REF_NAME}/"
+      - ssh "${DEB_REPO_USERNAME}@${DEB_REPO_URL}" "docker run -i --rm --entrypoint bash -w /data -v ${DEB_REPO_ROOT_PATH}/data:/data -v ${DEB_REPO_ROOT_PATH}/apt-repo-update:/apt-repo-update sanji/apt-repo-update /bin/apt-repo-update ${DEB_REPO_NAMESPACE}/${CI_COMMIT_REF_NAME}"

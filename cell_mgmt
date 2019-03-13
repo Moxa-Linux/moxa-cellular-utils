@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.50.1"
+VERSION="1.51.0"
 
 PROG=$0
 PID=$$
@@ -26,6 +26,8 @@ CONF_DIR=/etc/${PKG}
 PROFILE_FILE=${CONF_DIR}/${PKG}.conf
 PRODUCT_DIR=${CONF_DIR}/product.d
 MODULE_DIR=${CONF_DIR}/module.d
+MODULE_ON_DIR=${CONF_DIR}/module-on.d
+MODULE_OFF_DIR=${CONF_DIR}/module-off.d
 
 KVERSION=$(which kversion)
 [ -z "${KVERSION}" ] && >&2 echo "Error: \`kversion\` not found." && exit 1
@@ -268,38 +270,39 @@ _set_state_file() {
 }
 
 _set_variables() {
-	SLOT="${ALL_SLOT_NUM[$INTERFACE]}"
+	export SLOT="${ALL_SLOT_NUM[$INTERFACE]}"
 	[ -z "${SLOT}" ] && SLOT=1
 	MODULE_ID="${ALL_MODULE_ID[$INTERFACE]}"
 	MODULE_NAME="${ALL_MODULE_NAME[$INTERFACE]}"
 	QMI_PROTOCOL=${ALL_QMI_PROTOCOL[${INTERFACE}]}
 
 	QMI_NODE="${ALL_INTERFACE[$INTERFACE]}"
+	export WWAN_NODE="${QMI_NODE}"
 	if [ x"${ALL_QMI_PORT[$INTERFACE]}" == x"NotSupport" ]; then
 		QMI_PORT="NotSupport"
 	else
-		QMI_PORT="/dev/${ALL_QMI_PORT[$INTERFACE]}"
+		export QMI_PORT="/dev/${ALL_QMI_PORT[$INTERFACE]}"
 	fi
 	if [ x"${ALL_AT_PORT[$INTERFACE]}" == x"NotSupport" ]; then
 		AT_PORT="NotSupport"
 	else
-		AT_PORT="/dev/${ALL_AT_PORT[$INTERFACE]}"
+		export AT_PORT="/dev/${ALL_AT_PORT[$INTERFACE]}"
 	fi
 	if [ x"${ALL_AT_PORT_RESV[$INTERFACE]}" == x"NotSupport" ]; then
 		AT_PORT_RESV="NotSupport"
 	else
-		AT_PORT_RESV=$(echo ${ALL_AT_PORT_RESV[$INTERFACE]} | \
+		export AT_PORT_RESV=$(echo ${ALL_AT_PORT_RESV[$INTERFACE]} | \
 			awk '{for(i=1;i<=NF;++i) {sub(/^/,"/dev/",$i)};print}')
 	fi
 	if [ x"${ALL_GPS_PORT[$INTERFACE]}" == x"NotSupport" ]; then
 		GPS_PORT="NotSupport"
 	else
-		GPS_PORT="/dev/${ALL_GPS_PORT[$INTERFACE]}"
+		export GPS_PORT="/dev/${ALL_GPS_PORT[$INTERFACE]}"
 	fi
 	if [ x"${ALL_MODEM_PORT[$INTERFACE]}" == x"NotSupport" ]; then
 		MODEM_PORT="NotSupport"
 	else
-		MODEM_PORT="/dev/${ALL_MODEM_PORT[$INTERFACE]}"
+		export MODEM_PORT="/dev/${ALL_MODEM_PORT[$INTERFACE]}"
 	fi
 	AT_TIMEOUT="${ALL_AT_TIMEOUT[$INTERFACE]}"
 
@@ -1056,8 +1059,7 @@ cell_at_cmd() {
 	# exit if module crashed
 	_double_check_module_crash_exit
 
-	cmd=$(echo "${cmd}" | sed 's/"/\\"/g')
-	at_cmd="_at_cmd \"${at_port}\" \"${cmd}\" ${timeout}"
+	at_cmd="_at_cmd \"${at_port}\" '"${cmd}"' ${timeout}"
 
 	_lock ${LOCK_FD} ${LOCK_FILE} ${FLOCK_TIMEOUT}
 	exec_func "${at_cmd}"
@@ -1146,6 +1148,7 @@ at_set_flight_mode() {
 	else
 		[ x"${reset}" == x"1" ] && mode="1,1" || mode=1
 	fi
+	[ "${reset}" == "1" ] && run-parts --new-session ${MODULE_OFF_DIR}
 	if cell_at_cmd "AT+CFUN=${mode}" 2 | grep -q "OK"; then
 		[ "${reset}" == "1" ] && sleep 5 && _cell_wait_module_back
 		return 0
@@ -1457,6 +1460,7 @@ _cell_wait_module_back() {
 				_error 6 && _exit 6
 			_set_variables
 			_cell_initialize ${INTERFACE}
+			run-parts --new-session ${MODULE_ON_DIR}
 			break
 		fi
 		_times=$((_times+1))
@@ -1482,6 +1486,7 @@ cell_power_on() {
 
 # cellular power off by GPIO
 cell_power_off() {
+	run-parts --new-session ${MODULE_OFF_DIR}
 	_exec_op_rtn stop_network 2> /dev/null
 	_qmi_kill_proxy
 
