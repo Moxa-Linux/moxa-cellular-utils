@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.51.1) unstable; urgency=medium
+
+  * fix: update uc3100-lx.conf
+  * fix: update uc5100-lx.conf
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Tue, 26 Mar 2019 18:14:16 +0800
+
 moxa-cellular-utils (1.51.0) unstable; urgency=medium
 
   * fix: at command with `$` failed
