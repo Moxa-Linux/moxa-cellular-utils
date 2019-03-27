@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.51.1"
+VERSION="1.51.2"
 
 PROG=$0
 PID=$$
@@ -480,24 +480,16 @@ _start_network_init() {
 #--------- qmi base functions -----------
 _qmicli() {
 	local i
-	local qmi_cmd=""
-	local qmi_std=""
-	local qmi_err=""
+	local qmi_out=""
 	local qmi_ret=0
-	local cmd=""
-
-	qmi_cmd="$QMICLI -d $QMI_PORT $@ $QMICLI_END"
-	#echo ${qmi_cmd}
 
 	for i in {1..5}; do
-		eval "$( (${qmi_cmd}) 2> \
-			>(qmi_err=$(cat); typeset -p qmi_err) > \
-			>(qmi_std=$(cat); typeset -p qmi_std); \
-			qmi_ret=$?; typeset -p qmi_ret )"
+		qmi_out="$(${QMICLI} -d ${QMI_PORT} $@ ${QMICLI_END} 2>&1)"
+		qmi_ret=$?
 		# error 3 (internal) and 31 (invalid service type)
-		if ! (echo ${qmi_err} | grep "QMI protocol error (3)") &&
-			! (echo ${qmi_err} | grep "QMI protocol error (31)"); then
-			echo "${qmi_std}"
+		if ! (echo ${qmi_out} | grep "QMI protocol error (3)") &&
+			! (echo ${qmi_out} | grep "QMI protocol error (31)"); then
+			echo "${qmi_out}"
 			return 0
 		fi
 	done
