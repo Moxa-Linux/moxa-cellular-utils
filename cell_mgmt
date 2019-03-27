@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.51.2"
+VERSION="1.51.3"
 
 PROG=$0
 PID=$$
@@ -1170,7 +1170,7 @@ at_set_profile() {
 	else
 		data="${id},\"${type}\",\"${apn}\""
 	fi
-	cell_at_cmd 'AT+CGDCONT=${data}' 1>/dev/null
+	cell_at_cmd "AT+CGDCONT=${data}" 1>/dev/null
 }
 
 at_set_apn() {
@@ -1541,7 +1541,7 @@ cell_set_profile() {
 	local id="$1"
 	local apn="$2"
 	local type="${3:-IPV4V6}"
-
+	local ret=0
 
 	if [ $# -lt 1 ]; then
 		_cell_usage_cmd _cell_usage_set_profile
@@ -1549,10 +1549,14 @@ cell_set_profile() {
 	fi
 
 	[ -z "${apn}" ] && apn="\"\""
-	_exec_op_rtn set_flight_mode 1 && \
-		_exec_op_rtn set_profile "${id}" "${apn}" "${type}" && \
-		_exec_op_rtn set_flight_mode 0 &&
-		_exit 0
+	_exec_op_rtn set_flight_mode 1
+	ret=$?
+	if [ ${ret} -eq 0 ]; then
+		_exec_op_rtn set_profile "${id}" "${apn}" "${type}"
+		ret=$?
+	fi
+	_exec_op_rtn set_flight_mode 0
+	[ $? -eq 0 ] && _exit ${ret}
 	_exit 1
 }
 
