@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.51.3) unstable; urgency=medium
+
+  * fix: error of variable expansion in single quote
+  * fix: don't immediately return after set profile fail
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Wed, 27 Mar 2019 19:14:58 +0800
+
 moxa-cellular-utils (1.51.2) unstable; urgency=medium
 
   * fix: qmi transaction timeout under some circumstances
