@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.52.1) unstable; urgency=medium
+
+  * fix: update v2406c.conf
+
+ -- Elvis Yao <ElvisCW.Yao@moxa.com>  Tue, 02 Apr 2019 18:32:07 +0800
+
 moxa-cellular-utils (1.52.0) unstable; urgency=medium
 
   * feat: add v2406c series config
