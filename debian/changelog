@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.52.3) unstable; urgency=medium
+
+  * fix: cell_mgmt version not showed
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Thu, 02 May 2019 14:00:54 +0800
+
 moxa-cellular-utils (1.52.2) unstable; urgency=medium
 
   * fix: update uc8580.conf of signal led control function
