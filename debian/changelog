@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.52.2) unstable; urgency=medium
+
+  * fix: update uc8580.conf of signal led control function
+
+ -- Alif Chen <alif.chen@moxa.com>  Thu, 02 May 2019 14:25:55 +0800
+
 moxa-cellular-utils (1.52.1) unstable; urgency=medium
 
   * fix: update v2406c.conf
