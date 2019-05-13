@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.52.4) unstable; urgency=medium
+
+  * fix: set interface down after qmi stop network
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Mon, 13 May 2019 13:36:51 +0800
+
 moxa-cellular-utils (1.52.3) unstable; urgency=medium
 
   * fix: cell_mgmt version not showed
