@@ -830,6 +830,9 @@ qmi_stop_network() {
 	fi
 	# cellular stop by qmi-network
 	_qmi_stop_network
+	if [ x"${QMI_NODE}" != x"" ]; then
+		ip link set ${QMI_NODE} down
+	fi
 }
 
 qmi_sim_status() {
