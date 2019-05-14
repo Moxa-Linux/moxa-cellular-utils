@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.52.5) unstable; urgency=medium
+
+  * fix: cell_modules returns error if no module exists in signald, fix it to zero
+
+ -- Alif Chen <alif.chen@moxa.com>  Tue, 14 May 2019 18:31:40 +0800
+
 moxa-cellular-utils (1.52.4) unstable; urgency=medium
 
   * fix: set interface down after qmi stop network
