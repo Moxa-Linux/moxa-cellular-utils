@@ -125,7 +125,7 @@ _signal_led() {
 
 _loop() {
 	while [ 1 ]; do
-		modules=$(${CELL_MGMT} modules)
+		modules=$(${CELL_MGMT} modules) || modules=0
 
 		# when module uninstall from slot, turn off all leds,
 		# then turn on still installed modules' leds
