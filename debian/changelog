@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.52.6) unstable; urgency=medium
+
+  * fix: update UC8200 product configuration
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Tue, 28 May 2019 20:34:41 +0800
+
 moxa-cellular-utils (1.52.5) unstable; urgency=medium
 
   * fix: cell_modules returns error if no module exists in signald, fix it to zero
