@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.52.7) unstable; urgency=medium
+
+  * fix: don't immediately return after set flight mode fail
+
+ -- Donald Hsu <donald.hsu@moxa.com>  Wed, 29 May 2019 16:41:28 +0800
+
 moxa-cellular-utils (1.52.6) unstable; urgency=medium
 
   * fix: update UC8200 product configuration
