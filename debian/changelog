@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.52.8) unstable; urgency=medium
+
+  * fix: use qmi to get signal for Telit LE910C1
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Thu, 30 May 2019 15:51:36 +0800
+
 moxa-cellular-utils (1.52.7) unstable; urgency=medium
 
   * fix: don't immediately return after set flight mode fail
