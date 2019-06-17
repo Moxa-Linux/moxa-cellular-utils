@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.52.9) unstable; urgency=medium
+
+  * fix: send AT command too early will failed
+  * fix: fix error in signald when no signal detected
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Mon, 17 Jun 2019 10:55:51 +0800
+
 moxa-cellular-utils (1.52.8) unstable; urgency=medium
 
   * fix: use qmi to get signal for Telit LE910C1
