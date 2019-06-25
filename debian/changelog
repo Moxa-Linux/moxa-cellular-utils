@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.52.10) unstable; urgency=medium
+
+  * fix: accessing ICCID by qmi is not supported in YUGA CLM920 NC5
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Tue, 25 Jun 2019 16:10:01 +0800
+
 moxa-cellular-utils (1.52.9) unstable; urgency=medium
 
   * fix: send AT command too early will failed
