@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.52.10"
+VERSION="1.52.11"
 
 PROG=$0
 PID=$$
@@ -1880,7 +1880,6 @@ _cell_usage_start() {
 	echo -e ""
 	echo -e "		OPTIONS:"
 	echo -e "		APN - Access point name"
-	echo -e "		PIN - PIN code"
 	echo -e "		Phone - Phone number (especially for AT based modules)"
 	echo -e "		Auth - Authentication type(CHAP|PAP|BOTH), default=NONE."
 	echo -e "		Username"
@@ -1889,8 +1888,7 @@ _cell_usage_start() {
 	echo -e "		example:"
 	echo -e "			cell_mgmt start"
 	echo -e "			cell_mgmt start APN=internet"
-	echo -e "			cell_mgmt start APN=internet PIN=0000"
-	echo -e "			cell_mgmt start APN=internet PIN=0000 Phone=*99#"
+	echo -e "			cell_mgmt start APN=internet Phone=*99#"
 }
 
 cell_usage() {

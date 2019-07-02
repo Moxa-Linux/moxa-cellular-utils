@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.52.11) unstable; urgency=medium
+
+  * fix: modify the usage information
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Tue, 02 Jul 2019 13:24:37 +0800
+
 moxa-cellular-utils (1.52.10) unstable; urgency=medium
 
   * fix: accessing ICCID by qmi is not supported in YUGA CLM920 NC5
