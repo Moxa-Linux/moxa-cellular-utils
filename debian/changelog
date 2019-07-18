@@ -1,3 +1,13 @@
+moxa-cellular-utils (1.53.0) unstable; urgency=medium
+
+  * fix: force gsmMuxd to terminate when power_off module R410M
+  * fix: replace the starting white spaces with tab in ublox.conf
+  * fix: adjust the flow of switching carrier for R410M
+  * feat: Support more carrier profiles for R410M
+  * fix: CATM1 is change to be indicated by 7
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Thu, 18 Jul 2019 18:56:41 +0800
+
 moxa-cellular-utils (1.52.11) unstable; urgency=medium
 
   * fix: modify the usage information
