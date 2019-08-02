@@ -1,3 +1,11 @@
+moxa-cellular-utils (1.53.2) unstable; urgency=medium
+
+  * Ublox toby-l2
+    * fix: use bridge mode by default with ublox toby-l2
+    * fix: initialize fail but shows success
+
+ -- Aeluin Chen <aeluin.chen@moxa.com>  Fri, 02 Aug 2019 18:06:03 +0800
+
 moxa-cellular-utils (1.53.1) unstable; urgency=medium
 
   * fix: correct the u-blox R410M service representation
