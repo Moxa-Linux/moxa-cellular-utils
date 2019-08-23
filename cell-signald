@@ -57,6 +57,7 @@ _calc_used_slot_num() {
 _signal_led_flush() {
 	slot=$1
 	local i=""
+	local o_ifs=""
 	if [ -z "$SIGNAL_LED_FLUSH" ]; then
 		# Operation not supported. Return.
 		return
@@ -65,16 +66,19 @@ _signal_led_flush() {
 	# Use product config signal led flush
 	signal_led_flush_funcs="$(echo "$SIGNAL_LED_FLUSH" | \
 				sed -e "s/\$SLOT/$slot/g")"
+	o_ifs="${IFS}"
 	IFS=$'\n'
 	for i in $signal_led_flush_funcs; do
 		eval "$i"
 	done
+	IFS="${o_ifs}"
 }
 
 _signal_led() {
 	slot=$1
 	signal=$2
 	service=""
+	local o_ifs=""
 	level_threshold=()
 
 	#echo slot: $slot
@@ -84,7 +88,6 @@ _signal_led() {
 		return
 	fi
 
-	IFS=" "
 	service=$(echo "${signal}" | cut -d ' ' -f 1)
 	if [ "${service}" = "lte" ]; then
 		level_threshold=(${LEVEL_THRESHOLD_LTE_RSRP})
@@ -129,10 +132,12 @@ _signal_led() {
 		return
 	fi
 
+	o_ifs="${IFS}"
 	IFS=$'\n'
 	for i in $signal_led_funcs; do
 		eval "$i"
 	done
+	IFS="${o_ifs}"
 }
 
 _loop() {
