@@ -5,6 +5,8 @@ CELL_MGMT=cell_mgmt
 MAX_SLOT_NUM=0
 USED_SLOT_NUM=0
 SIGNAL_FROM_SLOTS=()
+LEVEL_THRESHOLD_LTE_RSRP="-85 -105 -115"
+LEVEL_THRESHOLD_UMTS_RSSI="-70 -100 -110"
 
 # profile
 CONF_DIR=/etc/moxa-cellular-utils
@@ -72,6 +74,8 @@ _signal_led_flush() {
 _signal_led() {
 	slot=$1
 	signal=$2
+	service=""
+	level_threshold=()
 
 	#echo slot: $slot
 	#echo signal: $signal
@@ -79,9 +83,17 @@ _signal_led() {
 		_signal_led_flush ${slot}
 		return
 	fi
-	signal=$(echo "$signal" | awk 'END {print $(NF-1)}')
 
-	if [ $signal -ge -70 ]; then
+	IFS=" "
+	service=$(echo "${signal}" | cut -d ' ' -f 1)
+	if [ "${service}" = "lte" ]; then
+		level_threshold=(${LEVEL_THRESHOLD_LTE_RSRP})
+	else
+		level_threshold=(${LEVEL_THRESHOLD_UMTS_RSSI})
+	fi
+
+	signal=$(echo "$signal" | awk 'END {print $(NF-1)}')
+	if [ $signal -ge ${level_threshold[0]} ]; then
 		#echo "Excellent"
 		if [ -n "$SIGNAL_LED_EXCELLENT" ]; then
 			# Use product config to signal led.
@@ -91,7 +103,7 @@ _signal_led() {
 			# Operation not supported. Return.
 			return
 		fi
-	elif [ $signal -ge -100 ]; then
+	elif [ $signal -ge ${level_threshold[1]} ]; then
 		#echo "Fair"
 		if [ -n "$SIGNAL_LED_FAIR" ]; then
 			# Use product config to signal led.
@@ -101,7 +113,7 @@ _signal_led() {
 			# Operation not supported. Return.
 			return
 		fi
-	elif [ $signal -ge -110 ]; then
+	elif [ $signal -ge ${level_threshold[2]} ]; then
 		#echo "Poor"
 		if [ -n "$SIGNAL_LED_POOR" ]; then
 			# Use product config to signal led.
