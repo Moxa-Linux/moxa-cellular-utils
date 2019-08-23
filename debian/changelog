@@ -1,3 +1,11 @@
+moxa-cellular-utils (1.53.1) unstable; urgency=medium
+
+  * fix: correct the u-blox R410M service representation
+  * fix: initial the ALL_INTERFACE for R410M
+  * fix: disable PSM in SARA-R410M
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Thu, 22 Aug 2019 14:34:44 +0800
+
 moxa-cellular-utils (1.53.0) unstable; urgency=medium
 
   * fix: force gsmMuxd to terminate when power_off module R410M
