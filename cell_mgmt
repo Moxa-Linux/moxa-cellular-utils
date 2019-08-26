@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.53.1"
+VERSION="1.54.0"
 
 PROG=$0
 PID=$$
@@ -756,13 +756,23 @@ qmi_status() {
 
 #cellular signal strength in dbm
 qmi_signal() {
+	local all_signal
 	local signal
 
-
 	#signal=`$QMICLI -d ${QMI_PORT} --nas-get-signal-strength $QMICLI_END | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
-	signal=$(_qmicli --nas-get-signal-strength | tr "'" " " | \
-		grep "Network" | head -1 | awk '{print $2 " " $4}') || \
+	all_signal=$(_qmicli --nas-get-signal-strength | tr "'" " ") || \
 		{ _error 1;  exit 1; }
+
+	signal=$(echo "${all_signal}" | grep -A 1 "^RSRP" | tail -1 | \
+		awk '{print $2 " " $4}') || { _error 1;  exit 1; }
+
+	# If the RSRP is empty, fall back do use the 'Current'.
+	if [ -z "${signal}" ]; then
+		signal=$(echo "${all_signal}" | grep -A 1 "^Current" | \
+			tail -1 | awk '{print $2 " " $4}') || \
+			{ _error 1;  exit 1; }
+	fi
+
 	signal_dbm="$(echo $signal | awk '{print $2}')"
 	if [ "$signal_dbm" -le "-1" 2>/dev/null ]; then
 		echo "${signal} dbm"

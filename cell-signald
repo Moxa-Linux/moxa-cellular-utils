@@ -5,6 +5,8 @@ CELL_MGMT=cell_mgmt
 MAX_SLOT_NUM=0
 USED_SLOT_NUM=0
 SIGNAL_FROM_SLOTS=()
+LEVEL_THRESHOLD_LTE_RSRP="-85 -105 -115"
+LEVEL_THRESHOLD_UMTS_RSSI="-70 -100 -110"
 
 # profile
 CONF_DIR=/etc/moxa-cellular-utils
@@ -17,8 +19,8 @@ PRODUCT="$(${KVERSION} 2> /dev/null | awk '{print $1}')"
 
 _calc_max_slot_num() {
 	for conf in $(ls ${PRODUCT_DIR}); do
-		if [ "${conf: -5}" == ".conf" ]; then
-			. ${PRODUCT_DIR}/$conf
+		if [ "${conf: -5}" = ".conf" ]; then
+			. "${PRODUCT_DIR}/$conf"
 		fi
 	done
 
@@ -37,15 +39,16 @@ _init_signal_from_slots() {
 		SIGNAL_FROM_SLOTS[i]=999
 
 		# turn off all slots leds
-		_signal_led_flush $((i+1))
+		_signal_led_flush "$((i+1))"
 	done
 	USED_SLOT_NUM=0
 }
 
 _calc_used_slot_num() {
-	count=0
+	local count=0
+
 	for (( i=0; i<${MAX_SLOT_NUM}; i++ )); do
-		if [ "${SIGNAL_FROM_SLOTS[i]}" != "signal out of range" ] && [ ${SIGNAL_FROM_SLOTS[i]} -ne 999 ]; then
+		if [ "${SIGNAL_FROM_SLOTS[i]}" != "signal out of range" ] && [ "${SIGNAL_FROM_SLOTS[i]}" != "999" ]; then
 			count=$((count+1))
 		fi
 	done
@@ -53,8 +56,10 @@ _calc_used_slot_num() {
 }
 
 _signal_led_flush() {
-	slot=$1
+	local slot=$1
+	local o_ifs=""
 	local i=""
+
 	if [ -z "$SIGNAL_LED_FLUSH" ]; then
 		# Operation not supported. Return.
 		return
@@ -63,64 +68,71 @@ _signal_led_flush() {
 	# Use product config signal led flush
 	signal_led_flush_funcs="$(echo "$SIGNAL_LED_FLUSH" | \
 				sed -e "s/\$SLOT/$slot/g")"
+	o_ifs="${IFS}"
 	IFS=$'\n'
 	for i in $signal_led_flush_funcs; do
 		eval "$i"
 	done
+	IFS="${o_ifs}"
 }
 
 _signal_led() {
-	slot=$1
-	signal=$2
+	local slot=$1
+	local signal=$2
+	local service=""
+	local o_ifs=""
+	local level_threshold=()
 
 	#echo slot: $slot
 	#echo signal: $signal
-	if [ "$signal" == "signal out of range" ]; then
+	if [ "$signal" = "signal out of range" ]; then
 		_signal_led_flush ${slot}
 		return
 	fi
-	signal=$(echo "$signal" | awk 'END {print $(NF-1)}')
 
-	if [ $signal -ge -70 ]; then
-		#echo "Excellent"
+	service=$(echo "${signal}" | cut -d ' ' -f 1)
+	if [ "${service}" = "lte" ]; then
+		level_threshold=(${LEVEL_THRESHOLD_LTE_RSRP})
+	else
+		level_threshold=(${LEVEL_THRESHOLD_UMTS_RSSI})
+	fi
+
+	# Compare the signal with the threshold level and then invoke
+	# the product specific led representaion function.
+	# Do nothing if no function defined.
+	signal=$(echo "$signal" | awk 'END {print $(NF-1)}')
+	if [ $signal -ge ${level_threshold[0]} ]; then
 		if [ -n "$SIGNAL_LED_EXCELLENT" ]; then
-			# Use product config to signal led.
 			signal_led_funcs="$(echo "$SIGNAL_LED_EXCELLENT" | \
 					sed -e "s/\$SLOT/$slot/g")"
 		else
-			# Operation not supported. Return.
 			return
 		fi
-	elif [ $signal -ge -100 ]; then
-		#echo "Fair"
+	elif [ $signal -ge ${level_threshold[1]} ]; then
 		if [ -n "$SIGNAL_LED_FAIR" ]; then
-			# Use product config to signal led.
 			signal_led_funcs="$(echo "$SIGNAL_LED_FAIR" | \
 					sed -e "s/\$SLOT/$slot/g")"
 		else
-			# Operation not supported. Return.
 			return
 		fi
-	elif [ $signal -ge -110 ]; then
-		#echo "Poor"
+	elif [ $signal -ge ${level_threshold[2]} ]; then
 		if [ -n "$SIGNAL_LED_POOR" ]; then
-			# Use product config to signal led.
 			signal_led_funcs="$(echo "$SIGNAL_LED_POOR" | \
 					sed -e "s/\$SLOT/$slot/g")"
 		else
-			# Operation not supported. Return.
 			return
 		fi
 	else
-		#echo "No signal"
-		_signal_led_flush ${slot}
+		_signal_led_flush "${slot}"
 		return
 	fi
 
+	o_ifs="${IFS}"
 	IFS=$'\n'
 	for i in $signal_led_funcs; do
 		eval "$i"
 	done
+	IFS="${o_ifs}"
 }
 
 _loop() {
@@ -161,7 +173,7 @@ usage() {
 
 
 while getopts  "i:vh" flag; do
-	if [ "${flag}" == "i" ]; then
+	if [ "${flag}" = "i" ]; then
 		re='^[0-9]+$'
 		if ! [[ $OPTARG =~ $re ]] ; then
 			   echo "error: Interval should be a number" >&2
@@ -169,10 +181,10 @@ while getopts  "i:vh" flag; do
 			   exit 1
 		fi
 		INTERVAL=$OPTARG
-	elif [ "${flag}" == "h" ]; then
+	elif [ "${flag}" = "h" ]; then
 		usage $0
 		exit 0
-	elif [ "${flag}" == "v" ]; then
+	elif [ "${flag}" = "v" ]; then
 		${CELL_MGMT} version
 		exit 0
 	fi
