@@ -1395,11 +1395,11 @@ at_status() {
 #--------- generic functions -----------
 
 _cell_initialize() {
-	local module_id="${ALL_MODULE_ID[$1]}"
+	local module_id="${2:-${ALL_MODULE_ID[$1]}}"
 	local ret=0
 
 	if _func_exist _module_${module_id}_initialize; then
-		_module_${module_id}_initialize || return $?
+		_module_${module_id}_initialize $@ || return $?
 	else
 	        for i in {1..10}; do
 			cell_at_cmd "ATE0" 10 > /dev/null 2>&1 && break
