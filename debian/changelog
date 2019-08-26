@@ -1,3 +1,15 @@
+moxa-cellular-utils (1.54.0) unstable; urgency=medium
+
+  * fix: align the output of the check_carrier
+  * fix: use RSRP as signal indication from QMI protocol
+  * fix: align syntax in cell-signald
+  * fix: restore the original IFS value
+  * feat: Use LTE RSRP as the output signal for TOBY L2 series
+  * feat: Support multiple threshold level for both LTE_RSRP and UMTS_RSSI
+  * fix(ublox): stop network by deregister and auto-register from network
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Mon, 26 Aug 2019 19:51:32 +0800
+
 moxa-cellular-utils (1.53.3) unstable; urgency=medium
 
   * Ublox toby-l2
