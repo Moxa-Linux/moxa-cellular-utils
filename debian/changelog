@@ -1,3 +1,12 @@
+moxa-cellular-utils (1.53.3) unstable; urgency=medium
+
+  * Ublox toby-l2
+    * fix: stop network by dhclient-script
+    * fix: remove setup bridge mode when initialize module
+    * fix: needs to specify the cid parameter when stop network
+
+ -- Elvis Yao (姚家瑋) <ElvisCW.Yao@moxa.com>  Fri, 23 Aug 2019 13:52:29 +0800
+
 moxa-cellular-utils (1.53.2) unstable; urgency=medium
 
   * Ublox toby-l2
