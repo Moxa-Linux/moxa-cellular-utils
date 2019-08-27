@@ -1901,6 +1901,11 @@ _cell_usage_start() {
 	echo -e "			cell_mgmt start APN=internet Phone=*99#"
 }
 
+_cell_usage_switch_carrier() {
+	echo -e "	switch_carrier <$CARRIER>"
+	echo -e "		Switching between carrier profiles."
+}
+
 cell_usage() {
 	echo -e "Usage: "
 	echo -e "	$0 [-i <module id>] [-s <slot id>] <OPTIONS>\n"
@@ -1982,9 +1987,7 @@ cell_usage() {
 	#check_carrier
 	echo -e "	check_carrier"
 	echo -e "		Check current carrier."
-	#switch_carrier
-	echo -e "	switch_carrier <$CARRIER>"
-	echo -e "		Switching between US carrier frequency bands."
+	_cell_usage_switch_carrier
 	#m_info
 	echo -e "	m_info (deprecated)"
 	echo -e "		Module/SIM information."
