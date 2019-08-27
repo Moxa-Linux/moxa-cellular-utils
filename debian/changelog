@@ -1,3 +1,12 @@
+moxa-cellular-utils (1.55.0) stretch; urgency=medium
+
+  * refactor: extract switch_carrier from main usage manual to _cell_usage_switch_carrier function
+  * feat: support Telit LE910C1-NF switch and check carrier features
+  * fix: add ublox L2 and SARA-R4 series carrier information
+  * fix: use _cell_usage_switch_carrier instead of orig usage message in ublox.conf
+
+ -- Wes Huang <Wes.Huang@moxa.com>  Tue, 27 Aug 2019 16:36:08 +0800
+
 moxa-cellular-utils (1.54.1) unstable; urgency=medium
 
   * fix: correct the output carrier list for ublox module
