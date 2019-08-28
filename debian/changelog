@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.55.1) stretch; urgency=medium
+
+  * fix: filter out the improper signal value
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Tue, 27 Aug 2019 19:10:26 +0800
+
 moxa-cellular-utils (1.55.0) stretch; urgency=medium
 
   * refactor: extract switch_carrier from main usage manual to _cell_usage_switch_carrier function

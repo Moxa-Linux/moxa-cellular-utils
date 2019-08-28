@@ -25,7 +25,7 @@ _calc_max_slot_num() {
 	done
 
 	eval "_product_${PRODUCT}_profile" 2>/dev/null
-	if [ x"$?" != x"0" ]; then
+	if [ "$?" != "0" ]; then
 		>&2 echo "Error: \`kversion\` or profile not found."
 		_exit 1
 	fi
@@ -85,7 +85,7 @@ _signal_led() {
 
 	#echo slot: $slot
 	#echo signal: $signal
-	if [ "$signal" = "signal out of range" ]; then
+	if [ -z "${signal}" ] || [ "${signal}" = "signal out of range" ]; then
 		_signal_led_flush ${slot}
 		return
 	fi
