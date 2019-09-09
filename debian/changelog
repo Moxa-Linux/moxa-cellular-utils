@@ -1,3 +1,12 @@
+moxa-cellular-utils (1.55.3) stretch; urgency=medium
+
+  * fix: support location info for TOBY L2 series
+  * fix: no response from subsequent AT after stop_network in Tboy L2
+  * fix: refine the verizon network starting flow
+  * fix: verizon static SIM connection in TOBY L2 series
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Thu, 05 Sep 2019 23:11:26 +0800
+
 moxa-cellular-utils (1.55.2) stretch; urgency=medium
 
   * fix(ublox): stop network by flush ip address instead of dhclient-script
