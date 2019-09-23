@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.55.5) stretch; urgency=medium
+
+  * fix: Write correct information ex. APN1, APN2... to profile
+
+ -- Alif Chen <alif.chen@moxa.com>  Mon, 23 Sep 2019 16:27:17 +0800
+
 moxa-cellular-utils (1.55.4) unstable; urgency=medium
 
   * fix: for fixing some parsing error
