@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.55.6) stretch; urgency=medium
+
+  * fix(sierra): add WP7607/WP7610 switch carrier support
+
+ -- Elvis Yao (姚家瑋) <ElvisCW.Yao@moxa.com>  Tue, 24 Sep 2019 20:02:56 +0800
+
 moxa-cellular-utils (1.55.5) stretch; urgency=medium
 
   * fix: Write correct information ex. APN1, APN2... to profile
