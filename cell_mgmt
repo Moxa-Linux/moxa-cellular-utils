@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.55.4"
+VERSION="1.55.5"
 
 PROG=$0
 PID=$$
@@ -416,13 +416,11 @@ _get_profile() {
 _update_profile() {
 	local key="$1"
 	local value="$2"
-	local _id="$INTERFACE"
-	[ x"${_id}" == x"0" ] && _id=""
 
-	if grep -q "${key}${_id}=" ${PROFILE_FILE}; then
-		eval "sed -i s/${key}${_id}=.*/${key}${_id}=${value}/ $PROFILE_FILE"
+	if grep -q "${key}=" ${PROFILE_FILE}; then
+		eval "sed -i s/${key}=.*/${key}=${value}/ $PROFILE_FILE"
 	else
-		echo "${key}${_id}=${value}" >> ${PROFILE_FILE}
+		echo "${key}=${value}" >> ${PROFILE_FILE}
 	fi
 }
 
@@ -1578,15 +1576,18 @@ cell_set_apn() {
 	local ret
 	local apn="$1"
 
-
 	if [ -z "${apn}" ]; then
 		_cell_usage_cmd _cell_usage_set_apn
 		_exit 4
 	fi
 
+	local _id="$INTERFACE"
+	[ "${_id}" == "0" ] && _id=""
+
 	if [ -e $PROFILE_FILE ]; then
-		echo "old APN=$APN, new APN=$apn"
-		sed -i "s/APN=.*/APN=$apn/" $PROFILE_FILE
+		old_APN=APN${_id}
+		echo "old APN=${!old_APN}, new APN=$apn"
+		_update_profile APN${_id} $apn
 	else
 		echo -e "APN=$apn\nusername=\npassword=\nPIN="
 	fi
@@ -1765,12 +1766,14 @@ cell_unlock_pin() {
 	local pin_code="$1"
 	local card_status=""
 
-
+	local _id="$INTERFACE"
+	[ "${_id}" == "0" ] && _id=""
 
 	# save to profile
 	if [ -e $PROFILE_FILE ]; then
-		echo "old PIN=$PIN, new PIN=$pin_code"
-		sed -i "s/PIN=.*/PIN=$pin_code/" $PROFILE_FILE
+		old_PIN=PIN${_id}
+		echo "old PIN=${!old_PIN}, new PIN=$pin_code"
+		_update_profile PIN${_id} ${pin_code}
 	else
 		echo -e "APN=\nusername=\npassword=\nPIN=$pin_code"
 	fi
