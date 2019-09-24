@@ -6,6 +6,14 @@ HOOK_DIR=${PKG_CONF_DIR}/ip-down.d
 
 
 case $reason in
+    BOUND|RENEW|REBIND|REBOOT)
+        for router in ${GATEWAY}; do
+            if [ "${SUBNETMASK}" = "255.255.255.255" ]; then
+                # point-to-point connection => set explicit route
+                ip -4 route add ${router} dev ${IFNAME} >/dev/null 2>&1
+            fi
+        done
+      ;;
     EXPIRE|FAIL|RELEASE|STOP|TIMEOUT|EXPIRE6|RELEASE6|STOP6)
         export IFIDX="${SLOT}"
         run-parts "${HOOK_DIR}"
