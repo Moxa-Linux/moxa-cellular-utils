@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="1.55.5"
+VERSION="1.55.6"
 
 PROG=$0
 PID=$$
