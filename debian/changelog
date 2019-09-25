@@ -1,3 +1,9 @@
+moxa-cellular-utils (1.55.7) stretch; urgency=medium
+
+  * fix: usage after switch wrong carrier
+
+ -- Alif Chen <alif.chen@moxa.com>  Wed, 25 Sep 2019 11:57:41 +0800
+
 moxa-cellular-utils (1.55.6) stretch; urgency=medium
 
   * fix(sierra): add WP7607/WP7610 switch carrier support
