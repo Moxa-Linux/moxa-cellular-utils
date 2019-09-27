@@ -1,3 +1,10 @@
+moxa-cellular-utils (1.55.8) stretch; urgency=medium
+
+  * refactor: MC-7455/MC-7430 cell_mgmt <OPTIONS> check_carrier shows available carriers from ${CARRIER} instead of at!priid?
+  * docs: Add usage "Default=1" in the section "set_flight_mode"
+
+ -- Alif Chen <alif.chen@moxa.com>  Fri, 27 Sep 2019 14:23:01 +0800
+
 moxa-cellular-utils (1.55.7) stretch; urgency=medium
 
   * fix: usage after switch wrong carrier
