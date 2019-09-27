@@ -2331,6 +2331,31 @@ exec_func() {
 	return $?
 }
 
+_signal_strength_to_level() {
+	# $1: signal strength in dBm
+	# $2: indicator
+	local level="0"
+	local threshold=()
+	local rssi_threshold="-113 -107 -97 -87 -77 999"
+	local rsrp_threshold="-128 -118 -108 -98 -85 999"
+	local description=("NoSignal" "Very Poor" "Poor" "Fair" "Good" "Excellent")
+	if [ "${2}" = "RSSI" ]; then
+		threshold=(${rssi_threshold})
+	elif [ "${2}" = "RSRP" ]; then
+		threshold=(${rsrp_threshold})
+	else
+		echo "0 (${description[0]})"
+		return
+	fi
+	for level in 0 1 2 3 4 5; do
+		if [ $(echo "${1} > ${threshold[${level}]}" | bc) = "1" ]; then
+			continue
+		else
+			echo "$((level)) (${description[${level}]})"
+			return
+		fi
+	done
+}
 
 #--------- Initialize Global variables start ---------
 
