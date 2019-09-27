@@ -1974,8 +1974,8 @@ cell_usage() {
 	#pin_protection
 	_cell_usage_pin_protection
 	#set_flight_mode
-	echo -e "	set_flight_mode <0|1>"
-	echo -e "		Set module into flight mode (1) or online mode (0)."
+	echo -e "	set_flight_mode [0|1]"
+	echo -e "		Set module into flight mode (1) or online mode (0), Default=1."
 	#get_profiles
 	echo -e "	get_profiles"
 	echo -e "		Get profile list."
