@@ -16,7 +16,8 @@ Depends: ${misc:Depends},
          libqmi-utils (>= 1.16.2),
          libqmi-proxy (>= 1.16.2),
          wvdial,
-         gawk
+         gawk,
+         bc
 Description: Cellular modem utility on Moxa computer.
 
 Package: moxa-cellular-signald
