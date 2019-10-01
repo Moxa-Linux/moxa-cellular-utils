@@ -752,56 +752,51 @@ qmi_status() {
 	fi
 }
 
-#cellular signal strength in dbm
+#cellular signal strength in level
 qmi_signal() {
 	local all_signal
 	local signal
-
-	#signal=`$QMICLI -d ${QMI_PORT} --nas-get-signal-strength $QMICLI_END | tr "'" " " | grep "Network" | head -1 | awk '{print $2 " " $4}'`
-	all_signal=$(_qmicli --nas-get-signal-strength | tr "'" " ") || \
-		{ _error 1;  exit 1; }
-
-	signal=$(echo "${all_signal}" | grep -A 1 "^RSRP" | tail -1 | \
-		awk '{print $2 " " $4}') || { _error 1;  exit 1; }
-
-	# If the RSRP is empty, fall back do use the 'Current'.
-	if [ -z "${signal}" ]; then
-		signal=$(echo "${all_signal}" | grep -A 1 "^Current" | \
-			tail -1 | awk '{print $2 " " $4}') || \
-			{ _error 1;  exit 1; }
-	fi
-
-	signal_dbm="$(echo $signal | awk '{print $2}')"
-	if [ "$signal_dbm" -le "-1" 2>/dev/null ]; then
-		echo "${signal} dbm"
-		return 0
-	else
-		echo "signal out of range"
-		return 1
-	fi
+	local sig_info=""
+	sig_info=$(qmi_signal_adv | grep "^RAT:\|^Signal Level:" | sed 's/RAT://g;s/Signal Level:/Level/g;' | sed 's/gsm/2G/g;s/umts/3G/g;s/lte/4G/g')
+	echo $sig_info
 }
 
 # cell_signal_adv
 qmi_signal_adv() {
-	local csq
-	local rssi
-	local ecio
-	local signal
+	local rat=""
+	local csq=""
+	local current=""
+	local rssi=""
+	local ecio=""
+	local rsrp=""
+	local rsrq=""
+	local signal=""
 
 	signal=$(_qmicli --nas-get-signal-strength | \
 		sed "s/'\|'://g;s/^[ \t]*Network //g") || \
 		{ _error 1;  exit 1; }
-	rssi=$(echo "${signal}" | awk '/Current:/{getline; print}')
-	ecio=$(echo "${signal}" | awk '/ECIO:/{getline; print}')
-
-	#csq=$(at_signal_csq)
+	current=$(echo "${signal}" | awk '/Current:/{getline; print}')
+	rssi=$(echo "${signal}" | awk '/RSSI:/{getline; print}' | cut -d ' ' -f 2)
+	ecio=$(echo "${signal}" | awk '/ECIO:/{getline; print}' | cut -d ' ' -f 2)
+	rsrp=$(echo "${signal}" | awk '/RSRP:/{getline; print}' | cut -d ' ' -f 2)
+	rsrq=$(echo "${signal}" | awk '/RSRQ:/{getline; print}' | cut -d ' ' -f 2)
+	rat=$(echo ${current} | cut -d ' ' -f 1)
 	signal=$(echo "${rssi}" | awk '{print $(NF-1)}')
 	csq=$(_signal_dbm2csq ${signal})
 	[ -z "${csq}" ] && csq=99
-
-	echo "CSQ: ${csq}"
-	echo "RSSI: ${rssi}"
-	echo "EcIo: ${ecio}"
+	if [ "${rat}" = "umts" ] || [ "${rat}" = "cmda" ] \
+		|| [ "${rat}" = "wcdma" ]; then
+		sig_indicator="RSSI"
+		sig_strength="${rssi}"
+	elif [ "${rat}" = "lte" ]; then
+		sig_indicator="RSRP"
+		sig_strength="${rsrp}"
+	else
+		rat="none"
+		sig_indicator="none"
+		sig_strength="-999"
+	fi
+	_format_signal_adv "${rat} ${csq} ${rssi:-"-"} - ${rscp:-"-"} ${ecio:-"-"} ${rsrp:-"-"} ${rsrq:-"-"} ${sig_strength} ${sig_indicator}"
 	return 0
 }
 
@@ -2329,6 +2324,35 @@ exec_func() {
 
 	eval "${cmd}"
 	return $?
+}
+
+# Args:                         stat_arr Idx
+#-----------                    ---------
+# 1  => RAT                     0
+# 2  => CSQ                     1
+# 3  => RSSI                    2
+# 4  => RxQual                  3
+# 5  => RSCP                    4
+# 6  => ECIO                    5
+# 7  => RSRP                    6
+# 8  => RSRQ                    7
+# 9  => Signal Strength         8
+# 10 => Signal Indicator        9
+#-----------                    ----------
+_format_signal_adv() {
+	local stat_arr=(${1})
+	local level_info=""
+	level_info=$(_signal_strength_to_level ${stat_arr[8]} ${stat_arr[9]})
+	echo "RAT: ${stat_arr[0]}"
+	echo "CSQ: ${stat_arr[1]}"
+	[ "${stat_arr[2]}" != "-" ] && echo "RSSI: ${stat_arr[2]} dBm"
+	[ "${stat_arr[3]}" != "-" ] && echo "RXQUAL: ${stat_arr[3]} dB"
+	[ "${stat_arr[4]}" != "-" ] && echo "RSCP: ${stat_arr[4]} dBm"
+	[ "${stat_arr[5]}" != "-" ] && echo "ECIO: ${stat_arr[5]} dB"
+	[ "${stat_arr[6]}" != "-" ] && echo "RSRP: ${stat_arr[6]} dBm"
+	[ "${stat_arr[7]}" != "-" ] && echo "RSRQ: ${stat_arr[7]} dB"
+	echo "Signal Indicator: ${stat_arr[9]}"
+	echo "Signal Level: ${level_info}"
 }
 
 _signal_strength_to_level() {
