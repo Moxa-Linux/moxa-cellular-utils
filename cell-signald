@@ -5,8 +5,6 @@ CELL_MGMT=cell_mgmt
 MAX_SLOT_NUM=0
 USED_SLOT_NUM=0
 SIGNAL_FROM_SLOTS=()
-LEVEL_THRESHOLD_LTE_RSRP="-85 -105 -115"
-LEVEL_THRESHOLD_UMTS_RSSI="-70 -100 -110"
 
 # profile
 CONF_DIR=/etc/moxa-cellular-utils
@@ -39,7 +37,7 @@ _init_signal_from_slots() {
 		SIGNAL_FROM_SLOTS[i]=999
 
 		# turn off all slots leds
-		_signal_led_flush "$((i+1))"
+		_signal_level_to_led "$((i+1))"
 	done
 	USED_SLOT_NUM=0
 }
@@ -48,84 +46,40 @@ _calc_used_slot_num() {
 	local count=0
 
 	for (( i=0; i<${MAX_SLOT_NUM}; i++ )); do
-		if [ "${SIGNAL_FROM_SLOTS[i]}" != "signal out of range" ] && [ "${SIGNAL_FROM_SLOTS[i]}" != "999" ]; then
+		if [ "${SIGNAL_FROM_SLOTS[i]}" != "0" ] && [ "${SIGNAL_FROM_SLOTS[i]}" != "999" ]; then
 			count=$((count+1))
 		fi
 	done
 	USED_SLOT_NUM=${count}
 }
 
-_signal_led_flush() {
+_signal_level_to_led() {
 	local slot=$1
+	local signal=${2:-"0"}
 	local o_ifs=""
-	local i=""
-
-	if [ -z "$SIGNAL_LED_FLUSH" ]; then
-		# Operation not supported. Return.
-		return
-	fi
-
-	# Use product config signal led flush
-	signal_led_flush_funcs="$(echo "$SIGNAL_LED_FLUSH" | \
-				sed -e "s/\$SLOT/$slot/g")"
-	o_ifs="${IFS}"
-	IFS=$'\n'
-	for i in $signal_led_flush_funcs; do
-		eval "$i"
-	done
-	IFS="${o_ifs}"
-}
-
-_signal_led() {
-	local slot=$1
-	local signal=$2
-	local service=""
-	local o_ifs=""
-	local level_threshold=()
-
-	#echo slot: $slot
-	#echo signal: $signal
-	if [ -z "${signal}" ] || [ "${signal}" = "signal out of range" ]; then
-		_signal_led_flush ${slot}
-		return
-	fi
-
-	service=$(echo "${signal}" | cut -d ' ' -f 1)
-	if [ "${service}" = "lte" ]; then
-		level_threshold=(${LEVEL_THRESHOLD_LTE_RSRP})
-	else
-		level_threshold=(${LEVEL_THRESHOLD_UMTS_RSSI})
-	fi
 
 	# Compare the signal with the threshold level and then invoke
 	# the product specific led representaion function.
 	# Do nothing if no function defined.
-	signal=$(echo "$signal" | awk 'END {print $(NF-1)}')
-	if [ $signal -ge ${level_threshold[0]} ]; then
-		if [ -n "$SIGNAL_LED_EXCELLENT" ]; then
-			signal_led_funcs="$(echo "$SIGNAL_LED_EXCELLENT" | \
-					sed -e "s/\$SLOT/$slot/g")"
-		else
-			return
-		fi
-	elif [ $signal -ge ${level_threshold[1]} ]; then
-		if [ -n "$SIGNAL_LED_FAIR" ]; then
-			signal_led_funcs="$(echo "$SIGNAL_LED_FAIR" | \
-					sed -e "s/\$SLOT/$slot/g")"
-		else
-			return
-		fi
-	elif [ $signal -ge ${level_threshold[2]} ]; then
-		if [ -n "$SIGNAL_LED_POOR" ]; then
-			signal_led_funcs="$(echo "$SIGNAL_LED_POOR" | \
-					sed -e "s/\$SLOT/$slot/g")"
-		else
-			return
-		fi
-	else
-		_signal_led_flush "${slot}"
-		return
-	fi
+	case ${signal} in
+	1)
+		signal_func_name="SIGNAL_LED_POOR"
+		;;
+	2|3)
+		signal_func_name="SIGNAL_LED_FAIR"
+		;;
+	4|5)
+		signal_func_name="SIGNAL_LED_EXCELLENT"
+		;;
+	*)
+		signal_func_name="SIGNAL_LED_FLUSH"
+		;;
+	esac
+
+	[ -z "${!signal_func_name}" ] && return 0
+
+	signal_led_funcs="$(echo "${!signal_func_name}" | \
+		sed -e "s/\$SLOT/$slot/g")"
 
 	o_ifs="${IFS}"
 	IFS=$'\n'
@@ -147,8 +101,10 @@ _loop() {
 		fi
 		for i in $(seq 0 $((modules-1))); do
 			slot=$(${CELL_MGMT} -i $i slot)
-			signal=$(${CELL_MGMT} -i $i signal)
-			_signal_led ${slot} "${signal}"
+			# Format:
+			# <RAT> Level: <level> (description)
+			signal=$(${CELL_MGMT} -i $i signal |  cut -d ' ' -f 3)
+			_signal_level_to_led "${slot}" "${signal}"
 
 			# record signal in $SIGNAL_FROM_SLOTS
 			SIGNAL_FROM_SLOTS[$((slot-1))]=${signal}
