@@ -1,3 +1,20 @@
+moxa-cellular-utils (2.0.0) stretch; urgency=medium
+
+  * fix: add static route for netmask 32
+  * change the default signal ouput format in cell_mgmt
+  * feat: apply new signal format for cell-signald
+  * change signal output for gemalto modules
+  * change signal output for huawei 909s-821
+  * change signal output for tellit module LE910C1 series
+  * change signal output for modules via QMI protocol
+  * feat: add signal_adv for toby R410M
+  * Add package bc as dependencies
+  * fix: correct the attach info for toby L2 series
+  * fix: correct the service info for toby L2 series
+  * feat: add signal_adv for toby L2 series
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Wed, 02 Oct 2019 19:00:42 +0800
+
 moxa-cellular-utils (1.55.8) stretch; urgency=medium
 
   * refactor: MC-7455/MC-7430 cell_mgmt <OPTIONS> check_carrier shows available carriers from ${CARRIER} instead of at!priid?
