@@ -365,30 +365,28 @@ init() {
 
 _signal_csq2dbm() {
 	local signal="$1"
-	local service="$2"
 
 	signal=${signal##*AT}
 	signal=${signal%%,*}
 
-	if [ x"$signal" != x"" ]; then
-		if [ "$signal" -le "31" 2>/dev/null ] && [ "$signal" -ge "2" 2>/dev/null ] ; then
+	if [ ! -z "${signal}" ]; then
+		if [ "${signal}" -le "31" 2>/dev/null ] && [ "${signal}" -ge "2" 2>/dev/null ] ; then
 			let signal=signal-2
 			let signal=signal*2-109
-			echo "${service} $signal dBm"
+			echo "${signal} dBm"
 		else
-			echo "signal out of range"
+			echo "-999"
 		fi
 	else
-		echo "signal out of range"
+		echo "-999"
 	fi
 }
 
 _signal_dbm2csq() {
 	local signal="$1"
 
-
 	# csq = (dbm + 113) / 2
-	if [ "${signal}" == "signal out of range" ] || [ $signal -le -113 ]; then
+	if [ $signal -le -113 ]; then
 		echo "99"
 		return 0
 	fi
@@ -754,8 +752,6 @@ qmi_status() {
 
 #cellular signal strength in level
 qmi_signal() {
-	local all_signal
-	local signal
 	local sig_info=""
 	sig_info=$(qmi_signal_adv | grep "^RAT:\|^Signal Level:" | sed 's/RAT://g;s/Signal Level:/Level/g;' | sed 's/gsm/2G/g;s/umts/3G/g;s/lte/4G/g')
 	echo $sig_info
@@ -1081,10 +1077,23 @@ at_signal_csq() {
 
 at_signal() {
 	local service="umts"
-
+	local sig_strength=""
+	local sig_level=""
+	local rat="none"
 	service=$(_exec_op_rtn service | grep "Service:" | \
 		cut -d ' ' -f 2- | awk '{print tolower($0)}')
-	_signal_csq2dbm $(at_signal_csq) ${service:-umts}
+	${service:-umts}
+	sig_info=$(_signal_csq2dbm $(at_signal_csq))
+	if [ "${sig_info}" = "-999" ]; then
+		sig_strength="-999"
+	else
+		sig_strength=$(echo "${sig_info}" | cut -d ' ' -f 1)
+	fi
+	sig_level=$(_signal_strength_to_level ${sig_strength} "RSSI")
+	[ "${service}" = "umts" ] && rat="3G"
+	[ "${service}" = "lte" ] && rat="4G"
+
+	echo "${rat} Level ${sig_level}"
 }
 
 at_sim_status() {
