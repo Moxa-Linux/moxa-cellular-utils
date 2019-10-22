@@ -1,3 +1,10 @@
+moxa-cellular-utils (2.0.2) stretch; urgency=medium
+
+  *  fix: modify the usage
+  *  fix: correct the judgement in cellular status for TOBY L2
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Tue, 22 Oct 2019 16:37:30 +0800
+
 moxa-cellular-utils (2.0.1) stretch; urgency=medium
 
   * fix: make the status output more reliable in Toby L2 series
