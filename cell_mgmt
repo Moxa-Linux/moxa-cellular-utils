@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="2.0.1"
+VERSION="2.0.2"
 
 PROG=$0
 PID=$$
@@ -1878,17 +1878,11 @@ _cell_usage_pin_protection() {
 	echo -e "		Set PIN protection in the UIM."
 }
 
-_cell_usage_set_profile() {
-	#set_profile
-	echo -e "	set_profile <id> [APN [PDP Type]]"
-	echo -e "		Update PDP profile. Profile will be deleted if APN and"
-	echo -e "		PDP Type doesn't given. PDP Type default to \"IPV4V6\"."
-}
-
 _cell_usage_set_apn() {
 	#set_apn
 	echo -e "	set_apn <APN>"
-	echo -e "		Set APN to configuration file and PDP profile index 1."
+	echo -e "		Set APN to configuration file and PDP profile."
+	echo -e "		And use this APN as the default one."
 }
 
 _cell_usage_start() {
@@ -1896,7 +1890,6 @@ _cell_usage_start() {
 	echo -e "		Start network."
 	echo -e ""
 	echo -e "		OPTIONS:"
-	echo -e "		APN - Access point name"
 	echo -e "		Phone - Phone number (especially for AT based modules)"
 	echo -e "		Auth - Authentication type(CHAP|PAP|BOTH), default=NONE."
 	echo -e "		Username"
@@ -1904,8 +1897,7 @@ _cell_usage_start() {
 	echo -e ""
 	echo -e "		example:"
 	echo -e "			cell_mgmt start"
-	echo -e "			cell_mgmt start APN=internet"
-	echo -e "			cell_mgmt start APN=internet Phone=*99#"
+	echo -e "			cell_mgmt start Phone=*99#"
 }
 
 _cell_usage_switch_carrier() {
@@ -1936,9 +1928,6 @@ cell_usage() {
 	#stop
 	echo -e "	stop"
 	echo -e "		Stop network."
-	#restart
-	echo -e "	restart"
-	echo -e "		Restart network."
 	#power on
 	echo -e "	power_on"
 	echo -e "		Power ON."
@@ -1980,15 +1969,6 @@ cell_usage() {
 	#set_flight_mode
 	echo -e "	set_flight_mode [0|1]"
 	echo -e "		Set module into flight mode (1) or online mode (0), Default=1."
-	#get_profiles
-	echo -e "	get_profiles"
-	echo -e "		Get profile list."
-	echo -e "		format:"
-	echo -e "			<id>,<APN>,<PDP Type>"
-	echo -e "		example:"
-	echo -e "			1,internet,IPV4V6"
-	#set_profile
-	_cell_usage_set_profile
 	#set_apn
 	_cell_usage_set_apn
 	#check_carrier
