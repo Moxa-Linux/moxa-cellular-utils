@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="2.0.2"
+VERSION="2.0.3"
 
 PROG=$0
 PID=$$
@@ -1156,7 +1156,7 @@ at_set_flight_mode() {
 		[ x"${reset}" == x"1" ] && mode="1,1" || mode=1
 	fi
 	[ "${reset}" == "1" ] && run-parts --new-session ${MODULE_OFF_DIR}
-	if cell_at_cmd "AT+CFUN=${mode}" 2 | grep -q "OK"; then
+	if cell_at_cmd "AT+CFUN=${mode}" 5 | grep -q "OK"; then
 		[ "${reset}" == "1" ] && sleep 5 && _cell_wait_module_back
 		return 0
 	fi

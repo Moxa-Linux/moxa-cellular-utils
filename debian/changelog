@@ -1,3 +1,10 @@
+moxa-cellular-utils (2.0.3) stretch; urgency=medium
+
+  * fix: correct the set_profile for TOBY L2 series
+  * fix: increase the timeout value for flight mode switching
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Thu, 24 Oct 2019 13:32:32 +0800
+
 moxa-cellular-utils (2.0.2) stretch; urgency=medium
 
   *  fix: modify the usage
