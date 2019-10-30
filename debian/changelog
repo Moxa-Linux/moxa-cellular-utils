@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.0.5) stretch; urgency=medium
+
+  * fix: add moxa-module-control support to V2406C product config
+
+ -- Elvis Yao (姚家瑋) <ElvisCW.Yao@moxa.com>  Wed, 30 Oct 2019 15:52:31 +0800
+
 moxa-cellular-utils (2.0.4) stretch; urgency=medium
 
   * fix: ublox: wait module back when switch carrier in L201
