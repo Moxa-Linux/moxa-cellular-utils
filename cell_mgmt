@@ -675,7 +675,9 @@ _qmi_kill_proxy() {
 }
 
 _qmi_card_app_state() {
-	local app_state="$(_qmicli_value "${1}" "Application state")"
+	# Only check the USIM infomation
+	local usim_info="$(echo "${1}" | grep -A1 -E "Application type:.*'usim.*'")"
+	local app_state="$(_qmicli_value "${usim_info}" "Application state")"
 
 	case "${app_state}" in
 		"pin1-or-upin-pin-required")
