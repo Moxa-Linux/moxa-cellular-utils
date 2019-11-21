@@ -2434,8 +2434,17 @@ if [ ${NEED_LOCK} -eq 1 ]; then
 	$(_double_check_module_crash_exit 1>/dev/null 2>&1)
 	[ $? -ne 99 ] && wait_time=$(_wait_lock) || wait_time=0
 
-	_lock ${LOCK_FD_GLOBAL} ${LOCK_FILE_GLOBAL} \
-		$(expr ${FLOCK_TIMEOUT} - ${wait_time})
+        if [ "${FORCE}" = 1 ]; then
+                # The FORCE mode, ignore the global lock and wait for 100 seconds.
+                # Typically, the longest operation, switch_carrier, should come back
+                # in 100 seconds
+                eval "exec ${LOCK_FD_GLOBAL}>${LOCK_FILE_GLOBAL}"
+                flock -w 100 ${LOCK_FD_GLOBAL}
+        else
+                _lock ${LOCK_FD_GLOBAL} ${LOCK_FILE_GLOBAL} \
+                        $(expr ${FLOCK_TIMEOUT} - ${wait_time})
+        fi
+
 	eval "${OP_FUNC}"
 	RET=$?
 	_unlock ${LOCK_FD_GLOBAL}
