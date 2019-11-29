@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.0.6) stretch; urgency=medium
+
+  * fix: UC-8410A: Supports both debian 8 and 9(MIL)
+
+ -- Alif Chen <alif.chen@moxa.com>  Thu, 28 Nov 2019 16:03:52 +0800
+
 moxa-cellular-utils (2.0.5) stretch; urgency=medium
 
   * fix: add moxa-module-control support to V2406C product config
