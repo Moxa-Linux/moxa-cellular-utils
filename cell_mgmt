@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="2.0.6"
+VERSION="2.0.7"
 
 PROG=$0
 PID=$$
@@ -675,7 +675,9 @@ _qmi_kill_proxy() {
 }
 
 _qmi_card_app_state() {
-	local app_state="$(_qmicli_value "${1}" "Application state")"
+	# Only check the USIM infomation
+	local usim_info="$(echo "${1}" | grep -A1 -E "Application type:.*'usim.*'")"
+	local app_state="$(_qmicli_value "${usim_info}" "Application state")"
 
 	case "${app_state}" in
 		"pin1-or-upin-pin-required")
@@ -1056,7 +1058,7 @@ cell_at_cmd() {
 	at_cmd="_at_cmd \"${at_port}\" '"${cmd}"' ${timeout}"
 
 	_lock ${LOCK_FD} ${LOCK_FILE} ${FLOCK_TIMEOUT}
-	exec_func "${at_cmd}"
+	exec_func "0" "${at_cmd}"
 	ret=$?
 	_unlock ${LOCK_FD}
 
@@ -2302,14 +2304,17 @@ _wait_lock() {
 
 
 exec_func() {
-	local cmd="${1}"
-	local timeout="${2}"
+	local check_lock=${1:-"0"}
+	local cmd="${2}"
+	local timeout="${3}"
 
 
-	# check global lock
-	_wait_lock ${LOCK_FD_GLOBAL} ${LOCK_FILE_GLOBAL} ${timeout} \
-		1 > /dev/null 2>&1
-	[ $? -eq 99 ] && return 99
+	if [ "${check_lock}" -eq "1" ]; then
+		# check global lock
+		_wait_lock ${LOCK_FD_GLOBAL} ${LOCK_FILE_GLOBAL} ${timeout} \
+			1 > /dev/null 2>&1
+		[ $? -eq 99 ] && return 99
+	fi
 
 	eval "${cmd}"
 	return $?
@@ -2422,20 +2427,29 @@ RET=0
 if [ ${NEED_INITIALIZE} -eq 1 ]; then
 	init_timeout=$(eval echo \${initialize_timeout})
 	init_timeout=${init_timeout:-10}
-	exec_func "_cell_initialize ${INTERFACE}" "${init_timeout}"
+	exec_func "1" "_cell_initialize ${INTERFACE}" "${init_timeout}"
 fi
 
 if [ ${NEED_LOCK} -eq 1 ]; then
 	$(_double_check_module_crash_exit 1>/dev/null 2>&1)
 	[ $? -ne 99 ] && wait_time=$(_wait_lock) || wait_time=0
 
-	_lock ${LOCK_FD_GLOBAL} ${LOCK_FILE_GLOBAL} \
-		$(expr ${FLOCK_TIMEOUT} - ${wait_time})
+        if [ "${FORCE}" = 1 ]; then
+                # The FORCE mode, ignore the global lock and wait for 100 seconds.
+                # Typically, the longest operation, switch_carrier, should come back
+                # in 100 seconds
+                eval "exec ${LOCK_FD_GLOBAL}>${LOCK_FILE_GLOBAL}"
+                flock -w 100 ${LOCK_FD_GLOBAL}
+        else
+                _lock ${LOCK_FD_GLOBAL} ${LOCK_FILE_GLOBAL} \
+                        $(expr ${FLOCK_TIMEOUT} - ${wait_time})
+        fi
+
 	eval "${OP_FUNC}"
 	RET=$?
 	_unlock ${LOCK_FD_GLOBAL}
 else
-	exec_func "${OP_FUNC}" "${FLOCK_TIMEOUT}"
+	exec_func "1" "${OP_FUNC}" "${FLOCK_TIMEOUT}"
 	RET=$?
 fi
 _exit ${RET}

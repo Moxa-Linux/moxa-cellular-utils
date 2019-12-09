@@ -1,3 +1,11 @@
+moxa-cellular-utils (2.0.7) stretch; urgency=medium
+
+  * feat: add force operation
+  * fix: correct the judgement of the SIM status via QMI way
+  * fix: global lock checking is not needed in cell_at_cmd
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Fri, 29 Nov 2019 14:37:25 +0800
+
 moxa-cellular-utils (2.0.6) stretch; urgency=medium
 
   * fix: UC-8410A: Supports both debian 8 and 9(MIL)
