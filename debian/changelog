@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.0.8) stretch; urgency=medium
+
+  * fix: gemalto ELS61 might fail to leave the flight mode
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Fri, 27 Dec 2019 13:56:53 +0800
+
 moxa-cellular-utils (2.0.7) stretch; urgency=medium
 
   * feat: add force operation
