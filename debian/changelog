@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.0.9) stretch; urgency=medium
+
+  * fix: Gemalto ELS61 needs a manually switch to automatically search mode
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Tue, 07 Jan 2020 10:48:45 +0800
+
 moxa-cellular-utils (2.0.8) stretch; urgency=medium
 
   * fix: gemalto ELS61 might fail to leave the flight mode
