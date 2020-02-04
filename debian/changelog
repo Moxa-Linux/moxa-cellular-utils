@@ -1,3 +1,10 @@
+moxa-cellular-utils (2.0.10) stretch; urgency=medium
+
+  * fix: Align the set_profile logic for R410M with L2 series
+  * fix: use CEREG to judge the attach status of PS for R410M
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Mon, 03 Feb 2020 11:38:49 +0800
+
 moxa-cellular-utils (2.0.9) stretch; urgency=medium
 
   * fix: Gemalto ELS61 needs a manually switch to automatically search mode
