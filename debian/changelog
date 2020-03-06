@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.0.11) stretch; urgency=medium
+
+  * fix: remove TMO in LE910C1NF
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Fri, 06 Mar 2020 10:54:47 +0800
+
 moxa-cellular-utils (2.0.10) stretch; urgency=medium
 
   * fix: Align the set_profile logic for R410M with L2 series
