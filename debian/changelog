@@ -1,3 +1,10 @@
+moxa-cellular-utils (2.1.0) stretch; urgency=medium
+
+  * feat: add v2403c series config
+  * fix: remove sierra WP76xx module DHCP RELAY settings when module init
+
+ -- Elvis Yao (姚家瑋) <ElvisCW.Yao@moxa.com>  Thu, 12 Mar 2020 11:12:16 +0800
+
 moxa-cellular-utils (2.0.11) stretch; urgency=medium
 
   * fix: remove TMO in LE910C1NF
