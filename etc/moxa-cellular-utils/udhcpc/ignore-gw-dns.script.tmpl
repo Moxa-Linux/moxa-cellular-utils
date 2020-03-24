@@ -33,6 +33,10 @@ case $1 in
 	/sbin/ip addr flush label ${interface}
 	/sbin/ip addr add ${ip}${NETMASK} ${BROADCAST} dev ${interface}
 
+	if [ -n "${mtu}" ]; then
+	       /sbin/ip link set dev ${interface} mtu ${mtu}
+	fi
+
 	run_up_hooks
 	;;
 

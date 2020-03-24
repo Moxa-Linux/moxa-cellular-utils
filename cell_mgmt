@@ -1644,7 +1644,7 @@ cell_udhcpc() {
 	echo "${udhcpc_conf}" > ${udhcpc_script_path}
 	chmod a+x ${udhcpc_script_path}
 
-	udhcpc_opt="-s ${udhcpc_script_path}"
+	udhcpc_opt="-s ${udhcpc_script_path} -O mtu"
 
 	#udhcpc -q -f ${udhcpc_opt} -i $node
 	udhcpc -b -R ${udhcpc_opt} -i $node -p /var/run/udhcpc-${node}.pid
