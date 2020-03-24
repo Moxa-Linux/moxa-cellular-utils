@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.1.1) stretch; urgency=medium
+
+  * add: add support for Sierra WP7609
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Mon, 23 Mar 2020 10:22:14 +0800
+
 moxa-cellular-utils (2.1.0) stretch; urgency=medium
 
   * feat: add v2403c series config
