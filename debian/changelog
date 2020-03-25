@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.1.3) stretch; urgency=medium
+
+  * fix: add alternative method for iccid, imsi and pin-retries in WP76xx
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Wed, 25 Mar 2020 17:50:56 +0800
+
 moxa-cellular-utils (2.1.2) stretch; urgency=medium
 
   * fix: apply mtu setting when invoking udhcpc
