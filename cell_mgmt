@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="2.1.1"
+VERSION="2.1.2"
 
 PROG=$0
 PID=$$
@@ -1644,7 +1644,7 @@ cell_udhcpc() {
 	echo "${udhcpc_conf}" > ${udhcpc_script_path}
 	chmod a+x ${udhcpc_script_path}
 
-	udhcpc_opt="-s ${udhcpc_script_path}"
+	udhcpc_opt="-s ${udhcpc_script_path} -O mtu"
 
 	#udhcpc -q -f ${udhcpc_opt} -i $node
 	udhcpc -b -R ${udhcpc_opt} -i $node -p /var/run/udhcpc-${node}.pid

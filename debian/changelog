@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.1.2) stretch; urgency=medium
+
+  * fix: apply mtu setting when invoking udhcpc
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Tue, 24 Mar 2020 14:01:47 +0800
+
 moxa-cellular-utils (2.1.1) stretch; urgency=medium
 
   * add: add support for Sierra WP7609
