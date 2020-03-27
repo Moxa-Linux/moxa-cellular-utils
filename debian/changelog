@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.1.4) stretch; urgency=medium
+
+  * fix: unable to attach to Verizon in LE910C1-NF
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Fri, 27 Mar 2020 18:46:32 +0800
+
 moxa-cellular-utils (2.1.3) stretch; urgency=medium
 
   * fix: add alternative method for iccid, imsi and pin-retries in WP76xx
