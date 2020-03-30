@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.1.5) stretch; urgency=medium
+
+  * fix: V-2201: Support both debian 8 and 9
+
+ -- Remus Wu <remusty.wu@moxa.com>  Mon, 30 Mar 2020 16:38:53 +0800
+
 moxa-cellular-utils (2.1.4) stretch; urgency=medium
 
   * fix: unable to attach to Verizon in LE910C1-NF
