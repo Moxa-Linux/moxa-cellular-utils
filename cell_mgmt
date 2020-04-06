@@ -738,18 +738,14 @@ qmi_attach_status() {
 qmi_status() {
 	local con_status=$(_qmi_packet_service_status | grep "Status")
 
-
 	if [ x"$(echo ${con_status}| awk '{print $2}')" == x"connected" ]; then
 		if [ -f "${STATUS_FILE}" ]; then
 			cat "${STATUS_FILE}"
-		else
-			echo ${con_status}
+			_exit 0
 		fi
-		_exit 0
-	else
-		echo "Status: disconnected"
-		_exit 1
 	fi
+	echo "Status: disconnected"
+	_exit 1
 }
 
 #cellular signal strength in level
