@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.1.6) stretch; urgency=medium
+
+  * fix: align the connection status of qmi based module
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Mon, 06 Apr 2020 11:35:46 +0800
+
 moxa-cellular-utils (2.1.5) stretch; urgency=medium
 
   * fix: V-2201: Support both debian 8 and 9
