@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.1.7) stretch; urgency=medium
+
+  * fix: use netmask from cgcontrdp rather than uipaddr
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Mon, 27 Apr 2020 19:14:38 +0800
+
 moxa-cellular-utils (2.1.6) stretch; urgency=medium
 
   * fix: align the connection status of qmi based module
