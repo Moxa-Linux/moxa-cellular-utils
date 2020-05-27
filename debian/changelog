@@ -1,3 +1,10 @@
+moxa-cellular-utils (2.2.2) stretch; urgency=medium
+
+  * fix: config mtu for L201
+  * fix: handle empty signal
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Wed, 24 Jun 2020 16:25:04 +0800
+
 moxa-cellular-utils (2.2.1) stretch; urgency=medium
 
   * fix: fix version
