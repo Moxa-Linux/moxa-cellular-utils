@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.1.9) stretch; urgency=medium
+
+  * fix: give enough time for +UMNOCONF to complete
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Mon, 01 Jun 2020 18:37:46 +0800
+
 moxa-cellular-utils (2.1.8) stretch; urgency=medium
 
   * fix: hide confusing error message on TOBY L2 initial porcess
