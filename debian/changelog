@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.2.0) stretch; urgency=medium
+
+  * feat: support Telit LE910C1/C4 AP/EU modules 
+
+ -- Tzongyen Lin <Tzongyen.Lin@moxa.com>  Wed, 10 Jun 2020 18:07:29 +0800
+
 moxa-cellular-utils (2.1.10) stretch; urgency=medium
 
   * fix: update V-2406C product name for V2406C-KL*-CT-T
