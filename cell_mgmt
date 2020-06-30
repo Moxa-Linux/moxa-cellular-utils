@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="2.2.1"
+VERSION="2.2.2"
 
 PROG=$0
 PID=$$
@@ -386,7 +386,7 @@ _signal_dbm2csq() {
 	local signal="$1"
 
 	# csq = (dbm + 113) / 2
-	if [ $signal -le -113 ]; then
+	if [ -z "${signal}" ] || [ $signal -le -113 ]; then
 		echo "99"
 		return 0
 	fi
