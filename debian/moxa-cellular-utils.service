@@ -1,6 +1,6 @@
 [Unit]
 Description=Moxa cellular management initial service
-After=network.target syslog.target
+After=network.target syslog.target rsyslog.service
 
 [Service]
 Type=oneshot

@@ -1,0 +1,10 @@
+/var/log/cell_mgmt.log {
+        daily
+        size=10M
+        dateext
+        missingok
+        rotate 10
+        compress
+        postrotate
+        endscript
+}
