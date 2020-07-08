@@ -1,3 +1,11 @@
+moxa-cellular-utils (2.4.2) stretch; urgency=medium
+
+  * fix: only toggle ipcp_req in DOCOMO Japan
+  * fix: enable ipcp_req by default
+  * fix: fail to connect in vzw network on L201-02S-01
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Wed, 24 Jun 2020 13:14:33 +0800
+
 moxa-cellular-utils (2.4.1) stretch; urgency=medium
 
   * fix: aig-301: correct product function name
