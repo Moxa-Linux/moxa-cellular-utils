@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.4.1) stretch; urgency=medium
+
+  * fix: aig-301: correct product function name
+
+ -- Remus Wu <remusty.wu@moxa.com>  Wed, 08 Jul 2020 14:20:26 +0800
+
 moxa-cellular-utils (2.4.0) stretch; urgency=medium
 
   * feat: update product aig-301 series
