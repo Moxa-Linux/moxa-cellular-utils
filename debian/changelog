@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.4.0) stretch; urgency=medium
+
+  * feat: update product aig-301 series
+
+ -- Remus Wu <remusty.wu@moxa.com>  Wed, 08 Jul 2020 10:31:28 +0800
+
 moxa-cellular-utils (2.3.0) stretch; urgency=medium
 
   * feat: add product aig-300 series
@@ -19,7 +25,7 @@ moxa-cellular-utils (2.2.1) stretch; urgency=medium
 
 moxa-cellular-utils (2.2.0) stretch; urgency=medium
 
-  * feat: support Telit LE910C1/C4 AP/EU modules 
+  * feat: support Telit LE910C1/C4 AP/EU modules
 
  -- Tzongyen Lin <Tzongyen.Lin@moxa.com>  Wed, 10 Jun 2020 18:07:29 +0800
 
@@ -606,13 +612,13 @@ moxa-cellular-utils (1.38.2) unstable; urgency=medium
 
 moxa-cellular-utils (1.38.1) stretch; urgency=medium
 
-  * fix: set the correct behavior of cellular LTE ON pin 
+  * fix: set the correct behavior of cellular LTE ON pin
 
  -- Wes Huang <Wes.Huang@moxa.com>  Wed, 08 Aug 2018 10:14:22 +0800
 
 moxa-cellular-utils (1.38.0) stretch; urgency=medium
 
-  * feat: support ELS31-V module to disable thermal shutdown feature 
+  * feat: support ELS31-V module to disable thermal shutdown feature
 
  -- Wes Huang <Wes.Huang@moxa.com>  Tue, 07 Aug 2018 18:42:50 +0800
 
@@ -709,7 +715,7 @@ moxa-cellular-utils (1.31.4) unstable; urgency=medium
 
 moxa-cellular-utils (1.31.3) stretch; urgency=medium
 
-  * feat: add uc2100 series signald configuration 
+  * feat: add uc2100 series signald configuration
 
  -- Wes Huang <Wes.Huang@moxa.com>  Mon, 14 May 2018 17:46:54 +0800
 
