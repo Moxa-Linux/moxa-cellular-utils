@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.4.3) stretch; urgency=medium
+
+  * fix: aig-301: slot variable with braces could not be parsing
+
+ -- Remus Wu <remusty.wu@moxa.com>  Mon, 13 Jul 2020 19:27:19 +0800
+
 moxa-cellular-utils (2.4.2) stretch; urgency=medium
 
   * fix: only toggle ipcp_req in DOCOMO Japan
