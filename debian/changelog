@@ -1,3 +1,10 @@
+moxa-cellular-utils (2.5.0) stretch; urgency=medium
+
+  * fix: show "NotSupport" if no value
+  * feat: add support for Quectel EC20
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Tue, 14 Jul 2020 11:19:06 +0800
+
 moxa-cellular-utils (2.4.3) stretch; urgency=medium
 
   * fix: aig-301: slot variable with braces could not be parsing

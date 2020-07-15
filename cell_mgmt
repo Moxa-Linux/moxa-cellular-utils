@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="2.4.3"
+VERSION="2.5.0"
 
 PROG=$0
 PID=$$
@@ -1690,12 +1690,12 @@ cell_m_info() {
 	echo WWAN_node=$QMI_NODE
 	echo AT_port=$AT_PORT
 	echo GPS_port=$GPS_PORT
-	echo LAC=$lac
-	echo CellID=$cellid
+	echo LAC=${lac:-"NotSupport"}
+	echo CellID=${cellid:-"NotSupport"}
 	echo ICC-ID=$iccid
 	echo IMEI=$imei
 	echo QMI_port=$QMI_PORT
-	echo LCID=$lcid
+	echo LCID=${lcid:-"NotSupport"}
 	#echo slot=$SLOT
 	#echo SYS_USB=$SYS_USB
 }
