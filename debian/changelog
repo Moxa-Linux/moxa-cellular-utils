@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.5.1) stretch; urgency=medium
+
+  * fix: fix get IMSI for YUGA CLM920-NC5
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Fri, 17 Jul 2020 11:56:09 +0800
+
 moxa-cellular-utils (2.5.0) stretch; urgency=medium
 
   * fix: show "NotSupport" if no value
