@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.5.2) stretch; urgency=medium
+
+  * fix: keep interface from process IPV6 RA request 
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Thu, 23 Jul 2020 10:45:48 +0800
+
 moxa-cellular-utils (2.5.1) stretch; urgency=medium
 
   * fix: fix get IMSI for YUGA CLM920-NC5
