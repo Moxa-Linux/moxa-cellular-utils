@@ -1669,6 +1669,7 @@ cell_module_info() {
 cell_m_info() {
 	local info=""
 	local lac=""
+	local tac=""
 	local cellid=""
 	local lcid=""
 	local ret=""
@@ -1681,6 +1682,7 @@ cell_m_info() {
 	info="$(_exec_op_rtn location_info)"
 	cellid="$(echo "${info}" | grep "CellID:" | cut -d' ' -s -f 2-)"
 	lac="$(echo "${info}" | grep "LAC:" | cut -d' ' -s -f 2-)"
+	tac="$(echo "${info}" | grep "TAC:" | cut -d' ' -s -f 2-)"
 	lcid="$(echo "${info}" | grep "LCID:" | cut -d' ' -s -f 2-)"
 
 	info="$(_exec_op_rtn module_ids)"
@@ -1690,6 +1692,13 @@ cell_m_info() {
 	echo WWAN_node=$QMI_NODE
 	echo AT_port=$AT_PORT
 	echo GPS_port=$GPS_PORT
+	if [ -n "${tac}" ]; then
+		echo TAC=${tac}
+	elif [ -n "${lac}" ]; then
+		echo LAC=${lac}
+	else
+		echo "LAC=NotSupport"
+	fi
 	echo LAC=${lac:-"NotSupport"}
 	echo CellID=${cellid:-"NotSupport"}
 	echo ICC-ID=$iccid
