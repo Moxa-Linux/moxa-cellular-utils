@@ -1,6 +1,6 @@
 #!/bin/bash
 
-INTERVAL=10
+INTERVAL=60
 CELL_MGMT=cell_mgmt
 MAX_SLOT_NUM=0
 USED_SLOT_NUM=0
