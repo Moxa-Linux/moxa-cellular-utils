@@ -1,3 +1,11 @@
+moxa-cellular-utils (2.5.3) stretch; urgency=medium
+
+  * fix: access fw_printenv takes too long, cache the value instead
+  * fix: adjust the signald interval to 60 secs
+  * fix: align the output of tac and lac
+
+ -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Wed, 29 Jul 2020 10:41:44 +0800
+
 moxa-cellular-utils (2.5.2) stretch; urgency=medium
 
   * fix: keep interface from process IPV6 RA request 
