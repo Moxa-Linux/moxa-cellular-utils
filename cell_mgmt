@@ -19,20 +19,26 @@ VERSION="2.5.2"
 PROG=$0
 PID=$$
 STATUS_DIR=/var/run/${PKG}
+PRODUCT_NAME_FILE=${STATUS_DIR}/product_name
 
 # profile
 CONF_DIR=/etc/${PKG}
-#CONF_DIR=/home/moxa/moxa-cellular-utils${CONF_DIR}
 PROFILE_FILE=${CONF_DIR}/${PKG}.conf
 PRODUCT_DIR=${CONF_DIR}/product.d
 MODULE_DIR=${CONF_DIR}/module.d
 MODULE_ON_DIR=${CONF_DIR}/module-on.d
 MODULE_OFF_DIR=${CONF_DIR}/module-off.d
 
-KVERSION=$(which kversion)
-[ -z "${KVERSION}" ] && >&2 echo "Error: \`kversion\` not found." && exit 1
-
-PRODUCT="$(${KVERSION} 2> /dev/null | awk '{print $1}')"
+# Get product name and store
+if [ ! -f "${PRODUCT_NAME_FILE}" ]; then
+        KVERSION="$(which kversion)"
+        [ -z "${KVERSION}" ] && >&2 echo "Error: \`kversion\` not found." && exit 1
+        PRODUCT="$(${KVERSION} 2> /dev/null | awk '{print $1}')"
+        mkdir -p ${STATUS_DIR}
+        echo "${PRODUCT}" > ${PRODUCT_NAME_FILE}
+else
+        PRODUCT=$(cat ${PRODUCT_NAME_FILE})
+fi
 
 # QMI
 # new libqmi includes a tool called "qmi-proxy"
