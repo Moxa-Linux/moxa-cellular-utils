@@ -1,3 +1,10 @@
+moxa-cellular-utils (2.6.0) stretch; urgency=medium
+
+  * feat: add support for UC-8580
+  * feat: add support for UC-8540
+
+ -- Alif Chen <alif.chen@moxa.com>  Mon, 03 Aug 2020 19:00:35 +0800
+
 moxa-cellular-utils (2.5.3) stretch; urgency=medium
 
   * fix: access fw_printenv takes too long, cache the value instead
