@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.7.0) stretch; urgency=medium
+
+  * feat: support UC-3100 AP models
+
+ -- Wes Huang <Wes.Huang@moxa.com>  Wed, 05 Aug 2020 03:34:00 -0400
+
 moxa-cellular-utils (2.6.0) stretch; urgency=medium
 
   * feat: add support for UC-8580
