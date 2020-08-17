@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.7.1) stretch; urgency=medium
+
+  * fix: signal level information for Quectel EC20
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Fri, 14 Aug 2020 15:46:01 +0800
+
 moxa-cellular-utils (2.7.0) stretch; urgency=medium
 
   * feat: support UC-3100 AP models
