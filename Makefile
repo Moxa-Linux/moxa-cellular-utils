@@ -19,6 +19,8 @@ DIST_FILES = \
 	etc/ppp/ip-up.d/0000usepeerdns \
 	etc/ppp/ip-down.d/0000usepeerdns \
 	etc/udhcpc/default.script \
+	etc/rsyslog.d/cell_mgmt.conf \
+	etc/logrotate.d/cell_mgmt \
 	etc/${PROJECT}/${PROJECT}.conf \
 	etc/${PROJECT}/product.d \
 	etc/${PROJECT}/module.d \

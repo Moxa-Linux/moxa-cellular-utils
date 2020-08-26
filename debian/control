@@ -17,7 +17,9 @@ Depends: ${misc:Depends},
          libqmi-proxy (>= 1.16.2),
          wvdial,
          gawk,
-         bc
+         bc,
+         rsyslog,
+         logrotate
 Description: Cellular modem utility on Moxa computer.
 
 Package: moxa-cellular-signald

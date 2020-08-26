@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="2.7.2"
+VERSION="2.8.0"
 
 PROG=$0
 PID=$$
@@ -52,6 +52,10 @@ FORCE=0
 NEED_LOCK=0
 NEED_INITIALIZE=0
 
+
+_logger () {
+	logger -t "cell_mgmt" "${1}"
+}
 
 _exit() {
 	local ret=${1:-0}
@@ -488,6 +492,8 @@ _qmicli() {
 	for i in {1..5}; do
 		qmi_out="$(${QMICLI} -d ${QMI_PORT} $@ ${QMICLI_END} 2>&1)"
 		qmi_ret=$?
+		_logger "Type: [QMI], Port: [${QMI_PORT}], CMD: [${@}], \
+Response: [${qmi_out}]"
 		# error 3 (internal) and 31 (invalid service type)
 		if ! (echo ${qmi_out} | grep "QMI protocol error (3)") &&
 			! (echo ${qmi_out} | grep "QMI protocol error (31)"); then
@@ -1013,11 +1019,13 @@ _at_cmd() {
 	local cmd="${2}"
 	local timeout=${3:-0.3}
 	local force_timeout=$((${timeout%.*} + 1))
-
+	local ret=""
 
 	ret=$(timeout ${force_timeout} \
 		mxat -d "${at_port}" -c "${cmd}" -t ${timeout})
 	echo "${ret}"
+	_logger "Type: [AT], Port: [${at_port}], CMD: [${cmd}], \
+Timeout: [${timeout}], Response: [${ret}]"
 	if echo "${ret}" | grep -q "OK"; then
 		return 0
 	fi
