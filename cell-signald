@@ -16,6 +16,8 @@ KVERSION=$(which kversion)
 PRODUCT="$(${KVERSION} 2> /dev/null | awk '{print $1}')"
 
 _calc_max_slot_num() {
+	local conf=""
+
 	for conf in $(ls ${PRODUCT_DIR}); do
 		if [ "${conf: -5}" = ".conf" ]; then
 			. "${PRODUCT_DIR}/$conf"
@@ -32,6 +34,8 @@ _calc_max_slot_num() {
 }
 
 _init_signal_from_slots() {
+	local i=""
+
 	for (( i=0; i<${MAX_SLOT_NUM}; i++ )); do
 		# set to 999 for slot unused
 		SIGNAL_FROM_SLOTS[i]=999
@@ -44,6 +48,7 @@ _init_signal_from_slots() {
 
 _calc_used_slot_num() {
 	local count=0
+	local i=""
 
 	for (( i=0; i<${MAX_SLOT_NUM}; i++ )); do
 		if [ "${SIGNAL_FROM_SLOTS[i]}" != "0" ] && [ "${SIGNAL_FROM_SLOTS[i]}" != "999" ]; then
@@ -57,6 +62,8 @@ _signal_level_to_led() {
 	local slot=$1
 	local signal=${2:-"0"}
 	local o_ifs=""
+	local i=""
+	local signal_func_name=""
 
 	# Compare the signal with the threshold level and then invoke
 	# the product specific led representaion function.
@@ -90,6 +97,10 @@ _signal_level_to_led() {
 }
 
 _loop() {
+	local modules=""
+	local slot=""
+	local signal=""
+
 	while [ 1 ]; do
 		modules=$(${CELL_MGMT} modules) || modules=0
 
