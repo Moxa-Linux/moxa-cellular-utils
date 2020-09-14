@@ -1,3 +1,11 @@
+moxa-cellular-utils (2.9.0) stretch; urgency=medium
+
+  * fix: aig-301: remove unused model name
+  * fix: aig-301: add model name
+  * feat: add MC-1200 series configutation
+
+ -- Remus Wu <remusty.wu@moxa.com>  Thu, 10 Sep 2020 11:22:09 +0800
+
 moxa-cellular-utils (2.8.1) stretch; urgency=medium
 
   * fix: fix module_name description for Quectel EC20/EC25-AUX/EG25-G modules
