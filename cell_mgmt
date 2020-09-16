@@ -1713,7 +1713,6 @@ cell_m_info() {
 	else
 		echo "LAC=NotSupport"
 	fi
-	echo LAC=${lac:-"NotSupport"}
 	echo CellID=${cellid:-"NotSupport"}
 	echo ICC-ID=$iccid
 	echo IMEI=$imei
