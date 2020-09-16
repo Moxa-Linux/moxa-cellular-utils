@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="2.9.0"
+VERSION="2.9.1"
 
 PROG=$0
 PID=$$
@@ -1713,7 +1713,6 @@ cell_m_info() {
 	else
 		echo "LAC=NotSupport"
 	fi
-	echo LAC=${lac:-"NotSupport"}
 	echo CellID=${cellid:-"NotSupport"}
 	echo ICC-ID=$iccid
 	echo IMEI=$imei
