@@ -1722,19 +1722,6 @@ cell_m_info() {
 	#echo SYS_USB=$SYS_USB
 }
 
-# verizon auto dialup
-cell_vzwauto() {
-	local profile=$(_exec_op_rtn get_profiles | grep "^3")
-
-
-	[ -z "${profile}" ] && \
-		_error 0 "Error: PDP context 3 doesn't exist." && _exit 4
-	APN=$(echo "${profile}" | cut -d ',' -f 2)
-	_exec_op start_network
-	#echo -e "\n\n APN=${APN} is in used\n\n"
-	_exit 0
-}
-
 cell_pin_code_status() {
 	local card_status="$(_exec_op sim_status | grep "^+CPIN")"
 
@@ -2016,9 +2003,6 @@ cell_usage() {
 	#operator
 	echo -e "	operator"
 	echo -e "		Telecommunication operator."
-	#verizon auto dial up
-	echo -e "	vzwauto"
-	echo -e "		Verizon Private Network auto dialup."
 	#version
 	echo -e "	version"
 	echo -e "		Cellular management version."
@@ -2198,9 +2182,6 @@ get_op_func() {
 			;;
 		location_info)
 			op_func="$(_get_op_func $arg1)"
-			;;
-		vzwauto)
-			op_func=cell_vzwauto
 			;;
 		version)
 			cell_version
