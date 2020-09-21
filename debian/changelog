@@ -1,3 +1,10 @@
+moxa-cellular-utils (2.9.2) stretch; urgency=medium
+
+  * fix: remove useless vzwauto function
+  * fix: fix wrong SLOT id when using dhcp script
+
+ -- Tzongyen Lin <tzongyen.lin@moxa.com>  Mon, 21 Sep 2020 10:48:50 +0800
+
 moxa-cellular-utils (2.9.1) stretch; urgency=medium
 
   * fix: fix mc1200 syspath
