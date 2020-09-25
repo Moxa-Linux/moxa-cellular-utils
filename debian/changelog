@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.9.3) stretch; urgency=medium
+
+  * fix: workaround for fist qmi command always timeout after telit module power_cycle
+
+ -- Tzongyen Lin <tzongyen.lin@moxa.com>  Fri, 25 Sep 2020 18:17:08 +0800
+
 moxa-cellular-utils (2.9.2) stretch; urgency=medium
 
   * fix: remove useless vzwauto function
