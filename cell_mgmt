@@ -1509,6 +1509,9 @@ cell_power_off() {
 	_exec_op_rtn stop_network 2> /dev/null
 	_qmi_kill_proxy
 
+	if _func_exist _module_${MODULE_ID}_power_off; then
+		_module_${MODULE_ID}_power_off $@
+	fi
 
 	power_off_funcs="$(echo "$POWER_OFF_FUN" | sed -e "s/\$SLOT/$SLOT/g")"
 
