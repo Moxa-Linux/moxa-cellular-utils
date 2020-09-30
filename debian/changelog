@@ -1,3 +1,10 @@
+moxa-cellular-utils (2.10.0) stretch; urgency=medium
+
+  * fix: extend +cgact timeout base on ublox spec's definition to prevent timeout in seraching 3G network 
+  * feat: support previous power_off function to aviod data lose and module crash with hw power off
+
+ -- Tzongyen Lin <tzongyen.lin@moxa.com>  Mon, 28 Sep 2020 12:02:53 +0800
+
 moxa-cellular-utils (2.9.3) stretch; urgency=medium
 
   * fix: workaround for fist qmi command always timeout after telit module power_cycle
