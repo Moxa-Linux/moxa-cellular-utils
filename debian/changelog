@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.10.1) stretch; urgency=medium
+
+  * fix: fix special char to cause attach function fault
+
+ -- Tzongyen Lin <tzongyen.lin@moxa.com>  Mon, 05 Oct 2020 16:07:48 +0800
+
 moxa-cellular-utils (2.10.0) stretch; urgency=medium
 
   * fix: extend +cgact timeout base on ublox spec's definition to prevent timeout in seraching 3G network 
