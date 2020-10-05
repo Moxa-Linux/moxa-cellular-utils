@@ -738,12 +738,18 @@ qmi_fw_update() {
 
 qmi_attach_status() {
 	local info=
+	local info_fix_char=
+	local oldIFS=$IFS
 
 	info="$(_qmicli --nas-get-serving-system)" || \
 		{ _error 1; _exit 1; }
+	IFS=
+	info_fix_char=`echo  ${info} | sed "/CS:\|PS:/!d" `
+	echo $info_fix_char
+	IFS=$oldIFS
 
-	echo "CS: $(_qmicli_value "${info}" "CS")"
-	echo "PS: $(_qmicli_value "${info}" "PS")"
+	echo "CS11: $(_qmicli_value "${info_fix_char}" "CS")"
+	echo "PS11: $(_qmicli_value "${info_fix_char}" "PS")"
 }
 
 #check cellular status
