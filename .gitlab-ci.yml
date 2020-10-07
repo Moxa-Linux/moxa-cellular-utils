@@ -1,54 +1,43 @@
-image: dockerhub.syssw.moxa.com:5000/debian-dev:amd64-jessie
+variables:
+    GIT_DEPTH: "1"
 
 stages:
-- dist
-- build-deb
-- upload-deb
+    - mil-internal-release_build
+    - prepare_mil-internal-release_debs
 
-dist:
-    stage: dist
-    artifacts:
-        name: "$CI_PROJECT_NAME"
-        paths:
-        - ./*.tar.gz
+mil-internal-release_build:
+    tags:
+        - Runner-Stretch
+    stage: mil-internal-release_build
     script:
-    - make dist
-
-build-deb:
-    stage: build-deb
-    dependencies:
-    - dist
+        - dpkg --add-architecture armhf
+        - echo "deb http://mil-internal-apt:8080/mil-internal-release/ stretch main" > /etc/apt/sources.list
+        - echo "deb http://mil-internal-apt:8080/mirror-debian_20200718/debian stretch main" >> /etc/apt/sources.list
+        - curl -fsSL http://mil-internal-apt:8080/mil_internal_apt.gpg | apt-key add -
+        - apt-get update
+        - apt-get build-dep ./ -y -aarmhf
+        - dpkg-buildpackage -us -uc -b
+        - mv ../*.buildinfo .
+        - mv ../*.changes .
+        - mv ../*.deb .
     artifacts:
         name: "${CI_PROJECT_NAME}"
         paths:
-        - ./*.deb
+        - ./*.buildinfo
         - ./*.changes
-        - ./*.dsc
-    script:
-    - git-buildpackage --git-ignore-branch -uc -us --git-export-dir=.
+        - ./*.deb
 
-upload-deb:
-    stage: upload-deb
+prepare_mil-internal-release_debs:
+    tags:
+        - Runner-Stretch
+    stage: prepare_mil-internal-release_debs
     only:
       refs:
-        - tags
         - master
-        - develop
-        - /^release\/.*$/
     dependencies:
-    - build-deb
-    before_script:
-      - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-      - eval $(ssh-agent -s)
-      - echo "${DEB_REPO_SSH_PRIVATE_KEY}" | tr -d '\r' | ssh-add - > /dev/null
-      - mkdir -p ~/.ssh
-      - chmod 0700 ~/.ssh
-      - echo "${DEB_REPO_SSH_KNOWN_HOSTS}" > ~/.ssh/known_hosts
-      - chmod 0644 ~/.ssh/known_hosts
+        - mil-internal-release_build
+    when: manual
     script:
-      - export DEB_REPO_NAMESPACE=utility
-      - ssh "${DEB_REPO_USERNAME}@${DEB_REPO_URL}" "mkdir -p ${DEB_REPO_ROOT_PATH}/data/incoming/${DEB_REPO_NAMESPACE}/${CI_COMMIT_REF_NAME}/"
-      - scp *.deb "${DEB_REPO_USERNAME}@${DEB_REPO_URL}:${DEB_REPO_ROOT_PATH}/data/incoming/${DEB_REPO_NAMESPACE}/${CI_COMMIT_REF_NAME}/"
-      - scp *.changes "${DEB_REPO_USERNAME}@${DEB_REPO_URL}:${DEB_REPO_ROOT_PATH}/data/incoming/${DEB_REPO_NAMESPACE}/${CI_COMMIT_REF_NAME}/"
-      - scp *.dsc "${DEB_REPO_USERNAME}@${DEB_REPO_URL}:${DEB_REPO_ROOT_PATH}/data/incoming/${DEB_REPO_NAMESPACE}/${CI_COMMIT_REF_NAME}/"
-      - ssh "${DEB_REPO_USERNAME}@${DEB_REPO_URL}" "docker run -i --rm --entrypoint bash -w /data -v ${DEB_REPO_ROOT_PATH}/data:/data -v ${DEB_REPO_ROOT_PATH}/apt-repo-update:/apt-repo-update sanji/apt-repo-update /bin/apt-repo-update ${DEB_REPO_NAMESPACE}/${CI_COMMIT_REF_NAME}"
+        - mkdir -p /cache/stretch/mil-internal-release/
+        - cp *.deb /cache/stretch/mil-internal-release/
+        - ls /cache/stretch/mil-internal-release/
