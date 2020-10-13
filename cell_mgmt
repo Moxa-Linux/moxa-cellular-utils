@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="2.10.1"
+VERSION="2.10.2"
 
 PROG=$0
 PID=$$
@@ -745,11 +745,10 @@ qmi_attach_status() {
 		{ _error 1; _exit 1; }
 	IFS=
 	info_fix_char=`echo  ${info} | sed "/CS:\|PS:/!d" `
-	echo $info_fix_char
 	IFS=$oldIFS
 
-	echo "CS11: $(_qmicli_value "${info_fix_char}" "CS")"
-	echo "PS11: $(_qmicli_value "${info_fix_char}" "PS")"
+	echo "CS: $(_qmicli_value "${info_fix_char}" "CS")"
+	echo "PS: $(_qmicli_value "${info_fix_char}" "PS")"
 }
 
 #check cellular status
