@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.10.2) stretch; urgency=medium
+
+  * fix: remove debug message
+
+ -- Tzongyen Lin <tzongyen.lin@moxa.com>  Tue, 13 Oct 2020 13:32:46 +0800
+
 moxa-cellular-utils (2.10.1) stretch; urgency=medium
 
   * fix: fix special char to cause attach function fault
