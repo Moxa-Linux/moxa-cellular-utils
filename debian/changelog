@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.10.3) stretch; urgency=medium
+
+  * fix: update WCUM-8500 HW2.0 product configuration
+
+ -- Alif Chen <alif.chen@moxa.com>  Wed, 21 Oct 2020 14:40:08 +0800
+
 moxa-cellular-utils (2.10.2) stretch; urgency=medium
 
   * fix: remove debug message
