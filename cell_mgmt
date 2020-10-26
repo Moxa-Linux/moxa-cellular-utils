@@ -753,10 +753,16 @@ qmi_attach_status() {
 
 #check cellular status
 qmi_status() {
+	local ps_status
+	ps_status=$(qmi_attach_status | grep PS | awk -F":" '{print $2}' | sed 's/ //g')
+
 	local con_status=$(_qmi_packet_service_status | grep "Status")
 
 	if [ x"$(echo ${con_status}| awk '{print $2}')" == x"connected" ]; then
-		if [ -f "${STATUS_FILE}" ]; then
+		if [ "${ps_status}" == "detached" ]; then
+			echo "Status: disconnected"
+			_exit 1
+		elif [ -f "${STATUS_FILE}" ]; then
 			cat "${STATUS_FILE}"
 			_exit 0
 		fi
