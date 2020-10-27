@@ -1,3 +1,9 @@
+moxa-cellular-utils (2.10.4) stretch; urgency=medium
+
+  * fix: fix wrong status from qmi wds
+
+ -- Kerry KR Weng <KerryKR.Weng@moxa.com>  Mon, 26 Oct 2020 16:02:48 +0800
+
 moxa-cellular-utils (2.10.3) stretch; urgency=medium
 
   * fix: update WCUM-8500 HW2.0 product configuration
