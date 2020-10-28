@@ -1,3 +1,11 @@
+moxa-cellular-utils (2.10.5) stretch; urgency=medium
+
+  * fix: uc2100-lx: remove non-support model
+  * fix: uc2100-lx: rename model name to correct form
+  * fix: uc2100-lx: update gpio control function
+
+ -- Remus Wu <remusty.wu@moxa.com>  Wed, 28 Oct 2020 13:55:20 +0800
+
 moxa-cellular-utils (2.10.4) stretch; urgency=medium
 
   * fix: fix wrong status from qmi wds
