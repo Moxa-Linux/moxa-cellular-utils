@@ -1,3 +1,10 @@
+moxa-cellular-utils (2.10.6) stretch; urgency=medium
+
+  [Changed]
+    * Use 'mx-module-ctl' when conffile exist instead of 'mx-mod-ctl'
+
+ -- Remus Wu <remusty.wu@moxa.com>  Mon, 02 Nov 2020 14:36:22 +0800
+
 moxa-cellular-utils (2.10.5) stretch; urgency=medium
 
   * fix: uc2100-lx: remove non-support model
@@ -32,7 +39,7 @@ moxa-cellular-utils (2.10.1) stretch; urgency=medium
 
 moxa-cellular-utils (2.10.0) stretch; urgency=medium
 
-  * fix: extend +cgact timeout base on ublox spec's definition to prevent timeout in seraching 3G network 
+  * fix: extend +cgact timeout base on ublox spec's definition to prevent timeout in seraching 3G network
   * feat: support previous power_off function to aviod data lose and module crash with hw power off
 
  -- Tzongyen Lin <tzongyen.lin@moxa.com>  Mon, 28 Sep 2020 12:02:53 +0800
@@ -79,7 +86,7 @@ moxa-cellular-utils (2.8.0) stretch; urgency=medium
 
 moxa-cellular-utils (2.7.2) stretch; urgency=medium
 
-  * fix: cell-signald: set variable to local 
+  * fix: cell-signald: set variable to local
 
  -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Thu, 20 Aug 2020 10:27:18 +0800
 
@@ -112,7 +119,7 @@ moxa-cellular-utils (2.5.3) stretch; urgency=medium
 
 moxa-cellular-utils (2.5.2) stretch; urgency=medium
 
-  * fix: keep interface from process IPV6 RA request 
+  * fix: keep interface from process IPV6 RA request
 
  -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Thu, 23 Jul 2020 10:45:48 +0800
 
