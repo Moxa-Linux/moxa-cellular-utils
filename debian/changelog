@@ -1,3 +1,14 @@
+moxa-cellular-utils (2.10.7) stretch; urgency=medium
+
+   [Added]
+    * Support AIG-501 series models:
+      AIG-501-T-AZU-LX
+      AIG-501-T-US-AZU-LX
+      AIG-501-T-EU-AZU-LX
+      AIG-501-T-AP-AZU-LX
+
+ -- Elvis Yao (姚家瑋) <ElvisCW.Yao@moxa.com>  Thu, 12 Nov 2020 12:02:03 +0800
+
 moxa-cellular-utils (2.10.6) stretch; urgency=medium
 
   [Changed]
