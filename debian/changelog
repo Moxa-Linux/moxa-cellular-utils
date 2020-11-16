@@ -1,3 +1,10 @@
+moxa-cellular-utils (2.10.8) stretch; urgency=medium
+
+  [Changed]
+    * Remove duplicate model name in AIG-501 config file (AIG-501-T-US-AZU-LX)
+
+ -- Elvis Yao (姚家瑋) <ElvisCW.Yao@moxa.com>  Mon, 16 Nov 2020 11:10:34 +0800
+
 moxa-cellular-utils (2.10.7) stretch; urgency=medium
 
    [Added]
