@@ -723,7 +723,6 @@ _qmi_card_status() {
 			_qmi_card_app_state "${card_info}"
 			;;
 		*)
-			echo "+CME ERROR: SIM ${card_state}"
 			return 1
 			;;
 	esac
