@@ -14,7 +14,7 @@
 
 #--------- Initialize Global variables ---------
 PKG="moxa-cellular-utils"
-VERSION="2.10.11"
+VERSION="2.10.12"
 
 PROG=$0
 PID=$$
@@ -723,7 +723,6 @@ _qmi_card_status() {
 			_qmi_card_app_state "${card_info}"
 			;;
 		*)
-			echo "+CME ERROR: SIM ${card_state}"
 			return 1
 			;;
 	esac
