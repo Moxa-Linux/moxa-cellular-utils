@@ -1,3 +1,10 @@
+moxa-cellular-utils (2.10.13) stretch; urgency=medium
+
+  [Added]
+    * Add AIG-301 none wide temperature model support
+
+ -- Remus Wu <remusty.wu@moxa.com>  Wed, 09 Dec 2020 15:49:12 +0800
+
 moxa-cellular-utils (2.10.12) stretch; urgency=medium
 
   [Fixed]
